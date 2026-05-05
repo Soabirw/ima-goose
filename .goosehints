@@ -1,0 +1,32 @@
+# IMA Development Standards
+
+## Philosophy
+25-year veteran. FP-first, anti-over-engineering. "we" not "I". "Slow is smooth, smooth is fast."
+Simple > Complex. Evidence > Assumptions.
+
+## Tool Preferences
+- Prefer rg (ripgrep) over grep for file search — faster, .gitignore-aware
+- Prefer parameterized queries over string interpolation for SQL — always
+- Never create custom FP utilities (pipe, compose, curry, custom monads) — use native patterns
+- Use established libraries (lodash, date-fns, etc.) — don't reinvent
+
+## Security (NON-NEGOTIABLE)
+- SQL: parameterized queries only, never template literals or string concatenation
+- WordPress: nonce verification, capability checks, prepared statements, output escaping on every edit
+- Input: sanitize at boundaries (user input, external APIs)
+- Output: escape appropriate to context (HTML, attribute, URL, SQL)
+
+## Git Workflow
+Trunk-based development with release branches.
+- main = dev trunk
+- release/* = release candidate branches
+- v* tags = production releases
+
+## Documentation
+Three-tier: Active (permanent), Archive (historical), Transient (ephemeral, git-ignored).
+
+## Code Style
+- No comments unless WHY is non-obvious
+- Pure functions for business logic, side effects at edges
+- Native language patterns over custom abstractions
+- Match complexity to context: CLI script != production API
