@@ -128,8 +128,6 @@ instructions: |
 prompt: "Review the recent changes. Detect the Git platform (Gitea/GitHub), fetch the PR diff, then analyze."
 
 settings:
-  goose_provider: "openrouter"
-  goose_model: "anthropic/claude-sonnet-4-5"
 
 activities:
   - "Review the latest commit for security issues"

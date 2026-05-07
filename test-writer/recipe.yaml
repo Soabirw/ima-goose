@@ -63,8 +63,6 @@ instructions: |
 prompt: "What tests would you like to create or debug?"
 
 settings:
-  goose_provider: "openrouter"
-  goose_model: "anthropic/claude-sonnet-4-5"
 
 activities:
   - "Write unit tests for this module"

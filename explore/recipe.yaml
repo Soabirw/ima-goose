@@ -32,8 +32,6 @@ instructions: |
 prompt: "What would you like to explore in this codebase?"
 
 settings:
-  goose_provider: "openrouter"
-  goose_model: "google/gemini-2.0-flash"
 
 activities:
   - "Show me the architecture of this project"

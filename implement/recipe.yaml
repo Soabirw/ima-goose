@@ -48,8 +48,6 @@ instructions: |
 prompt: "What would you like to implement?"
 
 settings:
-  goose_provider: "openrouter"
-  goose_model: "anthropic/claude-sonnet-4-5"
 
 activities:
   - "Implement a new REST API endpoint"

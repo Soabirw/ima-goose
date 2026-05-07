@@ -89,8 +89,6 @@ parameters:
       - other
 
 settings:
-  goose_provider: "openrouter"
-  goose_model: "anthropic/claude-sonnet-4-5"
 
 activities:
   - "Build a new WordPress plugin with FP patterns"
