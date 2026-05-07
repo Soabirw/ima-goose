@@ -1,0 +1,128 @@
+# IMA Goose workflow aliases — shell functions for the WordPress dev cycle
+#
+# SETUP
+# ─────
+# 1. Copy this file to your home directory:
+#      cp .goose-aliases.example ~/.goose-aliases
+#
+# 2. Edit GOOSE_RECIPE_PATH to match where you cloned this repo:
+#      export GOOSE_RECIPE_PATH="$HOME/IMA/dev/ima-goose"
+#
+# 3. Add this line to your ~/.bashrc (or ~/.zshrc):
+#      [ -f "$HOME/.goose-aliases" ] && source "$HOME/.goose-aliases"
+#
+# 4. Reload your shell:
+#      source ~/.bashrc
+#
+# 5. Verify it works:
+#      goose-help
+#
+# UPDATING
+# ────────
+# When the recipe names or workflow changes, update ~/.goose-aliases directly.
+# This example file tracks the current recommended defaults in the repo.
+
+# ── Environment ──────────────────────────────────────────────────────────────
+
+export GOOSE_RECIPE_PATH="$HOME/IMA/dev/ima-goose"
+
+# ── Phase 1: Brainstorm ───────────────────────────────────────────────────────
+# Usage: goose-brainstorm
+# Starts prompt-starter in Mode A (raw feature idea → brainstorm summary)
+goose-brainstorm() {
+  goose run --recipe prompt-starter --name "brainstorm-$(date +%Y%m%d)" --interactive
+}
+
+# ── Phase 2: Feature Planning + Jira Creation ─────────────────────────────────
+# Usage: goose-plan
+# Breaks brainstorm summary into Epics/Stories; optionally creates in Jira
+goose-plan() {
+  goose run --recipe task-master --name "planning-$(date +%Y%m%d)" --interactive
+}
+
+# ── Phase 3a: Story → Implementation Prompt ───────────────────────────────────
+# Usage: goose-story-prompt FNR-123
+# Fetches Jira story, produces a structured implementation prompt for task-master
+goose-story-prompt() {
+  local key="${1:?Usage: goose-story-prompt FNR-123}"
+  goose run --recipe prompt-starter --name "story-${key}-prompt" --interactive
+}
+
+# ── Phase 3b: Implement a Story ───────────────────────────────────────────────
+# Usage: goose-implement FNR-123
+# Runs task-master with summon delegation for the full implementation cycle
+goose-implement() {
+  local key="${1:?Usage: goose-implement FNR-123}"
+  goose run --recipe task-master --name "story-${key}-impl" --interactive
+}
+
+# ── Phase 4: Code Review ──────────────────────────────────────────────────────
+# Usage: goose-review FNR-123
+#        goose-review          (uses today's date as session name)
+# Reviews PR via tea (Gitea) or gh (GitHub), posts comment, updates Jira
+goose-review() {
+  local key="${1:-$(date +%Y%m%d)}"
+  goose run --recipe code-review --name "review-${key}" --interactive
+}
+
+# ── Session Management ────────────────────────────────────────────────────────
+# Usage: goose-resume story-FNR-123-impl
+goose-resume() {
+  local name="${1:?Usage: goose-resume <session-name>}"
+  goose run --resume --name "$name"
+}
+
+# List all goose sessions
+goose-sessions() {
+  goose session list
+}
+
+# ── Direct Recipe Shortcuts ───────────────────────────────────────────────────
+# Useful when spawned directly rather than through the workflow chain
+
+# WordPress development (plugin/theme work outside the full workflow)
+goose-wp() {
+  goose run --recipe wp-developer --name "wp-$(date +%Y%m%d-%H%M)" --interactive
+}
+
+# Quick explore session (read-only, file discovery, architecture questions)
+goose-explore() {
+  goose run --recipe explore --name "explore-$(date +%Y%m%d-%H%M)" --interactive
+}
+
+# Write or debug tests directly
+goose-tests() {
+  goose run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive
+}
+
+# ── Help ──────────────────────────────────────────────────────────────────────
+goose-help() {
+  cat <<'EOF'
+IMA Goose Workflow Commands
+────────────────────────────────────────────────────────
+WORKFLOW (run in order per feature):
+
+  goose-brainstorm              Phase 1 — raw idea → brainstorm summary
+  goose-plan                    Phase 2 — summary → Epics/Stories + Jira creation
+  goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt
+  goose-implement FNR-123       Phase 3b — implementation prompt → code + PR
+  goose-review [FNR-123]        Phase 4 — PR review, comment, Jira update
+
+SESSION MANAGEMENT:
+
+  goose-resume <session-name>   Resume a named session
+  goose-sessions                List all sessions
+
+DIRECT RECIPES:
+
+  goose-wp                      WordPress development (ad hoc)
+  goose-explore                 Read-only codebase exploration
+  goose-tests                   Write or debug tests
+
+DOCS:
+
+  $GOOSE_RECIPE_PATH/docs/WORKFLOW-MAPPING.md  — Full workflow guide
+  $GOOSE_RECIPE_PATH/shared/tool-guides/tea.md — Gitea CLI reference
+────────────────────────────────────────────────────────
+EOF
+}
