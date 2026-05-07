@@ -1,0 +1,162 @@
+# ima-goose Developer Configuration Template
+# Copy to: ~/.config/goose/config.yaml
+# Set all PLACEHOLDER values before use
+# Last updated: 2026-05-06
+
+extensions:
+  # ── Core platform extensions (always enabled) ──
+
+  developer:
+    enabled: true
+    type: platform
+    name: developer
+    description: Write and edit files, and execute shell commands
+    display_name: Developer
+    bundled: true
+
+  summon:
+    enabled: true
+    type: platform
+    name: summon
+    description: Load knowledge and delegate tasks to subagents
+    display_name: Summon
+    bundled: true
+    # Auto-discovers SKILL.md files from ~/.agents/skills/ (Goose v1.25+)
+
+  orchestrator:
+    enabled: true
+    type: platform
+    name: orchestrator
+    description: Manage agent sessions — list, view, start, send messages, interrupt, stop
+    display_name: Orchestrator
+    bundled: true
+
+  chatrecall:
+    enabled: true
+    type: platform
+    name: chatrecall
+    description: Search past conversations and load session summaries for contextual memory
+    display_name: Chat Recall
+    bundled: true
+    # Session memory — replaces Vestige/Qdrant/Serena memory stack for Goose workflows
+
+  # ── MCP Extensions ──
+
+  # Tavily — web search and research
+  # API key: https://tavily.com (free tier available)
+  tavily:
+    enabled: true
+    name: tavily
+    type: stdio
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys: ["TAVILY_API_KEY"]
+    timeout: 60
+
+  # Context7 — official library documentation (no API key required)
+  context7:
+    enabled: true
+    name: context7
+    type: stdio
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+
+  # Sequential Thinking — structured reasoning for complex problems (no API key required)
+  sequential-thinking:
+    enabled: true
+    name: sequential-thinking
+    type: stdio
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+
+  # Serena — JetBrains-powered code navigation (saves 40-70% tokens vs reading files)
+  # Requires: JetBrains IDE running with Serena MCP plugin + uvx installed
+  # Plugin: https://plugins.jetbrains.com/plugin/27337-serena-mcp
+  serena:
+    enabled: true
+    name: serena
+    type: stdio
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+
+  # Fetch — retrieve and convert URL content for analysis
+  fetch:
+    enabled: true
+    name: fetch
+    type: stdio
+    cmd: uvx
+    args: ["mcp-server-fetch"]
+    timeout: 60
+
+  # Chrome DevTools — browser inspection and debugging through Chrome
+  chrome-devtools:
+    enabled: true
+    name: chrome-devtools
+    type: stdio
+    cmd: npx
+    args: ["-y", "chrome-devtools-mcp@latest"]
+    timeout: 60
+
+  # Qdrant Memory — permanent semantic knowledge library
+  # Requires: qdrant-mcp on PATH and Qdrant running at QDRANT_URL
+  qdrant-memory:
+    enabled: true
+    name: qdrant-memory
+    type: stdio
+    cmd: qdrant-mcp
+    args: []
+    envs:
+      QDRANT_URL: "http://localhost:6333"
+      COLLECTION_NAME: "ima-knowledge"
+    timeout: 60
+
+  # Vestige — cognitive memory with search, decisions, preferences, and intentions
+  # Requires: vestige-mcp on PATH
+  vestige:
+    enabled: true
+    name: vestige
+    type: stdio
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+
+  # Atlassian — Jira and Confluence (disabled by default — enable if using Jira/Confluence)
+  # API token: https://id.atlassian.com/manage-profile/security/api-tokens
+  atlassian:
+    enabled: false
+    name: atlassian
+    type: stdio
+    cmd: npx
+    args: ["-y", "@anthropic-ai/mcp-proxy", "--endpoint", "https://mcp.atlassian.com"]
+    env_keys: ["ATLASSIAN_API_TOKEN", "ATLASSIAN_EMAIL", "ATLASSIAN_SITE_URL"]
+    timeout: 300
+
+# ── Global settings ──
+GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
+# Optional local recipe discovery. Set this to your ima-goose clone's recipes directory.
+# GOOSE_RECIPE_PATH: "/home/YOU/IMA/dev/ima-goose/recipes"
+GOOSE_MODE: auto
+GOOSE_MAX_TURNS: 1000
+
+# ── Provider (choose one) ──
+
+# Option A: OpenRouter (interim — ~$0.003/session for Claude Sonnet)
+GOOSE_PROVIDER: openrouter
+GOOSE_MODEL: "anthropic/claude-sonnet-4-5"
+# Add OPENROUTER_API_KEY to your shell profile
+
+# Option B: RunPod vLLM (production — self-hosted, lower cost at scale)
+# GOOSE_PROVIDER: runpod_vllm
+# GOOSE_MODEL: "RedHatAI/Qwen3-Coder-Next-NVFP4"
+# Add RUNPOD_API_KEY and RUNPOD_ENDPOINT_ID to your shell profile

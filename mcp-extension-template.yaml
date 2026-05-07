@@ -1,0 +1,13 @@
+# Tavily MCP extension for global Goose config
+# Add to ~/.config/goose/config.yaml extensions section
+
+  # Tavily — web search and research
+  # Requires: TAVILY_API_KEY env var
+  tavily:
+    enabled: true
+    name: tavily
+    type: stdio
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys: ["TAVILY_API_KEY"]
+    timeout: 60

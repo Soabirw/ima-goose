@@ -73,13 +73,16 @@ instructions: |
   - Write custom CSS when Bootstrap utilities work
   - Use function_exists() for cross-plugin calls
 
-prompt: "What WordPress development task would you like to work on?"
+prompt: |
+  WordPress environment: {{ environment }}.
+  What WordPress development task would you like to work on?
 
 parameters:
   - key: environment
     input_type: select
     requirement: optional
     description: "WordPress local development environment"
+    default: "other"
     options:
       - ddev
       - local-wp

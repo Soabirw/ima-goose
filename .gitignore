@@ -10,3 +10,8 @@ Thumbs.db
 
 # Node (if any tooling added later)
 node_modules/
+
+# Local agent/runtime state
+.serena/
+.fastembed_cache/
+test-tavily.txt

@@ -1,0 +1,49 @@
+version: "1.0.0"
+title: "MCP Migration"
+description: "Migrate MCP servers from Claude Code's ~/.claude.json into Goose's ~/.config/goose/config.yaml."
+instructions: |
+  You are helping migrate MCP server configuration from Claude Code to Goose.
+
+  Use this workflow:
+  1. Read Claude MCP servers from ~/.claude.json at the top-level mcpServers key.
+  2. Read Goose extensions from ~/.config/goose/config.yaml at the top-level extensions key.
+  3. Compare by MCP server name. Treat platform extensions as already-Goose-native, not Claude MCP ports.
+  4. For each requested MCP server, convert Claude fields to Goose fields:
+     - command -> cmd
+     - args -> args
+     - env -> envs for non-secret values or env_keys for secrets that should be supplied from the environment/keyring
+     - type should normally remain stdio
+     - enabled should be true
+     - name should match the extension key
+     - timeout should be chosen from known local config, or 60 seconds by default; use 300 seconds for slow/IDE-backed tools.
+  5. Update ~/.config/goose/config.yaml without overwriting existing provider/model/global settings.
+  6. If this repository contains a matching skill under skills/, keep or install it with scripts/install.ts as appropriate.
+  7. Validate the resulting YAML and run goose info -v when practical.
+
+  Preserve secrets:
+  - Do not copy API keys or tokens from ~/.claude.json into committed files.
+  - For literal non-secret local defaults such as http://localhost:6333, envs is acceptable.
+  - For API keys, use env_keys.
+
+  Record the migration result in the final answer:
+  - Which MCPs were already present
+  - Which MCPs were added or changed
+  - Which MCPs were intentionally skipped
+  - Any environment variables, binaries, or local services still required
+prompt: |
+  Compare Claude MCP servers in ~/.claude.json with Goose extensions in ~/.config/goose/config.yaml.
+  Migrate the requested MCP servers: {{ mcp_servers }}.
+  If {{ mcp_servers }} is "all-missing", migrate every Claude MCP server that is missing from Goose.
+  Keep the edit scoped to Goose MCP extension configuration and this repo's related migration documentation.
+parameters:
+  - key: mcp_servers
+    input_type: string
+    requirement: optional
+    default: "all-missing"
+    description: "Comma-separated MCP server names to migrate, or all-missing."
+activities:
+  - "Compare Claude MCP servers with Goose extensions and list the missing ports."
+  - "Migrate all missing Claude MCP servers into Goose config."
+  - "Migrate fetch, chrome-devtools, qdrant-memory, and vestige into Goose config."
+settings:
+  max_turns: 30

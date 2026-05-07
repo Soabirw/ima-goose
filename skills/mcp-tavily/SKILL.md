@@ -1,33 +1,22 @@
-# Tavily — Web Research
+---
+name: mcp-tavily
+description: Use Tavily MCP for web research and current information beyond knowledge cutoff (post-January 2025).
+---
 
-Use for current information and multi-source research (post-January 2025).
+# Tavily MCP - Web Research & Current Information
 
-## Goose Extension Config
+Use Tavily for current information and multi-source research instead of multiple WebFetch calls.
 
-```yaml
-# In config.yaml (already configured)
-extensions:
-  tavily:
-    type: stdio
-    cmd: "npx"
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys: ["TAVILY_API_KEY"]
-    timeout: 300
-```
+## Tools
 
-## When to Use
-
-| Need | Use |
-|------|-----|
-| Post-Jan-2025 info | Tavily search |
-| Multi-source research | Tavily search (advanced) |
-| Single known URL | Built-in fetch |
-| Library API docs | Context7 |
-| Within training knowledge | Native LLM |
+| Tool | Purpose |
+|------|---------|
+| `mcp__tavily__search` | Web search with depth control |
+| `mcp__tavily__extract` | Extract content from specific URLs |
 
 ## Search
 
-```mcp
+```
 mcp__tavily__search
   query: "Vue 4 new features 2026"
   search_depth: "basic"
@@ -49,16 +38,33 @@ mcp__tavily__search
 | `basic` | Factual lookups, quick answers |
 | `advanced` | Comparisons, multiple perspectives |
 
+## Query Patterns
+
+| Need | Pattern |
+|------|---------|
+| Latest features | `"[library] [version] new features [year]"` |
+| Breaking changes | `"[library] [version] migration breaking changes"` |
+| Comparisons | `"[tool A] vs [tool B] comparison [year]"` |
+| Best practices | `"[topic] best practices [year]"` |
+
+Always include year. Be specific: `"Vite 6 breaking changes"` not `"Vite updates"`.
+
 ## Extract
 
-```mcp
+```
 mcp__tavily__extract
   urls: ["https://example.com/article"]
 ```
 
-## Query Tips
+## Decision Logic
 
-Include year. Be specific: `"Vite 6 breaking changes 2026"` not `"Vite updates"`.
+```
+Post-Jan-2025 info needed → Tavily
+Multi-source research needed → Tavily
+Single known URL → WebFetch
+Library API docs (not "what's new") → Context7
+Question within Claude's knowledge → native Claude
+```
 
 ## Examples
 
