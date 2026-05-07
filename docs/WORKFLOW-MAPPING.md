@@ -1,266 +1,199 @@
-# Goose Workflow Mapping
+# WordPress Development Workflow — Goose Edition
 
-This document explains how your ima-claude workflow maps to Goose recipes.
-
----
-
-## Original Workflow (ima-claude)
-
-```
-/prompt-starter let's brainstorm new feature x
-/clear
-/architect [paste brainstorming prompt]
-/prompt-starter let's take this brainstorming session and create an implementation plan
-/clear
-/task-master [past implementation plan]
-```
-
-With sub-agents:
-- `/task-planner` - Detailed task planning
-- `/task-runner` - Task execution
+The primary IMA development cycle, translated from ima-claude to Goose recipes.
+Each `/clear` in the original workflow becomes a new `goose run` session here.
 
 ---
 
-## Goose Workflow Mapping
+## The Full Cycle
 
-| Original | Goose Equivalent | Session Type |
-|----------|------------------|--------------|
-| `/prompt-starter` | `goose run --recipe prompt-starter` | Standalone session |
-| `/architect` | `goose run --recipe architect` | Standalone session |
-| `/task-master` | `goose run --recipe task-master` | Standalone session |
-| `/task-planner` | `goose run --recipe task-planner` | Standalone session (called by task-master) |
-| `/task-runner` | `goose run --recipe task-runner` | Standalone session (called by task-master) |
-
----
-
-## Full Workflow in Goose
-
-### Step 1: Brainstorm with Prompt Starter
-
-```bash
-# Start the session
-goose run --recipe prompt-starter --name "feature-brainstorm"
-
-# User provides feature idea
-# Prompt-starter asks clarifying questions
-# User answers and provides context
-# Prompt-starter creates brainstorming prompt
-# User runs the prompt-starter again with the brainstorming output
-# Prompt-starter creates implementation plan
 ```
-
-### Step 2: Architecture Review
-
-```bash
-# Save the implementation plan to a file or copy to clipboard
-# Start a new session
-goose run --recipe architect --name "feature-architecture"
-
-# User provides the implementation plan
-# Architect creates technical specifications
-# Architect creates architecture diagrams
-# Architect documents integration points
-# Architect creates security checklist
-```
-
-### Step 3: Task Master Orchestration
-
-```bash
-# Save the architecture specification
-# Start a new session
-goose run --recipe task-master --name "feature-implementation"
-
-# User provides the architecture specification
-# Task-master breaks down into sub-tasks
-# Task-master assigns tasks to appropriate agents
-# Task-master orchestrates task execution
-```
-
-### Step 4: Task Planning (Delegated by Task Master)
-
-```bash
-# Task-master internally runs:
-goose run --recipe task-planner --name "feature-task-1"
-
-# Task-planner creates detailed implementation plan
-# Task-planner returns plan to task-master
-```
-
-### Step 5: Task Execution (Delegated by Task Master)
-
-```bash
-# Task-master internally runs:
-goose run --recipe task-runner --name "feature-task-1"
-
-# Task-runner implements the task
-# Task-runner creates/updates files
-# Task-runner adds tests
-# Task-runner verifies implementation
-# Task-runner returns results to task-master
-```
-
-### Step 6: Task Review (Optional, Delegated by Task Master)
-
-```bash
-# Task-master internally runs:
-goose run --recipe code-review --name "feature-task-1-review"
-
-# Code-reviewer reviews implementation
-# Code-reviewer provides feedback
-# Task-master may re-run task-runner with fixes
+[Brainstorm] → [Epic/Story Planning + Jira Creation] → [Story Implementation] → [Review]
+                                                              ↑ repeat per story ↑
 ```
 
 ---
 
-## Single-Session Alternative (Using --sub-recipe)
+## Phase 1 — Feature Brainstorm
 
-If you prefer to run everything from one command:
+**Goal:** Turn a rough feature idea into a structured brainstorm summary.
 
 ```bash
-goose run --recipe task-master \
-  --sub-recipe task-planner \
-  --sub-recipe task-runner \
-  --sub-recipe code-review \
-  --name "full-feature-implementation" \
-  --text "Implement feature X based on architecture Y"
+goose run --recipe prompt-starter --name "feature-brainstorm-$(date +%Y%m%d)"
 ```
 
-This runs task-master with task-planner, task-runner, and code-review available as sub-recipes.
+Provide your raw feature idea. The recipe asks 3–5 clarifying questions, then
+outputs a brainstorm summary document.
+
+**Output:** A Markdown summary of the feature — goals, constraints, open questions.
 
 ---
 
-## Resume Points
+## Phase 2 — Epic/Story Breakdown + Jira Creation
 
-Each recipe creates a persistent session that can be resumed:
+**Goal:** Break the brainstorm into Epics and Stories, then create them in Jira.
 
 ```bash
-# Resume the brainstorming session
-goose run --resume --name "feature-brainstorm"
+goose run --recipe task-master --name "feature-planning-$(date +%Y%m%d)"
+```
 
-# Resume the architecture session
-goose run --resume --name "feature-architecture"
+Paste the brainstorm summary as input. task-master breaks it into an
+Epic > Story > Task hierarchy.
 
-# Resume the implementation session
-goose run --resume --name "feature-implementation"
+**Option A — In-session Jira creation:**
+At the end of planning, tell the agent:
+> "Create these epics and stories in Jira project FNR using mcp-atlassian."
 
-# Resume a specific task
-goose run --resume --name "feature-task-1"
+The agent will use `createJiraIssue` for each Epic and Story.
+
+**Option B — Save then create (if Jira connection not active):**
+Ask the agent to write the structure to a local file:
+> "Write the epic/story breakdown to `.goose/planning/feature-name.md`"
+
+Then start a fresh session:
+```bash
+goose run --recipe task-master --name "jira-create-$(date +%Y%m%d)"
+# Input: "Create the Jira epics and stories from .goose/planning/feature-name.md"
+```
+
+**Output:** Jira epics and stories created. Copy the story keys (FNR-XXX) for Phase 3.
+
+---
+
+## Phase 3 — Story Implementation (repeat per story)
+
+### 3a — Generate Implementation Prompt from Jira Story
+
+```bash
+goose run --recipe prompt-starter --name "story-FNR-123-prompt"
+```
+
+Input: just the Jira story key, e.g., `FNR-123`
+
+The recipe fetches the issue from Jira (Summary, Description, Acceptance Criteria)
+and produces a structured implementation planning prompt. Ask any clarifying
+questions about file paths, WordPress hooks, or environment specifics.
+
+**Output:** A complete implementation prompt ready for task-master.
+
+---
+
+### 3b — Implement the Story
+
+```bash
+goose run --recipe task-master --name "story-FNR-123-impl"
+```
+
+Paste the implementation prompt from 3a.
+
+task-master will:
+1. Transition FNR-123 to "In Progress" in Jira
+2. Break work into tasks
+3. Delegate to specialized agents via `summon`:
+   - `wp-developer` — WordPress PHP code
+   - `test-writer` — PHPUnit coverage
+   - `task-planner` — complex function design
+4. Verify integration across tasks
+5. Open a PR when implementation completes
+6. Comment the PR link on FNR-123 and transition to "In Review"
+
+**Output:** Code committed, PR opened, Jira story updated.
+
+---
+
+## Phase 4 — Code Review
+
+```bash
+goose run --recipe code-review --name "story-FNR-123-review"
+```
+
+The recipe will:
+1. Run project validators (`composer test:unit`, `composer phpcs:report`)
+2. Detect Git platform (Gitea → `tea`, GitHub → `gh`)
+3. Fetch the PR diff
+4. Review for correctness, FP compliance, WordPress security
+5. Post review conclusion as a comment on the PR
+6. Approve or request changes
+7. Update FNR-123 in Jira with review outcome and transition status
+
+**Output:** PR reviewed, commented, status set. Jira story transitioned.
+
+---
+
+## Repeat Phase 3–4 for Each Story
+
+---
+
+## Quick Reference
+
+| Phase | Recipe | Key Input | Key Output |
+|-------|--------|-----------|------------|
+| Brainstorm | `prompt-starter` | Raw feature idea | Brainstorm summary |
+| Planning | `task-master` | Brainstorm summary | Jira epics + stories |
+| Story prompt | `prompt-starter` | Jira key (FNR-123) | Implementation prompt |
+| Implement | `task-master` | Implementation prompt | Code + PR + Jira updated |
+| Review | `code-review` | PR number (auto-detected) | PR comment + Jira updated |
+
+---
+
+## Session Naming Convention
+
+```
+feature-brainstorm-YYYYMMDD
+feature-planning-YYYYMMDD
+story-FNR-123-prompt
+story-FNR-123-impl
+story-FNR-123-review
 ```
 
 ---
 
-## Session Management
+## Resume a Session
 
-List all sessions:
 ```bash
 goose session list
-```
-
-View a session:
-```bash
-goose session view <session_id>
-```
-
-Delete a session:
-```bash
-goose session delete <session_id>
+goose run --resume --name "story-FNR-123-impl"
 ```
 
 ---
 
-## Comparison: ima-claude vs Goose
+## Git Platform Detection
 
-| Aspect | ima-claude | Goose |
-|--------|------------|-------|
-| **Invocation** | `/skill` within session | `goose run --recipe recipe-name` (new session) |
-| **Context** | Persistent session memory | Session file that can be resumed |
-| **Flexibility** | Switch skills anytime | Pick recipe upfront, run to completion |
-| **Orchestration** | Agent() tool | Sub-recipes + orchestrator extension |
-| **Persistence** | In-memory (if Qdrant configured) | File-based (`.goose/sessions/`) |
+| Platform | CLI | PR Comment | Review Status |
+|----------|-----|------------|---------------|
+| Gitea (internal) | `tea` | `tea comment <PR#> "..."` | `tea pr approve/reject <PR#>` |
+| GitHub | `gh` | `gh pr comment <PR#> --body "..."` | `gh pr review <PR#> --approve/--request-changes` |
 
----
-
-## Key Benefits of Goose Approach
-
-1. **State isolation**: Each recipe session has clean context, no state leakage
-2. **Persistence**: Sessions are saved as files, can be resumed later
-3. **Automation friendly**: Recipes can run in CI/CD pipelines
-4. **Multi-agent orchestration**: Sub-recipes enable agent teams
-5. **Model control**: Each recipe can use different models (Light/Standard/Heavy)
-6. **Debugging**: Each recipe has its own session file for debugging
+See `shared/tool-guides/tea.md` for full `tea` CLI reference.
 
 ---
 
-## Practical Usage Pattern
+## Agent Delegation in task-master
 
-### Daily Development Workflow
+task-master uses `summon.delegate` to spawn isolated sub-agents.
+Each sub-agent gets complete context — they have no memory of the parent session.
 
-```bash
-# Morning: Brainstorm and architect
-goose run --recipe prompt-starter --name "feature-A-brainstorm"
-goose run --recipe architect --name "feature-A-architecture"
-
-# Afternoon: Implement with task master
-goose run --recipe task-master --name "feature-A-implementation"
-
-# Review and iterate
-goose run --resume --name "feature-A-implementation"  # Check progress
-goose run --recipe code-review --name "feature-A-review"
-
-# Final verification
-goose run --recipe test-writer --name "feature-A-tests"
-goose run --resume --name "feature-A-tests"
+```
+task-master
+├── summon → wp-developer    (WordPress PHP implementation)
+├── summon → test-writer     (PHPUnit coverage)
+├── summon → task-planner    (complex design decisions)
+└── summon → code-review     (optional in-session review)
 ```
 
-### Resume Work Later
-
-```bash
-# The next day
-goose run --resume --name "feature-A-implementation"  # Continue where left off
-```
-
-### Parallel Feature Development
-
-```bash
-# Start multiple features in parallel
-goose run --recipe prompt-starter --name "feature-A-brainstorm"
-goose run --recipe prompt-starter --name "feature-B-brainstorm"
-goose run --recipe prompt-starter --name "feature-C-brainstorm"
-
-# Then focus on one feature
-goose run --recipe architect --name "feature-A-architecture"
-goose run --recipe task-master --name "feature-A-implementation"
-```
+This preserves task-master's context window across large features.
 
 ---
 
-## Migration Notes
+## Jira MCP Extension
 
-### From ima-claude to Goose
+Jira interactions require the Atlassian extension to be enabled in config:
 
-1. **Replace `/skill` calls** with `goose run --recipe skill-name`
-2. **Replace Agent() calls** with `goose run --recipe agent-name`
-3. **Replace session memory** with `--name` for resuming sessions
-4. **Replace /clear** with new session for each major task
-5. **Replace manual task breakdown** with task-master orchestration
+```yaml
+# ~/.config/goose/config.yaml
+extensions:
+  atlassian:
+    enabled: true   # set to true when actively working with Jira
+```
 
-### Naming Conventions
-
-- Use hyphenated names for sessions: `feature-A-brainstorm`
-- Include context in names: `feature-A-architecture`
-- Use descriptive names: `feature-A-implementation`
-- Include timestamps if needed: `feature-A-implementation-2025-05-06`
-
----
-
-## Summary
-
-Your workflow translates cleanly to Goose's recipe-based architecture:
-
-- **Each skill** becomes a **recipe**
-- **Each session** is a **separate Goose session**
-- **Agent delegation** becomes **sub-recipes**
-- **Session memory** becomes **resumable sessions**
-- **Persistent state** becomes **file-based sessions**
-
-The recipe-based approach actually provides better state isolation, persistence, and orchestration than the skill-based approach in ima-claude.
+See `skills/mcp-atlassian/SKILL.md` for full Jira/Confluence operation reference.

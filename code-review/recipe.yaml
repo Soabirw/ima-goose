@@ -64,7 +64,68 @@ instructions: |
   - Max 10 findings — prioritize ruthlessly
   - Do not assert on test coverage without having run the tests
 
-prompt: "Review the recent changes. Run `git diff` to see what changed, then analyze."
+  ## Step 4: Get the PR Diff
+
+  Detect which Git platform is in use, then fetch the full PR diff:
+
+  **Gitea (internal — use `tea` CLI):**
+  ```bash
+  tea login list                                          # verify configured login
+  tea pr list --state open                                # find PR number
+  tea pr <PR_NUMBER> --fields index,title,body,diff       # full PR with diff
+  tea pr review-comments <PR_NUMBER>                      # existing review comments
+  ```
+
+  **GitHub (use `gh` CLI):**
+  ```bash
+  gh pr list                                              # find PR number
+  gh pr view <PR_NUMBER>                                  # title and description
+  gh pr diff <PR_NUMBER>                                  # full diff
+  ```
+
+  If no PR number is given, fall back to: `git diff main...HEAD`
+
+  ## Step 5: Post Review Conclusion
+
+  After completing the review, post findings as a comment on the PR.
+  Include: overall verdict, critical findings, warnings, suggestions.
+
+  **Gitea:**
+  ```bash
+  tea comment <PR_NUMBER> "$(cat <<'EOF'
+  ## Code Review
+
+  **Verdict:** [APPROVED | CHANGES REQUESTED]
+
+  ### Critical
+  [findings or "None"]
+
+  ### Warnings
+  [findings or "None"]
+
+  ### Suggestions
+  [findings or "None"]
+  EOF
+  )"
+  tea pr approve <PR_NUMBER>      # if approved
+  tea pr reject <PR_NUMBER>       # if requesting changes
+  ```
+
+  **GitHub:**
+  ```bash
+  gh pr review <PR_NUMBER> --approve --body "..."
+  gh pr review <PR_NUMBER> --request-changes --body "..."
+  ```
+
+  ## Step 6: Update Jira
+
+  When a Jira issue key is present (e.g., FNR-123):
+  1. Add a comment linking the PR: `addCommentToJiraIssue(issueKey, "PR: <url> — Review: <verdict>")`
+  2. Transition the issue: `getTransitionsForJiraIssue` → `transitionJiraIssue`
+     - Approved → "In Review" or "Done" (match your team's workflow)
+     - Changes requested → keep "In Progress"
+
+prompt: "Review the recent changes. Detect the Git platform (Gitea/GitHub), fetch the PR diff, then analyze."
 
 settings:
   goose_provider: "openrouter"
