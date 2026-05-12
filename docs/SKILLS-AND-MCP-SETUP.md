@@ -28,25 +28,31 @@ Skills are discovered from the filesystem at session start. Goose (via Summon) c
     SKILL.md
   mcp-context7/
     SKILL.md
+  php-fp-wordpress/
+    SKILL.md
+  ima-bootstrap/
+    SKILL.md
   ...
 ```
 
-Project-level skills are not yet supported by Summon. All skills install globally.
+All skills install globally. Use `~/.agents/skills/` for user-level skills applicable across projects.
 
 ---
 
 ## How Summon Loads Skills
 
-Summon scans `~/.agents/skills/` at session start and makes all SKILL.md files available to the model.
+Summon scans `~/.agents/skills/` at session start and makes all SKILL.md files available to the model. The frontmatter (`name`, `description`) stays in context; the full body loads on-demand when the task matches.
 
-**Auto-discovery**: Goose detects skill-relevant requests from the frontmatter `description` field. When a prompt matches trigger conditions, the skill loads automatically.
+**Auto-discovery**: Goose detects skill-relevant requests from the frontmatter `description` field. When a prompt matches trigger conditions, the skill body loads automatically.
 
 **Explicit load**: Tell Goose directly:
 ```
-"Load the mcp-serena skill with summon"
+"Load the php-fp-wordpress skill with summon"
 "What skills are available?"
-"Use the Atlassian skill to search for FNR-123"
+/skills
 ```
+
+The `/skills` slash command lists all discovered skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
 ---
 
@@ -65,21 +71,32 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 40 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
 - Creates `~/.agents/skills/` if it doesn't exist
 - Copies each skill directory
 - Warns about missing env vars
-- Prints next steps
+- Prints next steps including MOIM setup instructions
 
 ### 3. Verify skills installed
 
 ```bash
 ls ~/.agents/skills/
-# mcp-atlassian  mcp-chrome-devtools  mcp-context7  mcp-fetch
-# mcp-qdrant  mcp-sequential-thinking  mcp-serena  mcp-tavily  mcp-vestige
+# architect            ima-brand            mcp-atlassian        php-authnet
+# discourse            ima-bootstrap        mcp-chrome-devtools  php-fp
+# espocrm              ima-copywriting      mcp-context7         php-fp-wordpress
+# functional-programmer ima-editorial-scorecard mcp-fetch        phpunit-wp
+# gh-cli               ima-editorial-workflow mcp-qdrant         playwright
+# ima-forms-expert     ima-git              mcp-sequential-thinking py-fp
+# jquery               js-fp                mcp-serena           rails
+# js-fp-api            js-fp-react          mcp-tavily           rg
+# js-fp-vue            js-fp-wordpress      mcp-vestige          ruby-fp
+# livecanvas           unit-testing         wp-ddev              wp-local
+
+ls ~/.agents/skills/ | wc -l
+# 40
 ```
 
 ---
@@ -120,7 +137,7 @@ Serena requires:
 
 The `serena` extension in `config-template.yaml` is pre-configured with the correct command. Just ensure `uvx` is on your PATH.
 
-If you're not using JetBrains, set `enabled: false` for the serena extension. The content editing tools (`replace_symbol_body`, etc.) still work with the LSP backend if configured.
+If you're not using JetBrains, set `enabled: false` for the serena extension.
 
 ---
 
@@ -140,6 +157,17 @@ If you're not using JetBrains, set `enabled: false` for the serena extension. Th
 
 ---
 
+## Cross-Platform Compatibility
+
+The same SKILL.md files work in:
+
+- **Goose** — loaded by Summon extension from `~/.agents/skills/`
+- **Claude Code** — loaded by the Summon extension or invoked directly with `/skill-name`
+
+The YAML frontmatter (`name`, `description`) is the same format in both systems. The tool names (`mcp__tavily__search`, `mcp__context7__resolve-library-id`, etc.) are identical because both systems use the same MCP servers. Write a skill once, use it in both agents.
+
+---
+
 ## Verification
 
 Start a Goose session and run these checks:
@@ -148,16 +176,16 @@ Start a Goose session and run these checks:
 goose session
 ```
 
-**Check skills are loaded:**
+**List available skills:**
 ```
-What skills do you have available?
+/skills
 ```
 
-Goose should list the installed skills from `~/.agents/skills/`.
+Goose should list all 40 installed skills from `~/.agents/skills/`.
 
 **Test Tavily:**
 ```
-Search the web for "Goose AI agent Block 2026"
+Search the web for "Goose AI agent Block 2025"
 ```
 
 **Test Context7:**
@@ -202,25 +230,12 @@ Get the Jira issue FNR-1
 
 ---
 
-## Cross-Platform Compatibility
-
-The same SKILL.md files work in:
-
-- **Goose** — loaded by Summon extension from `~/.agents/skills/`
-- **Claude Code** — loaded by the Summon extension or invoked directly with `/skill-name`
-
-The YAML frontmatter (`name`, `description`) is the same format in both systems. Write a skill once, use it in both agents.
-
-The tool names (`mcp__tavily__search`, `mcp__context7__resolve-library-id`, etc.) are identical because both systems use the same MCP servers.
-
----
-
 ## Troubleshooting
 
 **Skill not auto-loading:**
 - Check the skill is in `~/.agents/skills/<name>/SKILL.md`
 - Verify Summon extension is enabled in config
-- Load explicitly: `"Load the mcp-tavily skill with summon"`
+- Load explicitly: `"Load the mcp-tavily skill with summon"` or `/skills` to list
 
 **MCP tool call fails:**
 - Verify the extension is `enabled: true` in config
@@ -235,3 +250,8 @@ The tool names (`mcp__tavily__search`, `mcp__context7__resolve-library-id`, etc.
 **Context7 tool not found:**
 - The correct tools are `resolve-library-id` and `query-docs` — not `search`
 - Verify the `@upstash/context7-mcp@latest` package starts correctly
+
+**Only 9 skills showing (not 40):**
+- Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory
+- Verify the script completed without errors
+- Check `ls ~/.agents/skills/ | wc -l` — expect 40

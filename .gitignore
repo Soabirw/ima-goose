@@ -14,4 +14,5 @@ node_modules/
 # Local agent/runtime state
 .serena/
 .fastembed_cache/
+.claude/
 test-tavily.txt

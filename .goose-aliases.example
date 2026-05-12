@@ -26,6 +26,10 @@
 
 export GOOSE_RECIPE_PATH="$HOME/IMA/dev/ima-goose"
 
+# Opt-in: inject the Practitioner persona into every Goose turn.
+# Uncomment to enable globally (applies to ALL goose sessions, not just IMA recipes).
+# export GOOSE_MOIM_MESSAGE_FILE="$GOOSE_RECIPE_PATH/moim/ima-practitioner.md"
+
 # ── Phase 1: Brainstorm ───────────────────────────────────────────────────────
 # Usage: goose-brainstorm
 # Starts prompt-starter in Mode A (raw feature idea → brainstorm summary)

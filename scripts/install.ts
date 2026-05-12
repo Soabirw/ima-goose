@@ -120,7 +120,10 @@ function printNextSteps(): void {
   console.log("Next steps:");
   console.log("  1. Copy config-template.yaml to ~/.config/goose/config.yaml");
   console.log("  2. Set TAVILY_API_KEY in your shell profile (~/.bashrc or ~/.zshrc)");
-  console.log('  3. Run: goose session → "What skills are available?"');
+  console.log("  3. Optional: enable the Practitioner persona globally via MOIM:");
+  console.log('       export GOOSE_MOIM_MESSAGE_FILE="$HOME/IMA/dev/ima-goose/moim/ima-practitioner.md"');
+  console.log("     (or uncomment the line in .goose-aliases.example)");
+  console.log('  4. Run: goose session → "What skills are available?" or type /skills');
   console.log("");
 }
 
