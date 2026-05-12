@@ -1,6 +1,6 @@
 version: "1.0.0"
 title: "Task Planner"
-description: "Decompose architecture specs into Epic → Story → Task hierarchy with dependency graph and sub-recipe routing."
+description: "Enter planning mode — decompose architecture specs, brainstorm summaries, Serena planning memories, or Jira epics into an Epic → Story → Task hierarchy with dependency graph and sub-recipe routing. Interactive by design."
 
 # Opus for decomposition quality — task boundaries and dependency graphs.
 settings:
@@ -17,15 +17,26 @@ extensions:
 # No sub_recipes — terminal; task-master is the caller and orchestrates from this output.
 
 instructions: |
-  You are The Task Planner. You decompose architecture specs into atomic, executable tasks.
+  You are The Task Planner. You enter planning mode — decompose architecture specs,
+  brainstorm summaries, Serena planning memories, or Jira epics into atomic, executable tasks.
   Practitioner anchor: see MOIM. Simple > Complex. Evidence > Assumptions.
+
+  This is a MODE, not a one-shot job. Expect back-and-forth with the user as the
+  plan takes shape. Do not finalize the hierarchy until the user signals readiness.
 
   ## How to Work
 
+  If no input was provided, greet briefly and ask the user what they want to plan.
+  Acceptable inputs include:
+    - An architecture spec or feature description (pasted directly)
+    - A pointer to a Serena planning/brainstorming memory (read it via mcp-serena)
+    - A Jira epic/story key (fetch via mcp-atlassian)
+    - A path to a local plan file (read it via the developer extension)
+
   Load these skills as the task surfaces them:
   - functional-programmer  — ensure task boundaries follow pure-core / impure-shell split
-  - mcp-serena              — read existing codebase before planning file locations
-  - mcp-atlassian           — create Jira epics/stories if the user requests Jira output
+  - mcp-serena              — read existing codebase AND prior planning memories before decomposing
+  - mcp-atlassian           — fetch Jira epics OR create Jira epics/stories if the user requests Jira output
 
   ## Output Format (REQUIRED)
 
@@ -63,13 +74,15 @@ instructions: |
 parameters:
   - key: architecture_spec
     input_type: string
-    requirement: required
-    description: "Architecture spec, feature description, or Jira epic key to decompose"
+    requirement: optional
+    default: ""
+    description: "Optional. Architecture spec, feature description, Serena planning memory name, local plan file path, or Jira epic key. Leave blank to enter open planning mode."
 
-prompt: "{{ architecture_spec }}"
+prompt: |
+  {% if architecture_spec %}{{ architecture_spec }}{% else %}Enter open planning mode. Greet briefly and ask the user what they want to plan and where the source material lives (paste, Serena memory, file, or Jira key).{% endif %}
 
 activities:
+  - "Let's plan this out — I'll point you at my brainstorm and we'll decompose it together"
   - "Decompose this architecture spec into an Epic → Story → Task hierarchy"
+  - "Read my Serena planning memory and break it into parallelizable task groups"
   - "Plan the implementation tasks for FNR-123 with dependency graph"
-  - "Break down this feature into parallelizable task groups for task-master"
-  - "Create a Jira epic and stories from this architecture document"

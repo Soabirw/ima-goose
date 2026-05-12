@@ -256,9 +256,9 @@ All 10 recipes are refactored to the hybrid pattern: each pins `settings.goose_m
 | `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
 | `architect` | Architecture guidance and technology selection | Opus 4.7 |
 | `task-master` | Orchestration via sub-recipe delegation | Opus 4.7 |
-| `task-planner` | Detailed implementation planning | Opus 4.7 |
+| `task-planner` | Planning mode — decompose specs, brainstorms, Serena memories, or Jira epics into Epic → Story → Task hierarchy | Opus 4.7 |
 | `task-runner` | Execute detailed task plans | Sonnet 4.6 |
-| `prompt-starter` | Rough idea to structured prompt | Opus 4.7 |
+| `prompt-starter` | Brainstorming mode — turn raw ideas, mental dumps, or Jira issues into structured implementation prompts | Opus 4.7 |
 
 ### Sub-Recipe Wiring
 
