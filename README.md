@@ -2,6 +2,85 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
+---
+
+## Quick Start (Get Fully Goosed)
+
+For a teammate setting this up fresh. All four layers (recipes, skills, MOIM, aliases) need to be in place for the workflow to behave as documented. Setting just the Goose recipe repo is **not** sufficient — that distributes recipes, but skills/MOIM/aliases need files on disk.
+
+### 1. Clone the repo
+
+```bash
+git clone git@github.com:Soabirw/ima-goose.git ~/IMA/dev/ima-goose
+cd ~/IMA/dev/ima-goose
+```
+
+Skills, MOIM, and shell aliases all read from the working tree. If you clone to a different path, you'll update `GOOSE_RECIPE_PATH` in step 4.
+
+### 2. Configure Goose provider (one-time)
+
+Add to `~/.config/goose/config.yaml`:
+
+```yaml
+GOOSE_PROVIDER: "claude-acp"
+GOOSE_MODEL: "sonnet"
+GOOSE_PLANNER_PROVIDER: "claude-acp"
+GOOSE_PLANNER_MODEL: "default"           # maps to opus
+GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"  # enables `goose run --recipe NAME` by short name
+```
+
+This routes Goose through your Claude Code subscription via ACP — no separate API spend. Alternative providers (Anthropic direct, OpenRouter, RunPod) are in the [Setup](#setup) section below.
+
+### 3. Install skills globally — REQUIRED
+
+```bash
+node scripts/install.ts
+```
+
+Copies all 40 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
+
+### 4. Set up shell aliases
+
+```bash
+cp .goose-aliases.example ~/.goose-aliases
+echo '[ -f "$HOME/.goose-aliases" ] && source "$HOME/.goose-aliases"' >> ~/.bashrc
+# (use ~/.zshrc if you're on zsh)
+source ~/.bashrc
+```
+
+If you cloned to a non-default path, edit `GOOSE_RECIPE_PATH` in `~/.goose-aliases` before sourcing.
+
+### 5. Enable the Practitioner persona via MOIM (optional but recommended)
+
+Open `~/.goose-aliases`, find the commented-out export, and uncomment:
+
+```bash
+export GOOSE_MOIM_MESSAGE_FILE="$GOOSE_RECIPE_PATH/moim/ima-practitioner.md"
+```
+
+Re-source your shell. Now every Goose session — IMA recipes or not — gets the 6-line Practitioner persona anchor injected every turn. Survives `/compact`.
+
+### Verify
+
+```bash
+goose-help                    # prints all the workflow commands
+goose-explore                 # launches the explore recipe at Haiku
+```
+
+Inside the interactive session, type `/skills` — you should see ~40 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+
+### Troubleshooting
+
+| Symptom | Likely cause |
+|---|---|
+| `/skills` lists only 9 (just MCP guides) | Skip on step 3 — rerun `node scripts/install.ts` |
+| Recipe references a skill that won't load | Skill missing from `~/.agents/skills/<name>/SKILL.md` — re-run installer |
+| Sub-recipe tool calls fail with path errors | `GOOSE_RECIPE_PATH` unset or wrong directory — check `~/.goose-aliases` |
+| MOIM persona not active | `echo $GOOSE_MOIM_MESSAGE_FILE` empty, or file missing |
+| `goose run --recipe task-master` "recipe not found" | `GOOSE_RECIPE_GITHUB_REPO` not set, or you cloned without `gh` CLI available |
+
+---
+
 ## Architecture Layers
 
 The hybrid model uses six distinct layers. Understanding which layer does what prevents confusion and misuse.
@@ -20,6 +99,8 @@ The hybrid model uses six distinct layers. Understanding which layer does what p
 ---
 
 ## Setup
+
+> If you're a new teammate, the [Quick Start](#quick-start-get-fully-goosed) above is the fast path. The sections below are the configuration reference — provider alternatives, recipe-repo wiring, extensions, skill installation — useful when you need to switch providers, troubleshoot, or customize.
 
 ### 1. Configure Goose Provider
 
