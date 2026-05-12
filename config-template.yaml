@@ -143,9 +143,6 @@ extensions:
     timeout: 300
 
 # ── Global settings ──
-GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
-# Optional local recipe discovery. Set this to your ima-goose clone's recipes directory.
-# GOOSE_RECIPE_PATH: "/home/YOU/IMA/dev/ima-goose/recipes"
 GOOSE_MODE: auto
 GOOSE_MAX_TURNS: 1000
 
