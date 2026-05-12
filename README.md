@@ -17,7 +17,27 @@ cd ~/IMA/dev/ima-goose
 
 Skills, MOIM, and shell aliases all read from the working tree. If you clone to a different path, you'll update `GOOSE_RECIPE_PATH` in step 4.
 
-### 2. Configure Goose provider (one-time)
+### 2. Install the ACP provider binaries
+
+Goose needs the ACP binary on PATH to route through your Claude Code (or Codex) subscription. Install at least the one you'll use as your default — installing both is fine if you want to switch providers later:
+
+```bash
+# Claude ACP (team default — routes through your Claude Code subscription)
+npm install -g @agentclientprotocol/claude-agent-acp
+
+# Codex ACP (alternative — routes through your Codex subscription)
+npm install -g @zed-industries/codex-acp
+```
+
+Verify on PATH:
+
+```bash
+which claude-agent-acp        # /usr/local/bin/claude-agent-acp (or your npm global prefix)
+```
+
+Without these binaries, the next step's provider config silently fails to connect — Goose only knows the provider *name* (`claude-acp`); the binary is what actually proxies requests to your subscription.
+
+### 3. Configure Goose provider (one-time)
 
 Add to `~/.config/goose/config.yaml`:
 
@@ -29,9 +49,9 @@ GOOSE_PLANNER_MODEL: "default"           # maps to opus
 GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"  # enables `goose run --recipe NAME` by short name
 ```
 
-This routes Goose through your Claude Code subscription via ACP — no separate API spend. Alternative providers (Anthropic direct, OpenRouter, RunPod) are in the [Setup](#setup) section below.
+Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex. Alternative providers (Anthropic direct, OpenRouter, RunPod) are in the [Setup](#setup) section below.
 
-### 3. Install skills globally — REQUIRED
+### 4. Install skills globally — REQUIRED
 
 ```bash
 node scripts/install.ts
@@ -39,7 +59,7 @@ node scripts/install.ts
 
 Copies all 40 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
 
-### 4. Set up shell aliases
+### 5. Set up shell aliases
 
 ```bash
 cp .goose-aliases.example ~/.goose-aliases
@@ -50,7 +70,7 @@ source ~/.bashrc
 
 If you cloned to a non-default path, edit `GOOSE_RECIPE_PATH` in `~/.goose-aliases` before sourcing.
 
-### 5. Enable the Practitioner persona via MOIM (optional but recommended)
+### 6. Enable the Practitioner persona via MOIM (optional but recommended)
 
 Open `~/.goose-aliases`, find the commented-out export, and uncomment:
 
@@ -73,7 +93,8 @@ Inside the interactive session, type `/skills` — you should see ~40 skills lis
 
 | Symptom | Likely cause |
 |---|---|
-| `/skills` lists only 9 (just MCP guides) | Skip on step 3 — rerun `node scripts/install.ts` |
+| Goose "provider not found" or hangs on every call | ACP binary not on PATH — rerun step 2's `npm install -g …` |
+| `/skills` lists only 9 (just MCP guides) | Skipped step 4 — rerun `node scripts/install.ts` |
 | Recipe references a skill that won't load | Skill missing from `~/.agents/skills/<name>/SKILL.md` — re-run installer |
 | Sub-recipe tool calls fail with path errors | `GOOSE_RECIPE_PATH` unset or wrong directory — check `~/.goose-aliases` |
 | MOIM persona not active | `echo $GOOSE_MOIM_MESSAGE_FILE` empty, or file missing |
