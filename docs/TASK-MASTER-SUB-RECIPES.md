@@ -54,7 +54,7 @@ When task-master invokes the `wp_implement` tool, Goose starts a fresh wp-develo
 - **Model:** Opus 4.7
 - **Use for:** FP compliance review, security audit, PR review
 - **Read-only:** enforced in recipe instructions; no file writes
-- **Terminal:** no sub-recipes
+- **Declares:** `verify` (review-verify recipe, Sonnet) for advisor-pass second opinions
 
 ### explore (explore recipe)
 - **Model:** Haiku 4.5
@@ -158,7 +158,7 @@ Not just task-master — other recipes also declare sub-recipes:
 | `implement` | write_tests, code_review |
 | `wp-developer` | write_tests, code_review |
 | `task-runner` | write_tests, code_review |
-| `code-review` | (none — terminal) |
+| `code-review` | verify |
 | `architect` | (none — terminal) |
 | `task-planner` | (none — terminal) |
 | `prompt-starter` | (none — terminal) |

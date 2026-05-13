@@ -130,7 +130,7 @@ The recipe (Opus 4.7) will:
 | Planning | `task-master` | Brainstorm summary | Jira epics + stories |
 | Story prompt | `prompt-starter` | Jira key (FNR-123) | Implementation prompt |
 | Implement | `task-master` | Implementation prompt | Code + PR + Jira updated |
-| Review | `code-review` | PR number (auto-detected) | PR comment + Jira updated |
+| Review | `code-review` | PR URL or FNR-### (or `goose-review <target>`) | Drafted PR comment (asks before posting) + Jira updated |
 
 ---
 
