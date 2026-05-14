@@ -14,12 +14,12 @@ Transitioning from Claude Code (ima-claude plugin) to Goose (ima-goose recipe re
 | **Guardrails** | Python hook scripts (hooks.json) | Skill files (php-fp-wordpress, etc.) + .goosehints; model-enforced |
 | **Agent delegation** | `Agent(subagent_type: "ima-claude:implementer")` | `sub_recipes:` (declarative YAML) + subagents (natural-language) |
 | **Session memory** | Vestige + Qdrant + Serena MCP | chatrecall extension; or configure Vestige/Qdrant as MCP extensions |
-| **Model selection** | Per-agent (haiku/sonnet/opus) | Per-recipe `settings.goose_model` |
+| **Model selection** | Per-agent (haiku/sonnet/opus) | Per-recipe `settings.goose_model` (tier shortname; installer rewrites per `--profile`) |
 | **Installation** | `/plugin install ima-claude` | `GOOSE_RECIPE_GITHUB_REPO` + `node scripts/install.ts` for skills |
 | **Invocation** | `/ima-claude:skill-name` or auto-discovery | `goose run --recipe recipe-name`; `/skills` lists available skills |
 | **Persistent instructions** | CLAUDE.md + hooks | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) for every-turn injection; .goosehints at session start |
 
-**The correct framing:** The migration preserved both layers from ima-claude. Skills stay skills — 40 are now installed in `~/.agents/skills/` and auto-discovered by Summon. Recipes are thin workflow bootstrappers that orchestrate via sub-recipes. The old "skills became recipes" framing was wrong; only orchestration skills (task-master, task-planner, task-runner) became recipes. Everything else stayed a skill.
+**The correct framing:** The migration preserved both layers from ima-claude. Skills stay skills — 42 are now installed in `~/.agents/skills/` and auto-discovered by Summon. Recipes are thin workflow bootstrappers that orchestrate via sub-recipes. The old "skills became recipes" framing was wrong; only orchestration skills (task-master, task-planner, task-runner) became recipes. Everything else stayed a skill.
 
 **Key paradigm shift:** In Claude Code, you open a session and invoke skills within it. In Goose, each recipe launches a fresh, purpose-built agent. You pick the recipe before starting, not during. But within a recipe session, Summon auto-loads the relevant skills from `~/.agents/skills/` as the conversation calls for them.
 
@@ -49,6 +49,13 @@ goose configure
 # → Enter API key
 ```
 
+**Codex ACP (OpenAI via ChatGPT Pro/Max):**
+```yaml
+GOOSE_PROVIDER: "codex-acp"
+GOOSE_MODEL: "gpt-5.5"
+```
+Then run `node scripts/install.ts --profile openai` to rewrite recipe tier pins to GPT model IDs.
+
 **OpenRouter (multi-provider routing):**
 Edit `~/.config/goose/config.yaml`:
 ```yaml
@@ -63,6 +70,8 @@ OPENAI_HOST: "https://api.runpod.ai/v2/<endpoint-id>"
 OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
 ```
+
+**Switching profiles:** recipes pin tier shortnames (`opus` / `sonnet` / `haiku`); the installer rewrites them at deploy time. See `docs/MODEL-TIERS.md` for the full mapping. Available profiles: `claude-acp` (default), `anthropic`, `openai`.
 
 ### 3. Connect Recipe Repo
 
@@ -91,7 +100,7 @@ goose configure
 node scripts/install.ts
 ```
 
-Copies all 40 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 42 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 6. Add MCP Extensions (Optional)
 
@@ -214,6 +223,11 @@ The `shared/` directory is now intentionally slim. Domain knowledge (FP patterns
 - `shared/persona.md` — Practitioner persona (also in `moim/ima-practitioner.md`)
 - `shared/tool-guides/tea.md` — Gitea CLI reference
 - `shared/tool-guides/atlassian.md` — Jira/Confluence patterns
+
+`tea` / Gitea operational knowledge now also lives in the `tea-gitea` skill so
+Summon can load it on demand for internal PRs, review comments, approvals, and
+direct Gitea API work. The shared guide remains as recipe-internal reference
+material.
 
 The old `shared/fp-principles.md`, `shared/ima-brand-book.md`, `shared/code-standards/*.md` content now lives in the corresponding skills (`functional-programmer`, `ima-brand`, `js-fp`, `php-fp`, etc.) and is loaded on-demand by Summon instead of pre-loaded in every session.
 
@@ -483,7 +497,7 @@ Yes. ima-claude and ima-goose are independent. The skill files are cross-compati
 No. Recipes are pre-built — just `goose run --recipe <name>`. YAML matters only if you want to create or modify recipes.
 
 **Q: Where did all 63 ima-claude skills go?**
-40 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
+42 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
 
 **Q: What about the advisor pattern (ESCALATION)?**
 The concept survives. Sub-recipes surface failures to task-master; task-master retries once with adjusted brief, then escalates to the user. The exact ESCALATION: text protocol from ima-claude is not required — the sub-recipe summary carries the failure reason.

@@ -66,7 +66,7 @@ The authoritative record is the tool's `log.jsonl`: `tail -1 log.jsonl` shows th
 
 - IMA internal repos live on Gitea: `ssh://git@gitea.theflccc.org:2222/IMA/<repo>.git`
 - Some are mirrored to GitHub for FOSS / public presence.
-- Use `mcp-gitea` for internal repo operations, `mcp-github` or `gh-cli` for public.
+- Use `tea-gitea` / `tea` for internal repo operations, `mcp-github` or `gh-cli` for public.
 
 ## When the deploy gate fails
 

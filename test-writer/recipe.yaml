@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Test Writer"
 description: "TDD and test creation specialist. Detects project type and routes to the correct framework."
 

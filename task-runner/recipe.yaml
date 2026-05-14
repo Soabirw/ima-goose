@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Task Runner"
 description: "Execute pre-decomposed task specs from task-planner. Implements code, delegates tests and review."
 
@@ -58,10 +58,12 @@ instructions: |
 parameters:
   - key: task_spec
     input_type: string
-    requirement: required
-    description: "Task spec from task-planner (YAML or markdown) or direct task description"
+    requirement: optional
+    default: ""
+    description: "Optional. Task spec from task-planner (YAML or markdown), Serena memory, local file path, or direct task description. Leave blank to enter open task-runner mode."
 
-prompt: "{{ task_spec }}"
+prompt: |
+  {% if task_spec %}{{ task_spec }}{% else %}Open task-runner mode. Greet briefly and ask the user for the task spec, Serena memory name, local file path, or direct task description to execute. Do NOT inspect files, implement, or call subrecipes before the user answers — wait for their input first.{% endif %}
 
 activities:
   - "Implement this task spec and delegate tests via write_tests"

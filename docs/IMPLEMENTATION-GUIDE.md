@@ -28,7 +28,7 @@ goose configure
 node scripts/install.ts
 ```
 
-Copies all 40 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
+Copies all 42 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
 
 ---
 

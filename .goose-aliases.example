@@ -25,23 +25,72 @@
 # Uncomment to enable globally (applies to ALL goose sessions, not just IMA recipes).
 # export GOOSE_MOIM_MESSAGE_FILE="$HOME/IMA/dev/ima-goose/moim/ima-practitioner.md"
 
+# ── Full Cycle: Brainstorm → Plan → Implement → Test → Review → Document/Learn ─
+# Preferred umbrella for the complete IMA software development cycle. Pass a
+# raw idea, Serena memory, file path, Jira key, existing plan, or story spec.
+# Usage: goose-cycle
+#        goose-cycle "goose-software-development-cycle-technical-plan"
+goose-cycle() {
+  local source="${1:-}"
+  if [ -n "$source" ]; then
+    goose run --recipe software-development-cycle \
+      --params "source=${source}" \
+      --params "mode=guided" \
+      --params "scope=feature" \
+      --name "cycle-$(date +%Y%m%d-%H%M)" \
+      --interactive
+  else
+    goose run --recipe software-development-cycle --name "cycle-$(date +%Y%m%d-%H%M)" --interactive
+  fi
+}
+
 # ── Phase 1: Brainstorm ───────────────────────────────────────────────────────
-# Enter brainstorming mode. Optionally seed with an idea, mental dump, or Jira key.
+# Interactive brainstorming session. Researches memories/code/web, iterates Q&A
+# until you signal satisfaction, saves to Serena memory or a file.
 # Usage: goose-brainstorm                    (open-ended; greets and asks)
 #        goose-brainstorm "auth refactor idea ..."
 #        goose-brainstorm FNR-123
 goose-brainstorm() {
   local seed="${1:-}"
   if [ -n "$seed" ]; then
-    goose run --recipe prompt-starter --params "idea=${seed}" --name "brainstorm-$(date +%Y%m%d)" --interactive
+    goose run --recipe brainstorm --params "idea=${seed}" --name "brainstorm-$(date +%Y%m%d)" --interactive
   else
-    goose run --recipe prompt-starter --name "brainstorm-$(date +%Y%m%d)" --interactive
+    goose run --recipe brainstorm --name "brainstorm-$(date +%Y%m%d)" --interactive
   fi
 }
 
-# ── Phase 2: Feature Planning + Jira Creation ─────────────────────────────────
+# ── Phase 2: Technical Plan ───────────────────────────────────────────────────
+# Interactive technical-planning session. Researches the codebase + memories +
+# library docs, iterates Q&A on implementation specifics, saves to Serena or a
+# file. Does NOT require a brainstorm to exist first — accepts raw idea, Serena
+# memory name, file path, or Jira key. Save the result, then feed it to
+# task-planner (Epic→Story→Task) or implement directly.
+# Usage: goose-plan                                     (open-ended; greets and asks)
+#        goose-plan "<serena-memory-name>"              (e.g. a brainstorm)
+#        goose-plan FNR-123
+#        goose-plan "raw idea text..."
 goose-plan() {
-  goose run --recipe task-master --name "planning-$(date +%Y%m%d)" --interactive
+  local spec="${1:-}"
+  if [ -n "$spec" ]; then
+    goose run --recipe plan --params "spec=${spec}" --name "plan-$(date +%Y%m%d)" --interactive
+  else
+    goose run --recipe plan --name "plan-$(date +%Y%m%d)" --interactive
+  fi
+}
+
+# ── Phase 2b: Orchestrate (task-master) ───────────────────────────────────────
+# Drop into task-master orchestration — the previous home of `goose-plan`.
+# Use when you have a saved plan and want Epic→Story→Task decomposition + Jira
+# creation + sub-recipe delegation under one roof.
+# Usage: goose-orchestrate
+#        goose-orchestrate FNR-123
+goose-orchestrate() {
+  local key="${1:-}"
+  if [ -n "$key" ]; then
+    goose run --recipe task-master --params "task_or_jira_key=${key}" --name "orchestrate-$(date +%Y%m%d)" --interactive
+  else
+    goose run --recipe task-master --name "orchestrate-$(date +%Y%m%d)" --interactive
+  fi
 }
 
 # ── Phase 3a: Story → Implementation Prompt ───────────────────────────────────
@@ -80,6 +129,35 @@ goose-review() {
   fi
 }
 
+# ── Model Profile Switcher ────────────────────────────────────────────────────
+# Switch which provider's models the recipes use by re-running the installer
+# with a different profile. See docs/MODEL-TIERS.md for the tier mapping.
+#
+# Profiles:
+#   claude-acp  — Default. Keeps friendly shortnames (opus/sonnet/haiku).
+#   anthropic   — Direct Anthropic API. Rewrites to full claude-* model IDs.
+#   openai      — codex-acp via ChatGPT Pro/Max. opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini.
+#
+# Switching profiles only rewrites recipes. You also need to update
+# ~/.config/goose/config.yaml GOOSE_PROVIDER and auth env vars for the new provider.
+#
+# Usage:
+#   goose-profile                  (shows current; lists available)
+#   goose-profile openai
+#   goose-profile anthropic
+#   goose-profile claude-acp
+goose-profile() {
+  local profile="${1:-}"
+  local script="$HOME/IMA/dev/ima-goose/scripts/install.ts"
+  if [ -z "$profile" ]; then
+    echo "Available profiles: claude-acp (default), anthropic, openai"
+    echo "Deployed recipes (first 5):"
+    grep -h "^  goose_model:" "$HOME/.config/goose/recipes/"*.yaml 2>/dev/null | sort -u | head -5
+    return 0
+  fi
+  node "$script" --profile "$profile"
+}
+
 # ── Session Management ────────────────────────────────────────────────────────
 goose-resume() {
   local name="${1:?Usage: goose-resume <session-name>}"
@@ -115,9 +193,11 @@ IMA Goose Workflow Commands
 ────────────────────────────────────────────────────────
 WORKFLOW (run in order per feature):
 
-  goose-brainstorm [seed]       Phase 1 — enter brainstorming mode (seed optional)
-  goose-plan                    Phase 2 — summary → Epics/Stories + Jira creation
-  goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt
+  goose-cycle [source]          Preferred full cycle: brainstorm → plan → story loop → document/learn
+  goose-brainstorm [seed]       Phase 1 — interactive brainstorm, saves to Serena/file
+  goose-plan [seed]             Phase 2 — interactive technical plan, saves to Serena/file
+  goose-orchestrate [FNR-###]   Phase 2b — task-master: Epic→Story→Task + Jira + delegation
+  goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt (legacy)
   goose-implement FNR-123       Phase 3b — implementation prompt → code + PR
   goose-review [FNR-123]        Phase 4 — PR review, comment, Jira update
 
@@ -136,6 +216,9 @@ DIRECT RECIPES:
 UPDATING RECIPES:
 
   node ~/IMA/dev/ima-goose/scripts/install.ts   Re-sync after pulling updates
+  goose-profile                                 Show available model profiles
+  goose-profile openai                          Switch recipes to GPT-5.x via codex-acp
+  goose-profile claude-acp                      Switch recipes back to Claude (default)
 
 DOCS:
 

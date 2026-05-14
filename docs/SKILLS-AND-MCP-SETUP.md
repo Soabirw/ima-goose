@@ -71,7 +71,7 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all 40 `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 42 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
@@ -96,7 +96,7 @@ ls ~/.agents/skills/
 # livecanvas           unit-testing         wp-ddev              wp-local
 
 ls ~/.agents/skills/ | wc -l
-# 40
+# 42
 ```
 
 ---
@@ -181,7 +181,7 @@ goose session
 /skills
 ```
 
-Goose should list all 40 installed skills from `~/.agents/skills/`.
+Goose should list all 42 installed skills from `~/.agents/skills/`.
 
 **Test Tavily:**
 ```
@@ -251,7 +251,7 @@ Get the Jira issue FNR-1
 - The correct tools are `resolve-library-id` and `query-docs` — not `search`
 - Verify the `@upstash/context7-mcp@latest` package starts correctly
 
-**Only 9 skills showing (not 40):**
+**Only 9 skills showing (not 42):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory
 - Verify the script completed without errors
-- Check `ls ~/.agents/skills/ | wc -l` — expect 40
+- Check `ls ~/.agents/skills/ | wc -l` — expect 42

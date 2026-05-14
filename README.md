@@ -2,6 +2,21 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
+Current release: **v1.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+## What's New In v1.2.0
+
+- `software-development-cycle` is now the preferred full-cycle umbrella for
+  Brainstorm -> Plan -> Decompose -> Implement -> Test -> Review ->
+  Document/Learn.
+- `brainstorm`, `plan`, `task-master`, `task-runner`, `architect`,
+  `review-verify`, and `document-learn` can start without required parameter
+  gates and ask for context in-session.
+- `node scripts/install.ts --profile <name>` now rewrites model tiers for
+  Claude ACP, Anthropic direct, or OpenAI via Codex ACP.
+- Gitea work now has a dedicated `tea-gitea` skill and safer guidance for long
+  PR review comments.
+
 ---
 
 ## Quick Start (Get Fully Goosed)
@@ -57,7 +72,7 @@ Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex.
 node scripts/install.ts
 ```
 
-Copies all 40 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
+Copies all 42 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
 
 ### 5. Set up shell aliases
 
@@ -87,7 +102,7 @@ goose-help                    # prints all the workflow commands
 goose-explore                 # launches the explore recipe at Haiku
 ```
 
-Inside the interactive session, type `/skills` — you should see ~40 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+Inside the interactive session, type `/skills` — you should see ~42 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
 
 ### Troubleshooting
 
@@ -141,6 +156,10 @@ Friendly model names: `sonnet`, `opus`, `haiku`, `default` (= opus). Recipes pin
 **Alternatives** (if you're not on Claude Code subscription):
 
 ```yaml
+# Codex ACP (OpenAI via ChatGPT Pro/Max subscription)
+GOOSE_PROVIDER: "codex-acp"
+GOOSE_MODEL: "gpt-5.5"
+
 # Direct Anthropic
 GOOSE_PROVIDER: "anthropic"
 GOOSE_MODEL: "claude-sonnet-4-6"
@@ -156,7 +175,15 @@ OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
 ```
 
-If you switch providers, the model strings in recipes (`sonnet` / `opus` / `haiku`) will need to swap to the matching format for that provider.
+Recipes pin a tier (`opus` / `sonnet` / `haiku`) and the installer rewrites those to provider-specific model IDs at deploy time. Switch profiles any time:
+
+```bash
+node scripts/install.ts --profile openai      # opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini
+node scripts/install.ts --profile anthropic   # full claude-* model IDs
+node scripts/install.ts --profile claude-acp  # default — friendly shortnames
+```
+
+See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides.
 
 ### 2. Connect Recipe Repository
 
@@ -185,7 +212,7 @@ goose configure
 node scripts/install.ts
 ```
 
-Copies all 40 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 42 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
 
@@ -219,23 +246,25 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Slash commands:** `/skills` lists available skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
-### Installed Skills (40 total)
+### Installed Skills (42 total)
 
 **FP languages (5):** `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp`
 
 **FP framework variants (6):** `js-fp-api`, `js-fp-react`, `js-fp-vue`, `js-fp-wordpress`, `php-fp-wordpress`, `rails`
 
-**WordPress / IMA framework (5):** `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas`, `wp-ddev` / `wp-local`
+**WordPress / IMA framework (6):** `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas`, `wp-ddev`, `wp-local`
 
 **Editorial / brand (4):** `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`
 
-**Workflow / git / arch (3):** `ima-git`, `architect`, `gh-cli`
+**Workflow / git / arch (4):** `ima-git`, `architect`, `gh-cli`, `tea-gitea`
 
 **Testing (3):** `unit-testing`, `phpunit-wp`, `playwright`
 
 **MCP guides (9):** `mcp-tavily`, `mcp-context7`, `mcp-sequential-thinking`, `mcp-atlassian`, `mcp-serena`, `mcp-fetch`, `mcp-chrome-devtools`, `mcp-qdrant`, `mcp-vestige`
 
-**Other domain (5):** `discourse`, `espocrm`, `php-authnet`, `rg`, `ima-git`
+**Goose docs (1):** `goose-doc-guide`
+
+**Other domain (4):** `discourse`, `espocrm`, `php-authnet`, `rg`
 
 Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or just work naturally — Summon matches by description.
 
@@ -243,24 +272,30 @@ Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or jus
 
 ## Available Recipes
 
-### P1/P2 — Core Recipes (All 10 Refactored)
+### P1/P2 — Core Recipes
 
-All 10 recipes are refactored to the hybrid pattern: each pins `settings.goose_model`, declares `extensions: [developer, summon]`, references skills by name in instructions, and uses `sub_recipes:` for declarative delegation where natural.
+All core recipes follow the hybrid pattern: each pins `settings.goose_model`, declares `extensions: [developer, summon]`, references skills by name in instructions, and uses `sub_recipes:` for declarative delegation where natural.
 
 | Recipe | Description | Model |
 |--------|-------------|-------|
+| `brainstorm` | Interactive ideation session — research memories/code/web, iterate Q&A, save to Serena/file | Opus 4.7 |
+| `plan` | Interactive technical planning session — research codebase + docs, iterate Q&A on implementation, save to Serena/file | Opus 4.7 |
 | `implement` | General-purpose FP-aware coding | Sonnet 4.6 |
 | `code-review` | Read-only FP + security review | Opus 4.7 |
 | `wp-developer` | WordPress with security + Bootstrap + FP | Sonnet 4.6 |
 | `explore` | Fast read-only codebase exploration | Haiku 4.5 |
 | `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
 | `architect` | Architecture guidance and technology selection | Opus 4.7 |
+| `software-development-cycle` | Flattened umbrella for brainstorm, plan, story implementation, tests, review, document/learn | Opus 4.7 |
+| `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | Sonnet 4.6 |
 | `task-master` | Orchestration via sub-recipe delegation | Opus 4.7 |
-| `task-planner` | Planning mode — decompose specs, brainstorms, Serena memories, or Jira epics into Epic → Story → Task hierarchy | Opus 4.7 |
+| `task-planner` | Decomposition — Epic → Story → Task hierarchy for `task-master` consumption | Opus 4.7 |
 | `task-runner` | Execute detailed task plans | Sonnet 4.6 |
-| `prompt-starter` | Brainstorming mode — turn raw ideas, mental dumps, or Jira issues into structured implementation prompts | Opus 4.7 |
+| `prompt-starter` | Prompt-builder — turn raw ideas or Jira issues into structured implementation prompts (legacy; prefer `brainstorm` for new work) | Opus 4.7 |
 
 ### Sub-Recipe Wiring
+
+`software-development-cycle` delegates to: `brainstorm`, `plan_feature` (plan), `decompose` (task-planner), `explore`, `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `document_learn` (document-learn). It owns the full phase graph directly and does not call `task-master`.
 
 `task-master` delegates to: `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `explore`, `plan_task` (task-planner).
 
@@ -268,7 +303,11 @@ All 10 recipes are refactored to the hybrid pattern: each pins `settings.goose_m
 
 `task-runner` delegates to: `write_tests`, `code_review`.
 
-Terminal (no sub-recipes): `code-review`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`.
+Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`.
+
+**Brainstorm → Plan → Orchestrate chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner`/`task-master` for Epic→Story→Task decomposition and execution. Each link is terminal; nothing auto-spawns the next session.
+
+**Software development cycle.** `software-development-cycle` is the top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout.
 
 ### P3 — Specialized (Stubs — Planned)
 
@@ -299,7 +338,10 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 
 | Recipe | Model | Rationale |
 |--------|-------|-----------|
+| `brainstorm` | `opus` | Research + clarifying-question quality |
+| `plan` | `opus` | Trade-off reasoning + technical synthesis |
 | `task-master` | `opus` | Orchestration / decisions |
+| `software-development-cycle` | `opus` | Full-cycle orchestration / phase gates |
 | `architect` | `opus` | Trade-off reasoning |
 | `prompt-starter` | `opus` | Research + template fill |
 | `task-planner` | `opus` | Decomposition |
@@ -308,9 +350,10 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `wp-developer` | `sonnet` | Coding |
 | `test-writer` | `sonnet` | Test coding |
 | `task-runner` | `sonnet` | Execution |
+| `document-learn` | `sonnet` | Documentation and memory closeout |
 | `explore` | `haiku` | Cheap read-only |
 
-The `settings.goose_model` field uses `claude-acp` friendly names (`sonnet` / `opus` / `haiku` / `default`). If you switch to Anthropic direct (`claude-sonnet-4-6`, etc.) or OpenRouter (`anthropic/claude-sonnet-4-6`), update the recipe pins accordingly. Override at run time with `--model` if needed.
+The `settings.goose_model` field in source recipes uses tier shortnames (`opus` / `sonnet` / `haiku`). The installer rewrites these to provider-specific model IDs at deploy time based on `--profile` — see [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the full mapping including per-recipe overrides (e.g., `task-master` demoted to `gpt-5.4` under the OpenAI profile to protect the GPT-5.5 rate-limit budget).
 
 ---
 
@@ -325,6 +368,10 @@ Opt-in by sourcing `.goose-aliases.example` and uncommenting the export. Off by 
 ## Shared Reference Files
 
 `shared/` contains recipe-internal references used by the developer extension at runtime. Domain knowledge (FP patterns, brand, framework rules) now lives in skills — shared/ is intentionally slim.
+
+Gitea operations are handled by the `tea-gitea` skill, which teaches agents the
+`tea` CLI workflow for PRs, comments, approvals, and API fallbacks. The shared
+`tea.md` file remains available to recipes as a compact runtime reference.
 
 ```
 shared/

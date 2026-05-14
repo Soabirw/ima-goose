@@ -1,12 +1,13 @@
 # Task Master Sub-Recipes
 
-How task-master delegates work to specialist sub-recipes via declarative YAML.
+How task-master and the software-development-cycle umbrella delegate work to
+specialist sub-recipes via declarative YAML.
 
 ---
 
 ## How Sub-Recipes Work
 
-Sub-recipes are declared in `task-master/recipe.yaml` under a `sub_recipes:` key. Goose auto-generates one callable tool per sub-recipe. task-master invokes them by tool call with a self-contained brief — not via a CLI flag, not via the orchestrator extension.
+Sub-recipes are declared in a recipe's YAML under a `sub_recipes:` key. Goose auto-generates one callable tool per sub-recipe. Parent recipes invoke them by tool call with a self-contained brief — not via a CLI flag, not via the orchestrator extension.
 
 ```yaml
 # From task-master/recipe.yaml
@@ -28,6 +29,47 @@ sub_recipes:
 When task-master invokes the `wp_implement` tool, Goose starts a fresh wp-developer session with its own pinned model (Sonnet 4.6), its own extensions, and the brief as input. The sub-session is fully isolated — it has no memory of the parent task-master session.
 
 **Important:** There is no `--sub-recipe` CLI flag. Sub-recipes are a YAML declaration; no flags are needed at run time.
+
+**No nested-subrecipe assumption:** Goose child sessions are isolated. A parent
+recipe should not rely on a child recipe's own `sub_recipes:` for work that the
+parent must sequence. `software-development-cycle` flattens the full workflow by
+declaring every phase directly and instructing implementation children that the
+parent owns tests and review.
+
+---
+
+## Software Development Cycle Umbrella
+
+`software-development-cycle/recipe.yaml` is the top-level recipe for the IMA
+Brainstorm -> Plan -> Decompose -> Implement -> Test -> Review -> Document/Learn
+cycle. It does not call `task-master`.
+
+```yaml
+# From software-development-cycle/recipe.yaml
+sub_recipes:
+  - name: brainstorm
+    path: ../brainstorm/recipe.yaml
+  - name: plan_feature
+    path: ../plan/recipe.yaml
+  - name: decompose
+    path: ../task-planner/recipe.yaml
+  - name: explore
+    path: ../explore/recipe.yaml
+  - name: implement
+    path: ../implement/recipe.yaml
+  - name: wp_implement
+    path: ../wp-developer/recipe.yaml
+  - name: write_tests
+    path: ../test-writer/recipe.yaml
+  - name: code_review
+    path: ../code-review/recipe.yaml
+  - name: document_learn
+    path: ../document-learn/recipe.yaml
+```
+
+The umbrella owns phase gates, story order, review/fix loop limits, and
+document/learn closeout. Each child receives a complete artifact bundle because
+it has no parent memory.
 
 ---
 
@@ -67,6 +109,12 @@ When task-master invokes the `wp_implement` tool, Goose starts a fresh wp-develo
 - **Use for:** Architecture spec, function signatures, data structures, dependency graph for a complex task before handing to an implementer
 - **Terminal:** no sub-recipes
 
+### document_learn (document-learn recipe)
+- **Model:** Sonnet 4.6
+- **Use for:** Active docs updates, session handoff, and memory routing after a story or feature completes
+- **Does not implement code:** consumes completed implementation/test/review artifacts
+- **Terminal:** no sub-recipes
+
 ---
 
 ## Routing Matrix
@@ -81,6 +129,7 @@ task-master selects sub-recipes per task using this routing logic:
 | Tests (after implementation completes) | `write_tests` |
 | PR / security / FP review | `code_review` |
 | File discovery, "where is X", code map | `explore` |
+| Docs and memory closeout | `document_learn` |
 
 ---
 
@@ -154,6 +203,7 @@ Not just task-master — other recipes also declare sub-recipes:
 
 | Recipe | Sub-recipes declared |
 |---|---|
+| `software-development-cycle` | brainstorm, plan_feature, decompose, explore, implement, wp_implement, write_tests, code_review, document_learn |
 | `task-master` | implement, wp_implement, write_tests, code_review, explore, plan_task |
 | `implement` | write_tests, code_review |
 | `wp-developer` | write_tests, code_review |
@@ -161,6 +211,7 @@ Not just task-master — other recipes also declare sub-recipes:
 | `code-review` | verify |
 | `architect` | (none — terminal) |
 | `task-planner` | (none — terminal) |
+| `document-learn` | (none — terminal) |
 | `prompt-starter` | (none — terminal) |
 | `test-writer` | (none — terminal) |
 | `explore` | (none — terminal) |

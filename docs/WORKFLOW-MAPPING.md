@@ -1,18 +1,89 @@
 # WordPress Development Workflow — Goose Edition
 
 The primary IMA development cycle, translated from ima-claude to Goose recipes.
-Each `/clear` in the original workflow becomes a new `goose run` session here.
+The preferred path is now the flattened `software-development-cycle` umbrella.
+Manual phase-by-phase commands remain useful when you want tighter human control
+or need to recover from a blocked session.
 
 ---
 
 ## The Full Cycle
 
 ```
-[Brainstorm] → [Epic/Story Planning + Jira Creation] → [Story Implementation] → [Review]
-                                                              ↑ repeat per story ↑
+[Brainstorm] -> [Plan] -> [Decompose] -> [Story: Implement -> Test -> Review -> Document/Learn]
+                                                    ^ repeat per story, then feature closeout ^
 ```
 
 ---
+
+## Preferred: Software Development Cycle Umbrella
+
+**Goal:** Run the complete IMA development cycle with one parent recipe that owns
+phase gates, story ordering, test/review loops, and documentation closeout.
+
+```bash
+goose run --recipe software-development-cycle --interactive
+```
+
+Or pass an initial source directly:
+
+```bash
+goose run --recipe software-development-cycle \
+  --params "source=goose-software-development-cycle-technical-plan" \
+  --params "mode=guided" \
+  --params "scope=feature"
+```
+
+The umbrella recipe declares every phase directly:
+
+- `brainstorm` for requirements shaping
+- `plan_feature` for technical planning
+- `decompose` for Epic > Story > Task hierarchy
+- `explore` for story-level code discovery
+- `implement` or `wp_implement` for story implementation
+- `write_tests` for test creation and validation
+- `code_review` for read-only review
+- `document_learn` for docs and memory closeout
+
+It does not call `task-master`. Goose subrecipe sessions are isolated, so the
+umbrella passes explicit artifact bundles forward and tells implementation
+children that the parent owns tests and review.
+
+### Modes
+
+| Mode | Behavior |
+|---|---|
+| `guided` | Stops after Brainstorm, Plan, Decompose, each Story Review, and final Document/Learn for user approval or edits. |
+| `autonomous` | Proceeds through the same gates, stopping only for blockers, failed tests after retry, unresolved review findings, artifact mismatch, or unsafe external actions. |
+
+### Scope
+
+| Scope | Behavior |
+|---|---|
+| `feature` | Runs Brainstorm, Plan, Decompose, then each story in dependency order. |
+| `story` | Starts from an existing Jira story/spec/plan and runs implementation, tests, review, and document/learn closeout. |
+
+### Story Loop
+
+For each story:
+
+1. Optionally call `explore`.
+2. Route WordPress/plugin/theme/IMA Forms work to `wp_implement`; route generic code to `implement`.
+3. Call `write_tests` with changed files and acceptance criteria.
+4. Call `code_review` with diff, tests, risks, and acceptance criteria.
+5. Fix review findings up to `max_review_fix_cycles`.
+6. Call `document_learn` with the story artifact bundle.
+
+After all stories, call `document_learn` once more with `update_scope: feature`.
+
+See [`SOFTWARE-DEVELOPMENT-CYCLE.md`](SOFTWARE-DEVELOPMENT-CYCLE.md) for the
+artifact contracts and flattened subrecipe constraints.
+
+---
+
+## Manual Fallback Cycle
+
+Use this when you intentionally want separate terminal sessions for each phase.
 
 ## Phase 1 — Feature Brainstorm
 
@@ -159,7 +230,7 @@ goose run --resume --name "story-FNR-123-impl"
 
 | Platform | CLI | PR Comment | Review Status |
 |----------|-----|------------|---------------|
-| Gitea (internal) | `tea` | `tea comment <PR#> "..."` | `tea pr approve/reject <PR#>` |
+| Gitea (internal) | `tea` | `tea comment <PR#> < comment.md` | `tea pr approve <PR#> "Approved"` / `tea pr reject <PR#> "Changes requested"` |
 | GitHub | `gh` | `gh pr comment <PR#> --body "..."` | `gh pr review <PR#> --approve/--request-changes` |
 
 See `shared/tool-guides/tea.md` for full `tea` CLI reference.

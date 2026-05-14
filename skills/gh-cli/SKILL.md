@@ -6,7 +6,7 @@ description: >-
   Use when: creating PRs, reviewing PRs, managing issues, checking CI status, creating
   releases, searching GitHub, or any github.com operation. Triggers on: GitHub, gh,
   pull request, PR, issue, release, actions, workflow, CI status, code review, merge PR.
-  NOT for Gitea — use mcp-gitea for internal repos.
+  NOT for Gitea — use tea-gitea for internal repos.
 ---
 
 # GitHub CLI (`gh`)
@@ -167,7 +167,7 @@ gh api repos/{owner}/{repo}/pulls --jq '.[].title'
 
 ```
 github.com remote? → use gh (this skill)
-Gitea remote?      → use mcp-gitea
+Gitea remote?      → use tea-gitea
 Local git ops      → use git CLI directly
 
 PRs                → gh pr ...
@@ -241,7 +241,7 @@ gh run list -R owner/other-repo
 
 | Situation | Use Instead |
 |-----------|-------------|
-| Gitea-hosted repos | `mcp-gitea` tools |
+| Gitea-hosted repos | `tea-gitea` skill and `tea` CLI |
 | Local git operations (commit, diff, stash) | `git` CLI directly |
 | Reading local files | Read tool |
 | Pushing/pulling code | `git push` / `git pull` |

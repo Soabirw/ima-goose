@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "MCP Migration"
 description: "Migrate MCP servers from Claude Code's ~/.claude.json into Goose's ~/.config/goose/config.yaml."
 instructions: |

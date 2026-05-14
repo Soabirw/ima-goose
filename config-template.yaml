@@ -147,13 +147,35 @@ GOOSE_MODE: auto
 GOOSE_MAX_TURNS: 1000
 
 # ── Provider (choose one) ──
+#
+# Recipes pin a tier (opus/sonnet/haiku) and the installer rewrites those to
+# provider-specific model IDs based on the chosen --profile. See docs/MODEL-TIERS.md.
+# Switching provider here = also run: node scripts/install.ts --profile <name>
 
-# Option A: OpenRouter (interim — ~$0.003/session for Claude Sonnet)
-GOOSE_PROVIDER: openrouter
-GOOSE_MODEL: "anthropic/claude-sonnet-4-5"
-# Add OPENROUTER_API_KEY to your shell profile
+# Option A: claude-acp (default — uses Claude Pro/Max subscription auth)
+GOOSE_PROVIDER: claude-acp
+GOOSE_MODEL: "sonnet"
+# Installer profile: claude-acp (default). Recipes keep friendly shortnames.
 
-# Option B: RunPod vLLM (production — self-hosted, lower cost at scale)
+# Option B: codex-acp (OpenAI via ChatGPT Pro/Max subscription auth)
+# GOOSE_PROVIDER: codex-acp
+# GOOSE_MODEL: "gpt-5.5"
+# Installer profile: openai. Rewrites opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini.
+# Both ACPs can coexist — both are installed per README.
+
+# Option C: Anthropic direct API (per-token billing)
+# GOOSE_PROVIDER: anthropic
+# GOOSE_MODEL: "claude-sonnet-4-6"
+# Installer profile: anthropic. Rewrites to full claude-* IDs.
+# Add ANTHROPIC_API_KEY to your shell profile.
+
+# Option D: OpenRouter (multi-provider gateway — ~$0.003/session for Claude Sonnet)
+# GOOSE_PROVIDER: openrouter
+# GOOSE_MODEL: "anthropic/claude-sonnet-4-5"
+# No matching installer profile yet — edit profiles/openrouter.yaml if needed.
+# Add OPENROUTER_API_KEY to your shell profile.
+
+# Option E: RunPod vLLM (production — self-hosted, lower cost at scale)
 # GOOSE_PROVIDER: runpod_vllm
 # GOOSE_MODEL: "RedHatAI/Qwen3-Coder-Next-NVFP4"
 # Add RUNPOD_API_KEY and RUNPOD_ENDPOINT_ID to your shell profile

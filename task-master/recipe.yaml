@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Task Master"
 description: |
   Orchestrate complex implementation plans by decomposing work into atomic
@@ -128,13 +128,14 @@ instructions: |
   - Issues encountered and resolutions / open questions
 
 prompt: |
-  {{ task_or_jira_key }}
+  {% if task_or_jira_key %}{{ task_or_jira_key }}{% else %}Open task-master mode. Greet briefly and ask the user what implementation plan, Serena memory, local file path, Jira key, or task description they want orchestrated. Do NOT delegate, fetch Jira, or inspect files before the user answers — wait for their input first.{% endif %}
 
 parameters:
   - key: task_or_jira_key
     input_type: string
-    requirement: required
-    description: "Implementation task description, brainstorm summary path, or Jira issue key (e.g., FNR-123)"
+    requirement: optional
+    default: ""
+    description: "Optional. Implementation task description, brainstorm summary path, Serena memory, local file path, or Jira issue key (e.g., FNR-123). Leave blank to enter open task-master mode."
 
 activities:
   - "Analyze the implementation plan: identify task boundaries, dependencies, and which specialist sub-recipe handles each."

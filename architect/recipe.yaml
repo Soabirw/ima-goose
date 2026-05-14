@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Architect"
 description: "Convert implementation plans into technical architecture specs. FP-first, pure core / impure shell."
 
@@ -66,10 +66,12 @@ instructions: |
 parameters:
   - key: plan_or_feature
     input_type: string
-    requirement: required
-    description: "Implementation plan, feature description, or brainstorm summary to architect"
+    requirement: optional
+    default: ""
+    description: "Optional. Implementation plan, feature description, brainstorm summary, Serena memory, local file path, or Jira key to architect. Leave blank to enter open architecture mode."
 
-prompt: "{{ plan_or_feature }}"
+prompt: |
+  {% if plan_or_feature %}{{ plan_or_feature }}{% else %}Open architecture mode. Greet briefly and ask the user what plan, feature description, brainstorm summary, Serena memory, local file path, or Jira key they want turned into an architecture spec. Do NOT inspect files or load external docs before the user answers — wait for their input first.{% endif %}
 
 activities:
   - "Analyze this implementation plan and produce a technical architecture spec"

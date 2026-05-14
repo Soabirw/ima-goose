@@ -1,0 +1,14 @@
+# OpenAI via codex-acp profile
+# Uses ChatGPT Pro/Max subscription auth (codex-acp provider).
+# See docs/MODEL-TIERS.md for the full rationale.
+
+tiers:
+  opus: gpt-5.5 # Flagship reasoning — orchestration, code review, planning
+  sonnet: gpt-5.3-codex # Agentic coding specialist — implementation work
+  haiku: gpt-5.4-mini # Fast sub-agent — exploration, lookups
+
+# Per-recipe overrides applied AFTER tier mapping.
+# Demote heavy-fan-out orchestrators off gpt-5.5 to protect the rate-limit budget.
+overrides:
+  task-master: gpt-5.4 # orchestrates many sub-recipe calls
+  code-review: gpt-5.4 # fans out to review-verify sub-recipes

@@ -1,4 +1,4 @@
-version: "1.1.0"
+version: "1.2.0"
 title: "Code Review"
 description: "FP-aware, security-first code review. Three modes: full review, prompt-only generation, or execute a pre-built review prompt. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -121,6 +121,7 @@ instructions: |
        - Gitea: `tea login list` → `tea pr <N> --fields index,title,body,diff`
        - GitHub: `gh pr diff <N>`
        - Fallback: `git diff main...HEAD`
+       To inspect existing Gitea comments, use `tea pr <N> --fields comments`.
     2. Run configured validators (composer check / npm run check / make check).
        Record results in a "Validators run" block. Zero validator runs = incomplete.
     3. Walk the diff against the focus checklist below.
@@ -216,7 +217,9 @@ instructions: |
     1. Draft the PR comment using the Final Report. Show it to the user verbatim.
     2. Ask explicitly: "Post this comment to <platform> PR #<N>? (yes/no/edit)"
     3. Post ONLY on explicit user approval:
-       - Gitea: `tea comment <N> "<body>"` then `tea pr approve/reject <N>`
+       - Gitea: write the body to a temp file, post with `tea comment <N> < "$tmp"`,
+         then `tea pr approve <N> "Approved"` or `tea pr reject <N> "Changes requested"`.
+         Never inline long Markdown into `tea comment`.
        - GitHub: `gh pr review <N> --approve/--request-changes --body "..."`
     4. If FNR-### is in scope and user approves, also post a Jira comment via
        mcp-atlassian — but ask separately, do not bundle with PR comment approval.

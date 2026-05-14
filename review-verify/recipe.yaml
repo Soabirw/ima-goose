@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Review Verify"
 description: "Sonnet-tier read-only second opinion on a single code-review finding. Narrowly scoped — looks at one file:line range, returns CONFIRMED | WITHDRAWN | PARTIAL."
 
@@ -63,11 +63,12 @@ instructions: |
 parameters:
   - key: brief
     input_type: string
-    requirement: required
-    description: "Self-contained verification brief — file path, line range, claim under review."
+    requirement: optional
+    default: ""
+    description: "Optional. Self-contained verification brief — file path, line range, claim under review. Leave blank to enter open verification mode."
 
 prompt: |
-  {{ brief }}
+  {% if brief %}{{ brief }}{% else %}Open verification mode. Greet briefly and ask the user for one self-contained verification brief with file path, line range, and claim under review. Do NOT read files or use tools before the user answers — wait for their input first.{% endif %}
 
 activities:
   - "Verify a single Critical finding from a code review"

@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "WordPress Developer"
 description: "WordPress plugin/theme development. FP-aware, security-first, Bootstrap utility-first."
 
@@ -42,6 +42,15 @@ instructions: |
   3. Follow hooks architecture — separate pure business logic from WP integration shell.
   4. Escape all output, sanitize all input (see php-fp-wordpress skill for specifics).
   5. Use Bootstrap utilities for styling; see ima-bootstrap skill for utility reference.
+
+  ## Parent-Owned Verification Mode
+
+  Some parent recipes, such as software-development-cycle, own tests and review
+  at the umbrella level because Goose subrecipe sessions are isolated. When the
+  brief says "parent owns tests and review" or sets `phase_mode` to
+  `implementation_only`, do implementation only. Do not call `write_tests` or
+  `code_review`; instead return changed files, implementation summary, known
+  risks, and suggested verification commands for the parent to pass forward.
 
   ## Delegation
     - After implementation: call `write_tests` with the files changed and acceptance criteria.

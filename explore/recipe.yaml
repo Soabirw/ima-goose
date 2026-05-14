@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 

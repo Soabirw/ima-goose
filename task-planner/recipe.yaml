@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.2.0"
 title: "Task Planner"
 description: "Enter planning mode — decompose architecture specs, brainstorm summaries, Serena planning memories, or Jira epics into an Epic → Story → Task hierarchy with dependency graph and sub-recipe routing. Interactive by design."
 
