@@ -89,10 +89,15 @@ GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
 
 ```bash
 goose configure
-# Toggle ON: developer, summon
+# Toggle ON the extensions from config-template.yaml
 ```
 
-`developer` gives file/shell access. `summon` auto-discovers skills from `~/.agents/skills/`. The `orchestrator` extension is session management (list/interrupt sessions) — not a delegation engine; delegation goes through `sub_recipes:`.
+`developer` gives file/shell access. `summon` auto-discovers skills from
+`~/.agents/skills/`. Recipe files now declare their required MCP baseline
+directly, but default sessions should still match `config-template.yaml` so
+ad-hoc work has the same tool environment. The `orchestrator` extension is
+session management (list/interrupt sessions) — not a delegation engine;
+delegation goes through `sub_recipes:`.
 
 ### 5. Install Skills
 
@@ -102,9 +107,10 @@ node scripts/install.ts
 
 Copies all 42 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
-### 6. Add MCP Extensions (Optional)
+### 6. Add MCP Extensions and API Keys (Optional)
 
-For Tavily, Context7, Atlassian — add to `~/.config/goose/config.yaml`:
+For Tavily, Context7, and Atlassian Rovo MCP, add MCP extensions to
+`~/.config/goose/config.yaml`:
 ```yaml
 extensions:
   tavily:
@@ -120,13 +126,20 @@ extensions:
     args: ["-y", "@upstash/context7-mcp@latest"]
     timeout: 300
 
-  atlassian:
-    type: stdio
-    cmd: "npx"
-    args: ["-y", "@anthropic-ai/mcp-proxy", "--endpoint", "https://mcp.atlassian.com"]
-    env_keys: ["ATLASSIAN_API_TOKEN", "ATLASSIAN_EMAIL", "ATLASSIAN_SITE_URL"]
+  atlassian-rovo:
+    enabled: true
+    type: streamable_http
+    name: atlassian-rovo
+    description: Atlassian Rovo MCP
+    uri: https://mcp.atlassian.com/v1/mcp/authv2
     timeout: 300
 ```
+
+Jira-aware recipes include `atlassian-rovo` for interactive Goose work. The
+`mcp-atlassian` skill also includes a REST API helper for deterministic scripts
+and fallback access. Configure `ATLASSIAN_BEARER_TOKEN`,
+`ATLASSIAN_CLOUD_ID`, and `ATLASSIAN_DOMAIN`, or use `ATLASSIAN_EMAIL` plus
+`ATLASSIAN_API_TOKEN` as a Basic auth fallback.
 
 ---
 

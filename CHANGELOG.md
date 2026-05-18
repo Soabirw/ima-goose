@@ -1,5 +1,64 @@
 # Changelog
 
+## v1.3.0 - 2026-05-18
+
+This release restores the full IMA Goose operating environment inside recipes
+and updates Atlassian/Jira access for the current Rovo MCP endpoint plus a
+deterministic REST fallback.
+
+### Added
+
+- Added the critical MCP baseline to every recipe: `serena`, `vestige`,
+  `qdrant-memory`, `tavily`, `sequential-thinking`, and `context7`.
+- Added `tom` to every recipe so MOIM/persistent instructions remain available
+  in recipe sessions.
+- Added targeted workflow extensions:
+  - `atlassian-rovo` for Jira-aware planning, prompt, implementation, review,
+    and orchestration recipes.
+  - `fetch` for research, planning, review, documentation, and architecture
+    recipes.
+  - `todo` for implementation, review, task execution, and testing recipes.
+  - `chrome-devtools` for implementation, JavaScript, WordPress, testing, and
+    review recipes.
+  - `code_execution` for implementation, review, task execution, and test
+    workflows that benefit from batched tool calls.
+- Added a Node-based Atlassian REST helper under
+  `skills/mcp-atlassian/scripts/atlassian-api.mjs` for Jira issue reads,
+  comments, transitions, JQL search, and Confluence lookup.
+- Added a project release checklist to `.goosehints` so future release prep
+  consistently covers local diff review, versioning, changelog, docs, recipe
+  validation, and git hygiene.
+
+### Changed
+
+- Bumped all recipe versions to `1.3.0`.
+- Updated the Atlassian skill and shared tool guide for the Rovo MCP
+  Streamable HTTP endpoint at `https://mcp.atlassian.com/v1/mcp/authv2`.
+- Updated setup docs and the config template to replace the retired Atlassian
+  SSE/proxy guidance with `atlassian-rovo` plus REST-helper environment
+  variables.
+- Updated installer environment checks for Bearer-token Atlassian auth and the
+  Basic-auth fallback.
+- Updated README release notes and recipe architecture guidance for the new
+  extension baseline and tiered workflow extension model.
+- Updated the OpenAI profile so `code-review` resolves to `gpt-5.5` instead of
+  the previous `gpt-5.4` override.
+
+### Fixed
+
+- Fixed recipe sessions that previously lacked the memory, code navigation,
+  research, documentation, and structured-reasoning tools assumed by their
+  instructions.
+- Fixed Jira-aware recipes so they have direct access to Atlassian Rovo MCP
+  instead of relying on default-session extension state.
+
+### Validation
+
+- Parsed all recipe YAML files.
+- Validated all recipe files with `goose recipe validate`.
+- Ran `git diff --check`.
+- Syntax-checked `scripts/install.ts` and the Atlassian REST helper.
+
 ## v1.2.0 - 2026-05-14
 
 This release captures the Goose workflow refactor we have been building through
@@ -50,4 +109,3 @@ the May iteration cycle.
 - Validated recipe files with `goose recipe validate`.
 - Smoke-tested no-parameter recipe loading with `goose run --recipe ... --explain`
   for the former parameter-gated recipes.
-

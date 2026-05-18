@@ -246,9 +246,11 @@ function checkEnvVars(): void {
     { key: "TAVILY_API_KEY", note: "Required for Tavily web search — https://tavily.com" },
   ];
   const optional = [
-    { key: "ATLASSIAN_API_TOKEN", note: "Optional — Jira/Confluence integration" },
-    { key: "ATLASSIAN_EMAIL", note: "Optional — Jira/Confluence integration" },
-    { key: "ATLASSIAN_SITE_URL", note: "Optional — Jira/Confluence integration (e.g. your-org.atlassian.net)" },
+    { key: "ATLASSIAN_BEARER_TOKEN", note: "Optional — Jira/Confluence API integration, preferred for app/service accounts" },
+    { key: "ATLASSIAN_CLOUD_ID", note: "Optional — Jira/Confluence API integration with Bearer auth" },
+    { key: "ATLASSIAN_DOMAIN", note: "Optional — Jira/Confluence API integration (e.g. your-org.atlassian.net)" },
+    { key: "ATLASSIAN_API_TOKEN", note: "Optional — Jira/Confluence Basic auth fallback" },
+    { key: "ATLASSIAN_EMAIL", note: "Optional — Jira/Confluence Basic auth fallback" },
   ];
 
   for (const { key, note } of required) {

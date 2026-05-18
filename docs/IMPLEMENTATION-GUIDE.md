@@ -17,10 +17,14 @@ GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
 
 ```bash
 goose configure
-# Toggle ON: developer, summon
+# Toggle ON the extensions from config-template.yaml
 ```
 
-`developer` provides file/shell access. `summon` auto-discovers skills. The `orchestrator` extension is session management only — delegation goes through `sub_recipes:` YAML, not the orchestrator.
+`developer` provides file/shell access. `summon` auto-discovers skills. Recipe
+files now declare their required MCP baseline directly, but default sessions
+should still match `config-template.yaml` so ad-hoc work has the same tool
+environment. The `orchestrator` extension is session management only —
+delegation goes through `sub_recipes:` YAML, not the orchestrator.
 
 ### 3. Install Skills
 

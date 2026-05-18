@@ -25,6 +25,16 @@ Trunk-based development with release branches.
 ## Documentation
 Three-tier: Active (permanent), Archive (historical), Transient (ephemeral, git-ignored).
 
+## Release Checklist
+Before preparing a release:
+- Review all local changes with `git status --short`, `git diff --stat`, and targeted diffs.
+- Bump the repo release version in README and recipe YAML files when recipe behavior changes.
+- Add a top changelog entry with Added, Changed, Fixed, and Validation sections.
+- Update README/setup docs for any new workflow, extension, environment variable, or command.
+- Validate all recipes with `goose recipe validate` and run YAML/syntax checks for touched scripts.
+- Run `git diff --check` and verify no unrelated user changes were reverted.
+- Confirm git workflow: changes originate on `main`; release branches fast-forward from `main`; production tags use `v<version>`.
+
 ## Code Style
 - No comments unless WHY is non-obvious
 - Pure functions for business logic, side effects at edges

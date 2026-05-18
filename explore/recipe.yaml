@@ -1,4 +1,4 @@
-version: "1.2.0"
+version: "1.3.0"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 
@@ -12,6 +12,56 @@ extensions:
   - { type: builtin, name: developer }
   - { type: builtin, name: summon }     # auto-discovers skills
 
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+  - type: stdio
+    name: vestige
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+  - type: stdio
+    name: qdrant-memory
+    cmd: qdrant-mcp
+    args: []
+    env_keys:
+      - QDRANT_URL
+      - COLLECTION_NAME
+    timeout: 60
+  - type: stdio
+    name: tavily
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys:
+      - TAVILY_API_KEY
+    timeout: 60
+  - type: stdio
+    name: sequential-thinking
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+  - type: stdio
+    name: context7
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+  - type: platform
+    name: tom
+  - type: stdio
+    name: fetch
+    cmd: uvx
+    args: ["mcp-server-fetch"]
+    timeout: 60
 # Terminal recipe — produces findings and returns. No sub_recipes.
 
 instructions: |

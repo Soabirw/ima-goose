@@ -11,4 +11,3 @@ tiers:
 # Demote heavy-fan-out orchestrators off gpt-5.5 to protect the rate-limit budget.
 overrides:
   task-master: gpt-5.4 # orchestrates many sub-recipe calls
-  code-review: gpt-5.4 # fans out to review-verify sub-recipes

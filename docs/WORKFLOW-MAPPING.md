@@ -113,7 +113,7 @@ Paste the brainstorm summary as input. task-master (Opus 4.7) breaks it into an 
 At the end of planning, tell the agent:
 > "Create these epics and stories in Jira project FNR using mcp-atlassian."
 
-Summon will load the `mcp-atlassian` skill on demand; the agent will use `createJiraIssue` for each Epic and Story.
+Summon will load the `mcp-atlassian` skill on demand; the agent will use Atlassian REST APIs for each Epic and Story.
 
 **Option B — Save then create (if Jira connection not active):**
 Ask the agent to write the structure to a local file:
@@ -254,15 +254,14 @@ Independent tool calls run in parallel. Dependent calls are serial. This preserv
 
 ---
 
-## Jira MCP Extension
+## Jira API Access
 
-Jira interactions require the Atlassian extension to be enabled in config:
+Jira interactions use the `mcp-atlassian` skill's REST API helper. Configure Bearer auth:
 
-```yaml
-# ~/.config/goose/config.yaml
-extensions:
-  atlassian:
-    enabled: true   # set to true when actively working with Jira
+```bash
+export ATLASSIAN_DOMAIN="flccc.atlassian.net"
+export ATLASSIAN_CLOUD_ID="..."
+export ATLASSIAN_BEARER_TOKEN="..."
 ```
 
 See `skills/mcp-atlassian/SKILL.md` for full Jira/Confluence operation reference.

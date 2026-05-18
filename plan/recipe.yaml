@@ -1,4 +1,4 @@
-version: "1.2.0"
+version: "1.3.0"
 title: "Plan"
 description: "Interactive technical-planning session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Serena memory or a file. Stand-alone; no prior brainstorm required."
 
@@ -15,6 +15,60 @@ extensions:
   - type: builtin
     name: summon       # auto-discovers skills on demand
 
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+  - type: stdio
+    name: vestige
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+  - type: stdio
+    name: qdrant-memory
+    cmd: qdrant-mcp
+    args: []
+    env_keys:
+      - QDRANT_URL
+      - COLLECTION_NAME
+    timeout: 60
+  - type: stdio
+    name: tavily
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys:
+      - TAVILY_API_KEY
+    timeout: 60
+  - type: stdio
+    name: sequential-thinking
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+  - type: stdio
+    name: context7
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+  - type: platform
+    name: tom
+  - type: streamable_http
+    name: atlassian-rovo
+    uri: https://mcp.atlassian.com/v1/mcp/authv2
+    timeout: 300
+  - type: stdio
+    name: fetch
+    cmd: uvx
+    args: ["mcp-server-fetch"]
+    timeout: 60
 # No sub_recipes — terminal. Saved plan is the handoff; user routes it forward.
 
 instructions: |
@@ -46,7 +100,7 @@ instructions: |
   source lives. Accepted forms:
   - Pasted text (idea, bug report, requirements, spec)
   - Serena memory name (read with mcp-serena read_memory)
-  - Jira key, e.g. FNR-123 (fetch with mcp-atlassian getJiraIssue)
+  - Jira key, e.g. FNR-123 (fetch with the mcp-atlassian REST helper)
   - Local file path (read with developer)
 
   Then WAIT for the user's answer. No tool calls yet.

@@ -1,151 +1,226 @@
 ---
 name: mcp-atlassian
-description: "Atlassian MCP — use for all Jira and Confluence operations. Triggers on: Jira issue keys (FNR-123, IMA-456), 'create ticket', 'create issue', 'update Jira', 'add comment', 'transition issue', 'search Confluence', 'create Confluence page', 'update page', 'acceptance criteria', sprint planning, workflow transitions, JQL queries, CQL queries, issue links, worklogs, get issue details, list issues in project."
+description: "Atlassian specialist for Jira, Confluence, Compass, and the Atlassian Rovo MCP Server in Goose. Use for Rovo MCP setup, Jira issue keys such as FNR-123, issue descriptions and comments, JQL searches, adding comments, transitions/status changes, Confluence lookup, Atlassian Cloud auth setup, ATLASSIAN_BEARER_TOKEN, ATLASSIAN_CLOUD_ID, ATLASSIAN_DOMAIN, ATLASSIAN_EMAIL, and ATLASSIAN_API_TOKEN."
 ---
 
-# Atlassian MCP - Jira & Confluence
+# Atlassian - Rovo MCP + REST API
 
-Use the Atlassian MCP for all Jira and Confluence operations. When you see a Jira issue key in conversation, fetch context first before acting.
+Prefer the Atlassian Rovo MCP Server for interactive Jira, Confluence, Compass,
+and Rovo search work in Goose. Use the bundled REST helper when MCP is not
+configured, when you need deterministic scripted Jira workflow updates, or when
+the user explicitly asks for direct API work. The skill name remains
+`mcp-atlassian` for installer and recipe compatibility.
 
-## Tools
+## Rovo MCP Setup in Goose
 
-### Jira Operations
+The old Atlassian SSE endpoint is being retired after June 30, 2026. Do not
+configure new clients with:
 
-| Tool | Purpose |
-|------|---------|
-| `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql` | Search issues with JQL |
-| `mcp__claude_ai_Atlassian__getJiraIssue` | Get issue by key (FNR-123) |
-| `mcp__claude_ai_Atlassian__createJiraIssue` | Create a new issue |
-| `mcp__claude_ai_Atlassian__editJiraIssue` | Edit issue fields |
-| `mcp__claude_ai_Atlassian__addCommentToJiraIssue` | Add a comment |
-| `mcp__claude_ai_Atlassian__addWorklogToJiraIssue` | Log time against an issue |
-| `mcp__claude_ai_Atlassian__getTransitionsForJiraIssue` | List available transitions |
-| `mcp__claude_ai_Atlassian__transitionJiraIssue` | Change issue status |
-| `mcp__claude_ai_Atlassian__createIssueLink` | Link two issues |
-| `mcp__claude_ai_Atlassian__getJiraProjectIssueTypesMetadata` | Get issue types for project |
-| `mcp__claude_ai_Atlassian__getJiraIssueTypeMetaWithFields` | Get fields for an issue type |
-| `mcp__claude_ai_Atlassian__lookupJiraAccountId` | Find a user's account ID |
-
-### Confluence Operations
-
-| Tool | Purpose |
-|------|---------|
-| `mcp__claude_ai_Atlassian__getConfluencePage` | Get page by ID |
-| `mcp__claude_ai_Atlassian__getConfluenceSpaces` | List spaces |
-| `mcp__claude_ai_Atlassian__getConfluencePageDescendants` | Get child pages |
-| `mcp__claude_ai_Atlassian__getConfluencePageFooterComments` | Get footer comments |
-| `mcp__claude_ai_Atlassian__getConfluencePageInlineComments` | Get inline comments |
-| `mcp__claude_ai_Atlassian__createConfluencePage` | Create a new page |
-| `mcp__claude_ai_Atlassian__updateConfluencePage` | Update existing page |
-| `mcp__claude_ai_Atlassian__createConfluenceFooterComment` | Add footer comment |
-| `mcp__claude_ai_Atlassian__createConfluenceInlineComment` | Add inline comment |
-
-### General
-
-| Tool | Purpose |
-|------|---------|
-| `mcp__claude_ai_Atlassian__search` | Unified Jira + Confluence search |
-| `mcp__claude_ai_Atlassian__atlassianUserInfo` | Get current user info |
-| `mcp__claude_ai_Atlassian__getAccessibleAtlassianResources` | List accessible sites |
-| `mcp__claude_ai_Atlassian__searchConfluenceUsingCql` | Search Confluence with CQL |
-
-## Common JQL Patterns
-
-```
-# Open issues in a project
-project = FNR AND status != Done ORDER BY created DESC
-
-# In Progress this sprint
-project = FNR AND status = "In Progress" AND sprint in openSprints()
-
-# Assigned to me
-assignee = currentUser() AND status != Done
-
-# Issues with label
-project = FNR AND labels = "backend" AND status != Done
-
-# Recently updated
-project = FNR AND updated >= -7d ORDER BY updated DESC
-
-# Blocking issues
-issueFunction in subtasksOf("FNR-123")
+```text
+https://mcp.atlassian.com/v1/sse
 ```
 
-## Common CQL Patterns (Confluence)
+Use the current Streamable HTTP endpoint:
 
-```
-# Pages in a space
-space = DEV AND type = page AND text ~ "deployment"
-
-# Recently modified
-space = DEV AND type = page AND lastModified >= "2026-01-01"
-
-# By title
-space = DEV AND title = "Architecture Overview"
-
-# By label
-space = DEV AND type = page AND label = "runbook"
+```text
+https://mcp.atlassian.com/v1/mcp/authv2
 ```
 
-## Jira Awareness Pattern
-
-When you see an issue key (e.g., FNR-123) in conversation:
-
-1. Fetch issue context first: `getJiraIssue(issueKey: "FNR-123")`
-2. Read acceptance criteria before implementing
-3. Fetch transitions before status change: `getTransitionsForJiraIssue(issueKey: "FNR-123")`
-4. Update status on start/complete work: `transitionJiraIssue`
-
-```
-IF issue key seen in prompt → getJiraIssue first
-IF starting work on a story → transition to "In Progress"
-IF work completed → transition to "In Review" or "Done"
-IF unclear requirements → check issue description + comments
-```
-
-## Decision Logic
-
-```
-IF Jira/Confluence operation → MCP tools (preferred)
-IF bulk operation > 50 items → REST API fallback (curl)
-IF attachment upload/download → REST API (MCP gap)
-IF sprint/board management → REST API (MCP gap)
-IF operation fails → check error, fallback to REST
-```
-
-### REST API Fallback
-
-```bash
-# Base URL pattern
-curl -u "$ATLASSIAN_EMAIL:$ATLASSIAN_API_TOKEN" \
-  -H "Accept: application/json" \
-  "https://$ATLASSIAN_SITE_URL/rest/api/3/issue/FNR-123"
-```
-
-## Setup
-
-Atlassian MCP requires env vars — direct config edit is the easiest path:
-
-Add to `~/.config/goose/config.yaml`:
+For default Goose setup, use this config block:
 
 ```yaml
-extensions:
-  atlassian:
-    enabled: false   # set true when using Jira/Confluence
-    name: atlassian
-    type: stdio
-    cmd: npx
-    args: ["-y", "@anthropic-ai/mcp-proxy", "--endpoint", "https://mcp.atlassian.com"]
-    env_keys: ["ATLASSIAN_API_TOKEN", "ATLASSIAN_EMAIL", "ATLASSIAN_SITE_URL"]
-    timeout: 300
+atlassian-rovo:
+  enabled: true
+  type: streamable_http
+  name: atlassian-rovo
+  description: Atlassian Rovo MCP
+  uri: https://mcp.atlassian.com/v1/mcp/authv2
+  envs: {}
+  env_keys: []
+  headers: {}
+  timeout: 300
+  socket: null
+  bundled: null
+  available_tools: []
 ```
 
-Add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+Or configure it interactively:
+
+```bash
+goose configure
+```
+
+Choose:
+
+```text
+Add Extension
+Remote Extension (Streamable HTTP)
+```
+
+Use:
+
+```text
+Name: atlassian-rovo
+Endpoint URI: https://mcp.atlassian.com/v1/mcp/authv2
+Timeout: 300
+Description: Atlassian Rovo MCP for Jira, Confluence, Compass, and Rovo search
+Custom headers: No
+```
+
+For a one-off session:
+
+```bash
+goose session --with-streamable-http-extension "https://mcp.atlassian.com/v1/mcp/authv2 timeout=300"
+```
+
+When first used, Goose should open an Atlassian OAuth browser flow. Sign in with
+the Atlassian account that has site access, authorize the client, and enable the
+requested Atlassian apps.
+
+If native remote OAuth fails locally, add a Command-line Extension instead:
+
+```text
+npx -y mcp-remote@latest https://mcp.atlassian.com/v1/mcp/authv2
+```
+
+This fallback requires Node.js 18+.
+
+## Rovo MCP Verification
+
+After adding the extension, start a fresh Goose session and ask for a read-only
+check first:
+
+```text
+Use Atlassian Rovo MCP to show my Atlassian user info.
+```
+
+Then verify Jira access:
+
+```text
+Search Jira for issues assigned to me updated in the last 7 days.
+```
+
+If OAuth loops or redirects fail, allow `http://localhost:3334` in browser and
+firewall settings, restart Goose, and reconnect. If your organization blocks
+user-installed apps, ask an Atlassian admin to allow the Atlassian MCP app.
+
+## First Move
+
+When a Jira key appears and the Rovo MCP is unavailable or not already
+authenticated, fetch the issue with the REST helper before planning or
+implementing:
+
+```bash
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-123
+```
+
+If working from the repo source instead of an installed skill:
+
+```bash
+node skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-123
+```
+
+Read Summary, Description, Acceptance Criteria, Comments, and Status. If requirements conflict, the newest Jira comment normally wins.
+
+## Auth Model
+
+Preferred OAuth/Bearer setup:
+
+```bash
+export ATLASSIAN_BEARER_TOKEN="..."
+export ATLASSIAN_CLOUD_ID="..."
+export ATLASSIAN_DOMAIN="flccc.atlassian.net"
+```
+
+This uses:
+
+```text
+https://api.atlassian.com/ex/jira/$ATLASSIAN_CLOUD_ID/rest/api/3
+https://api.atlassian.com/ex/confluence/$ATLASSIAN_CLOUD_ID/wiki/rest/api
+```
+
+Basic/API-token fallback:
 
 ```bash
 export ATLASSIAN_EMAIL="you@example.com"
-export ATLASSIAN_API_TOKEN="your-api-token"     # https://id.atlassian.com/manage-profile/security/api-tokens
-export ATLASSIAN_SITE_URL="your-org.atlassian.net"
+export ATLASSIAN_API_TOKEN="..."
+export ATLASSIAN_DOMAIN="your-org.atlassian.net"
 ```
 
-Note: Set `enabled: true` only when actively using Jira/Confluence. The extension adds startup time when enabled.
+This uses:
+
+```text
+https://$ATLASSIAN_DOMAIN/rest/api/3
+https://$ATLASSIAN_DOMAIN/wiki/rest/api
+```
+
+Do not print tokens. When debugging auth, call `jira:myself` and report only status, account display name, and whether auth succeeded.
+
+## Helper Commands
+
+Use the bundled script for routine Jira work:
+
+```bash
+# Verify auth
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:myself
+
+# Get issue description and all comments as readable text
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-2549
+
+# JQL search
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:search 'project = FNR ORDER BY updated DESC'
+
+# Add a comment
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:comment FNR-2549 'Comment body'
+
+# List valid transitions before changing status
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:transitions FNR-2549
+
+# Apply a transition by ID
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:transition FNR-2549 31
+
+# Search Confluence with CQL
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs confluence:search 'space = DEV AND text ~ "deployment"'
+
+# Get a Confluence page by ID
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs confluence:get 123456789
+```
+
+For unsupported operations, use `curl` or a short Node script with the same auth/base-url rules. Prefer structured JSON APIs and `jq`/Node parsing over ad hoc text scraping.
+
+## Jira Workflow
+
+1. Fetch issue context immediately when a key is provided.
+2. Read the current comments as well as the description.
+3. Before changing status, fetch transitions for that issue; transition IDs are workflow-specific.
+4. If adding implementation notes, post a concise Jira comment with files changed, tests run, and any unresolved risk.
+5. If Jira returns `401`, auth is invalid or expired. If it returns `404`, verify auth first with `jira:myself`; Jira uses 404 for missing permission.
+
+Common JQL:
+
+```sql
+project = FNR AND status != Done ORDER BY created DESC
+assignee = currentUser() AND status != Done
+project = FNR AND labels = "backend" AND status != Done
+project = FNR AND updated >= -7d ORDER BY updated DESC
+key = FNR-2549
+```
+
+## Setup Guidance
+
+For Bearer auth, agents need both `ATLASSIAN_BEARER_TOKEN` and `ATLASSIAN_CLOUD_ID`. If only the domain is known, ask the user for the cloud ID or for a token/source that can call Atlassian accessible resources. Some app tokens cannot call `oauth/token/accessible-resources`, so a preconfigured `ATLASSIAN_CLOUD_ID` is the reliable path.
+
+For Basic auth, create an Atlassian API token at `https://id.atlassian.com/manage-profile/security/api-tokens` and pair it with the Atlassian account email. Basic auth often works for human accounts but may fail for app/service accounts; use Bearer auth for app accounts when available.
+
+Suggested shell profile:
+
+```bash
+# Atlassian Cloud REST API
+export ATLASSIAN_DOMAIN="flccc.atlassian.net"
+export ATLASSIAN_CLOUD_ID="..."
+export ATLASSIAN_BEARER_TOKEN="..."
+
+# Optional Basic fallback
+export ATLASSIAN_EMAIL="you@example.com"
+export ATLASSIAN_API_TOKEN="..."
+```

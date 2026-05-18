@@ -1,7 +1,7 @@
 # ima-goose Developer Configuration Template
 # Copy to: ~/.config/goose/config.yaml
 # Set all PLACEHOLDER values before use
-# Last updated: 2026-05-06
+# Last updated: 2026-05-18
 
 extensions:
   # ── Core platform extensions (always enabled) ──
@@ -22,6 +22,30 @@ extensions:
     display_name: Summon
     bundled: true
     # Auto-discovers SKILL.md files from ~/.agents/skills/ (Goose v1.25+)
+
+  tom:
+    enabled: true
+    type: platform
+    name: tom
+    description: Inject MOIM/persistent instructions into every turn
+    display_name: Top Of Mind
+    bundled: true
+
+  todo:
+    enabled: true
+    type: platform
+    name: todo
+    description: Manage structured task lists during complex workflows
+    display_name: Todo
+    bundled: true
+
+  code_execution:
+    enabled: true
+    type: platform
+    name: code_execution
+    description: Code Mode for batched MCP tool discovery and calls
+    display_name: Code Mode
+    bundled: true
 
   orchestrator:
     enabled: true
@@ -131,16 +155,29 @@ extensions:
     args: []
     timeout: 60
 
-  # Atlassian — Jira and Confluence (disabled by default — enable if using Jira/Confluence)
-  # API token: https://id.atlassian.com/manage-profile/security/api-tokens
-  atlassian:
-    enabled: false
-    name: atlassian
-    type: stdio
-    cmd: npx
-    args: ["-y", "@anthropic-ai/mcp-proxy", "--endpoint", "https://mcp.atlassian.com"]
-    env_keys: ["ATLASSIAN_API_TOKEN", "ATLASSIAN_EMAIL", "ATLASSIAN_SITE_URL"]
+  # Atlassian — Jira, Confluence, Compass, and Rovo search
+  # Complete the browser OAuth flow on first use. Do not use the old SSE
+  # endpoint: https://mcp.atlassian.com/v1/sse
+  atlassian-rovo:
+    enabled: true
+    type: streamable_http
+    name: atlassian-rovo
+    description: Atlassian Rovo MCP
+    uri: https://mcp.atlassian.com/v1/mcp/authv2
+    envs: {}
+    env_keys: []
+    headers: {}
     timeout: 300
+    socket: null
+    bundled: null
+    available_tools: []
+
+  # If native remote OAuth fails locally, add a Command-line Extension instead:
+  # npx -y mcp-remote@latest https://mcp.atlassian.com/v1/mcp/authv2
+  #
+  # Keep the mcp-atlassian skill's REST API helper configured with
+  # ATLASSIAN_BEARER_TOKEN/CLOUD_ID or ATLASSIAN_EMAIL/API_TOKEN for scripted
+  # Jira/Confluence workflow operations and fallback access.
 
 # ── Global settings ──
 GOOSE_MODE: auto

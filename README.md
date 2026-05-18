@@ -2,20 +2,20 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.3.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.2.0
+## What's New In v1.3.0
 
-- `software-development-cycle` is now the preferred full-cycle umbrella for
-  Brainstorm -> Plan -> Decompose -> Implement -> Test -> Review ->
-  Document/Learn.
-- `brainstorm`, `plan`, `task-master`, `task-runner`, `architect`,
-  `review-verify`, and `document-learn` can start without required parameter
-  gates and ask for context in-session.
-- `node scripts/install.ts --profile <name>` now rewrites model tiers for
-  Claude ACP, Anthropic direct, or OpenAI via Codex ACP.
-- Gitea work now has a dedicated `tea-gitea` skill and safer guidance for long
-  PR review comments.
+- Recipes now include the critical IMA MCP baseline directly: Serena, Vestige,
+  Qdrant Memory, Tavily, Sequential Thinking, Context7, and TOM/MOIM.
+- Jira-aware workflows now include `atlassian-rovo` and the `mcp-atlassian`
+  skill includes a REST helper for scripted Jira/Confluence operations.
+- Implementation, review, task, and test recipes now get targeted workflow
+  tools such as Todo, Chrome DevTools, Fetch, and Code Mode where they are
+  useful.
+- Release prep is now captured in `.goosehints` so version bumps, changelog
+  entries, README/docs updates, recipe validation, and git review happen
+  consistently.
 
 ---
 
@@ -201,10 +201,15 @@ GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
 
 ```bash
 goose configure
-# Toggle Extensions → enable: developer, summon
+# Toggle Extensions → enable the extensions from config-template.yaml
 ```
 
-`developer` provides file/shell access. `summon` auto-discovers skills from `~/.agents/skills/`.
+Recipes declare their own required extension set, but your default sessions
+should still match `config-template.yaml` so ad-hoc Goose work has the same
+tooling available. At minimum keep `developer`, `summon`, `tom`, `tavily`,
+`context7`, `sequential-thinking`, `serena`, `qdrant-memory`, and `vestige`
+enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
+`code_execution` for the workflows that need them.
 
 ### 4. Install Skills
 
@@ -260,7 +265,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Testing (3):** `unit-testing`, `phpunit-wp`, `playwright`
 
-**MCP guides (9):** `mcp-tavily`, `mcp-context7`, `mcp-sequential-thinking`, `mcp-atlassian`, `mcp-serena`, `mcp-fetch`, `mcp-chrome-devtools`, `mcp-qdrant`, `mcp-vestige`
+**MCP/API guides (9):** `mcp-tavily`, `mcp-context7`, `mcp-sequential-thinking`, `mcp-atlassian` (Atlassian REST API), `mcp-serena`, `mcp-fetch`, `mcp-chrome-devtools`, `mcp-qdrant`, `mcp-vestige`
 
 **Goose docs (1):** `goose-doc-guide`
 
@@ -274,7 +279,12 @@ Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or jus
 
 ### P1/P2 — Core Recipes
 
-All core recipes follow the hybrid pattern: each pins `settings.goose_model`, declares `extensions: [developer, summon]`, references skills by name in instructions, and uses `sub_recipes:` for declarative delegation where natural.
+All core recipes follow the hybrid pattern: each pins `settings.goose_model`,
+declares the critical IMA MCP baseline directly, references skills by name in
+instructions, and uses `sub_recipes:` for declarative delegation where natural.
+Recipes add workflow-specific extensions such as `atlassian-rovo`, `fetch`,
+`todo`, `chrome-devtools`, and `code_execution` only where the recipe can use
+them.
 
 | Recipe | Description | Model |
 |--------|-------------|-------|

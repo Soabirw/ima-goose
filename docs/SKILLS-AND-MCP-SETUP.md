@@ -77,6 +77,8 @@ What it does:
 - Checks Goose is installed and prints version
 - Creates `~/.agents/skills/` if it doesn't exist
 - Copies each skill directory
+- Installs all recipes to `~/.config/goose/recipes/`
+- Rewrites recipe model tiers based on the selected provider profile
 - Warns about missing env vars
 - Prints next steps including MOIM setup instructions
 
@@ -101,7 +103,7 @@ ls ~/.agents/skills/ | wc -l
 
 ---
 
-## Step-by-Step: Configure MCP Extensions
+## Step-by-Step: Configure MCP Extensions and API Keys
 
 ### 1. Copy the template
 
@@ -119,15 +121,92 @@ Add to `~/.bashrc` or `~/.zshrc`:
 # Required for Tavily
 export TAVILY_API_KEY="tvly-..."
 
-# Required if using Atlassian (Jira/Confluence)
+# Required if using Atlassian (Jira/Confluence) with Bearer auth
+export ATLASSIAN_DOMAIN="your-org.atlassian.net"
+export ATLASSIAN_CLOUD_ID="..."
+export ATLASSIAN_BEARER_TOKEN="..."
+
+# Optional Basic auth fallback
 export ATLASSIAN_EMAIL="you@example.com"
 export ATLASSIAN_API_TOKEN="..."         # https://id.atlassian.com/manage-profile/security/api-tokens
-export ATLASSIAN_SITE_URL="your-org.atlassian.net"
 ```
 
 Reload: `source ~/.bashrc`
 
-### 3. Configure Serena (if using JetBrains)
+### 3. Configure Atlassian Rovo MCP
+
+The old Atlassian MCP/SSE setup should be replaced. Atlassian says
+`https://mcp.atlassian.com/v1/sse` will no longer be supported after
+June 30, 2026. Use the Rovo MCP Streamable HTTP endpoint instead:
+
+```text
+https://mcp.atlassian.com/v1/mcp/authv2
+```
+
+The template already includes the verified Goose config block:
+
+```yaml
+atlassian-rovo:
+  enabled: true
+  type: streamable_http
+  name: atlassian-rovo
+  description: Atlassian Rovo MCP
+  uri: https://mcp.atlassian.com/v1/mcp/authv2
+  envs: {}
+  env_keys: []
+  headers: {}
+  timeout: 300
+  socket: null
+  bundled: null
+  available_tools: []
+```
+
+If configuring interactively instead, run:
+
+```bash
+goose configure
+```
+
+Choose:
+
+```text
+Add Extension
+Remote Extension (Streamable HTTP)
+```
+
+Enter:
+
+```text
+Name: atlassian-rovo
+Endpoint URI: https://mcp.atlassian.com/v1/mcp/authv2
+Timeout: 300
+Description: Atlassian Rovo MCP for Jira, Confluence, Compass, and Rovo search
+Custom headers: No
+```
+
+Start a new Goose session. The first Atlassian tool use should launch a browser
+OAuth flow. Complete the Atlassian login, authorize the client, and enable the
+Atlassian apps the client requests.
+
+One-off session, useful for testing without editing defaults:
+
+```bash
+goose session --with-streamable-http-extension "https://mcp.atlassian.com/v1/mcp/authv2 timeout=300"
+```
+
+Fallback if native remote OAuth fails locally:
+
+```text
+Add Extension
+Command-line Extension
+Command: npx -y mcp-remote@latest https://mcp.atlassian.com/v1/mcp/authv2
+Timeout: 300
+Environment variables: No
+```
+
+The fallback requires Node.js 18+.
+
+### 4. Configure Serena (if using JetBrains)
 
 Serena requires:
 - `uvx` installed: `pip install uv` or `brew install uv`
@@ -153,7 +232,11 @@ If you're not using JetBrains, set `enabled: false` for the serena extension.
 | `chrome-devtools` | None | Requires `npx`; Chrome/Chromium for browser debugging |
 | `qdrant-memory` | None by default | Requires `qdrant-mcp`; Qdrant at `http://localhost:6333` |
 | `vestige` | None | Requires `vestige-mcp` |
-| `atlassian` | `ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL`, `ATLASSIAN_SITE_URL` | https://id.atlassian.com/manage-profile/security/api-tokens |
+| `atlassian-rovo` | Browser OAuth | Remote MCP via `https://mcp.atlassian.com/v1/mcp/authv2`; no static token needed for interactive use |
+| `mcp-atlassian` skill REST helper | `ATLASSIAN_BEARER_TOKEN`, `ATLASSIAN_CLOUD_ID`, `ATLASSIAN_DOMAIN`; fallback: `ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL` | Direct REST fallback for Jira/Confluence scripts and workflow updates |
+| `tom` | `GOOSE_MOIM_MESSAGE_TEXT` or `GOOSE_MOIM_MESSAGE_FILE` | Optional persistent instructions injected every turn |
+| `todo` | None | Built-in task checklist extension for complex workflows |
+| `code_execution` | None | Built-in Code Mode extension for batched MCP tool calls |
 
 ---
 
@@ -225,7 +308,14 @@ Search Vestige for ima-goose project preferences
 
 **Test Atlassian (if configured):**
 ```
-Get the Jira issue FNR-1
+Use Atlassian Rovo MCP to show my Atlassian user info.
+Search Jira for issues assigned to me updated in the last 7 days.
+```
+
+**Test Atlassian REST fallback (if configured):**
+```bash
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:myself
+node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 ```
 
 ---
@@ -250,6 +340,12 @@ Get the Jira issue FNR-1
 **Context7 tool not found:**
 - The correct tools are `resolve-library-id` and `query-docs` — not `search`
 - Verify the `@upstash/context7-mcp@latest` package starts correctly
+
+**Atlassian OAuth loops or redirect fails:**
+- Confirm the extension URL is `https://mcp.atlassian.com/v1/mcp/authv2`, not the old `/v1/sse` URL
+- Allow `http://localhost:3334` in browser and firewall settings
+- Restart Goose and re-run the connection flow
+- If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
 **Only 9 skills showing (not 42):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory

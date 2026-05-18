@@ -47,13 +47,12 @@ Some recipes fan out heavily and would otherwise burn through the flagship rate-
 | Recipe | Default tier | OpenAI override | Why |
 |---|---|---|---|
 | `task-master` | opus | `gpt-5.4` | Orchestrates many sub-recipe calls; protect 5.5 budget. |
-| `code-review` | opus | `gpt-5.4` | Fans out to `review-verify` sub-recipes; same protection. |
 
 Adjust `profiles/openai.yaml` `overrides:` block to tune.
 
 ## Models considered but not used
 
-- **`gpt-5.4`** — strong general flagship, but for our sonnet tier `gpt-5.3-codex` outscores it on SWE-Bench Pro and has higher rate-limit ceilings. Used only as an opus override for heavy-fan-out recipes.
+- **`gpt-5.4`** — strong general flagship, but for our sonnet tier `gpt-5.3-codex` outscores it on SWE-Bench Pro and has higher rate-limit ceilings. Used only as an opus override for the heaviest orchestration recipe.
 - **`gpt-5.3-codex-spark`** — Cerebras-served, 1,000+ tok/s, but SWE-Bench Pro drops to ~56% and reasoning state collapses after 6–8 steps. Pro $200 exclusive. Skip for recipes that orchestrate 12+ step plans. Revisit if we add a one-shot "quickfix" recipe.
 - **`gpt-5.2`** — superseded by 5.3/5.4/5.5. Available in the codex-acp menu but no current use case.
 
@@ -63,7 +62,7 @@ Adjust `profiles/openai.yaml` `overrides:` block to tune.
 |---|---|---|
 | `architect` | opus | `gpt-5.5` |
 | `brainstorm` | opus | `gpt-5.5` |
-| `code-review` | opus | `gpt-5.4` (override) |
+| `code-review` | opus | `gpt-5.5` |
 | `document-learn` | sonnet | `gpt-5.3-codex` |
 | `plan` | opus | `gpt-5.5` |
 | `prompt-starter` | opus | `gpt-5.5` |
