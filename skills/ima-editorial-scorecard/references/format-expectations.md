@@ -21,7 +21,7 @@ Reference this when scoring Structural Craft and Brand Voice to verify format-sp
 ## Structural Expectations by Format
 
 ### Newsletter
-**Must include:** Opening hook, Quick Links block (emoji + title, 3-6 items), content sections with emoji headers, support CTA block ("PLEASE SUPPORT HONEST MEDICINE")
+**Must include:** Opening hook, Quick Links block (emoji + title, 3-6 items), content sections with emoji headers, support CTA block ("PLEASE SUPPORT HONEST MEDICINE™")
 
 ### Webinar Email
 **Must include:** "Watch Now!" header, hook headline (1 sentence), context paragraph, "In this episode, you'll learn:" with 3 bullets, "👉 Watch/Read Now To Get the Full Story" CTA

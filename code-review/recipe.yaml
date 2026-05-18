@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.3.1"
 title: "Code Review"
 description: "FP-aware, security-first code review. Three modes: full review, prompt-only generation, or execute a pre-built review prompt. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -151,6 +151,7 @@ instructions: |
   - FP compliance: [purity, mutation, composition]
   - Code quality: [readability, naming, dead code]
   - WordPress-specific: [hooks, $wpdb->prepare, escaping]
+  - Brand/content: [public-facing copy, UI labels, metadata, alt text, trademark terms]
 
   ## Integration surface
   [symbols whose callers must be checked — list them]
@@ -266,9 +267,22 @@ instructions: |
   - I18N — `__()` / `_e()` / text domain
   - Transients/options used appropriately (no DB hammering)
 
+  **Brand/content**
+  - If the diff changes public-facing IMA copy, UI labels, metadata, alt text,
+    or editorial content, load `ima-brand` before judging terminology.
+  - Public-facing `Honest Medicine` must read `Honest Medicine™` on visible
+    occurrences. Do not require changes to source quotes, URLs, slugs, code
+    identifiers, filenames, or historical/legal references unless the brief
+    explicitly asks for that.
+  - Treat unmarked public-facing `Honest Medicine` as a Warning unless it ships
+    in a prominent page title, CTA, campaign headline, or newsletter close; those
+    may be Critical when the release is primarily editorial/brand-facing.
+
   ## Skills (loaded on demand via summon — these are hints, not auto-loads)
   - functional-programmer — FP compliance framing
   - php-fp-wordpress      — WP security depth
+  - ima-brand             — public-facing IMA brand terminology and trademark checks
+  - ima-copywriting       — editorial/public copy quality
   - mcp-serena            — symbol navigation (use BEFORE Read/Grep)
   - mcp-atlassian         — post Jira comment when FNR-### present
   - gh-cli                — GitHub PR operations

@@ -31,7 +31,7 @@ Headline formulas, structural templates, and section patterns — adapted for IM
 > This Week: Peptides Demystified — 3 Experts, a Webinar, and a Guide You'll Actually Use
 
 **"This Week: [Event], [Event], and [Brand Phrase]"**
-> This Week: NYT Attacks, HHS Appoints, and Honest Medicine Keeps Winning
+> This Week: NYT Attacks, HHS Appoints, and Honest Medicine™ Keeps Winning
 
 ---
 
@@ -125,7 +125,7 @@ IMA [Year] [Event Name] — [Urgency if applicable]!
 ### Support Block (Newsletter Footer)
 
 ```
-PLEASE SUPPORT HONEST MEDICINE
+PLEASE SUPPORT HONEST MEDICINE™
 
 [Concrete inventory of this week's output.] This is what independent
 medicine looks like [variation]. [No pharma variation.]

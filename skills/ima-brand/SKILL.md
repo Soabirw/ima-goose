@@ -80,10 +80,20 @@ What type of brand question?
 | Newsletters | Friendly + Supportive | "Here's what we've been working on for you" |
 | Fundraising | Inspirational + Supportive | "Your support makes independent research possible" |
 
+## Brand Terminology
+
+| Avoid | Use | Why |
+|-------|-----|-----|
+| Honest Medicine | Honest Medicine™ | IMA campaign/tagline usage requires the trademark mark |
+| "FLCCC" in new content | IMA or Independent Medical Alliance | Rebranded; FLCCC is legacy |
+
+**Honest Medicine™ rule:** In public-facing IMA content, headings, CTAs, newsletter closes, campaign names, page copy, metadata, alt text, and UI labels must use `Honest Medicine™` on every visible occurrence. Do not leave unmarked `Honest Medicine` for editors/designers to fix later. Preserve source quotes, URLs, slugs, code identifiers, filenames, and historical/legal references unless explicitly asked to update them.
+
 ## Anti-Patterns
 
 | BAD | GOOD | Why |
 |-----|------|-----|
+| "Honest Medicine" in public-facing content | "Honest Medicine™" | Trademark consistency |
 | "FLCCC" in new content | "IMA" or "Independent Medical Alliance" | Rebranded; FLCCC is legacy |
 | Stretching or recoloring logo | Use approved lockup variants | Brand integrity |
 | Logo on busy/patterned backgrounds | White, light, dark, or gradient bg only | Readability |

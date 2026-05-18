@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.3.1"
 title: "Plan"
 description: "Interactive technical-planning session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Serena memory or a file. Stand-alone; no prior brainstorm required."
 

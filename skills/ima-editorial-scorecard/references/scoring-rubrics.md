@@ -8,13 +8,13 @@ Detailed grading criteria for each of the five scorecard categories. Reference t
 
 | Grade | Criteria |
 |-------|----------|
-| 🟢 A | Unmistakably IMA. Correct tone blend for format. Signature phrases land naturally. No terminology violations. |
+| 🟢 A | Unmistakably IMA. Correct tone blend for format. Signature phrases land naturally. No terminology violations, including `Honest Medicine™`. |
 | 🟢 B | Sounds like IMA with minor inconsistencies. One tone slip or one awkward phrase. |
 | 🟡 C | Generic health nonprofit voice. Could be anyone. Missing IMA personality. |
 | 🔴 D | Wrong tone for the format. Fear-based language, adversarial without evidence, or stiff/institutional. |
 | 🔴 F | Uses "FLCCC," loaded terms without evidence, or sounds like pharma marketing. Fundamentally off-brand. |
 
-**Key signals to check:** No FLCCC, no fear-based messaging, correct tone blend for format, IMA signature phrases present, no AI tells.
+**Key signals to check:** No FLCCC, no unmarked public-facing `Honest Medicine`, no fear-based messaging, correct tone blend for format, IMA signature phrases present, no AI tells.
 
 ---
 

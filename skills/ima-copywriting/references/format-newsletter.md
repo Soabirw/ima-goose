@@ -32,7 +32,7 @@ Content Sections (3-6 items)
 - "Read More »" / "Watch Now »" CTA
 
 Support CTA Block
-"PLEASE SUPPORT HONEST MEDICINE"
+"PLEASE SUPPORT HONEST MEDICINE™"
 - 2-3 sentences connecting this week's work to donor impact
 - "No pharma funding, no institutional strings."
 - "Please Support IMA's Mission »"
@@ -46,7 +46,7 @@ Footer
 
 Examples:
 - "This Week: 3 Studies, 1 Cyberattack, and DNA Contamination Confirmed"
-- "This Week: NYT Attacks, HHS Appoints, and Honest Medicine Keeps Winning"
+- "This Week: NYT Attacks, HHS Appoints, and Honest Medicine™ Keeps Winning"
 - "This Week: Peptides Demystified — 3 Experts, a Webinar, and a Guide You'll Actually Use"
 
 ## Published Examples

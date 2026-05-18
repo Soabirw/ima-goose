@@ -81,7 +81,8 @@ Use `ask_user_input` widget. Collect 2–3 answers in single structured prompt. 
 2. Load `ima-copywriting` (format template for content type)
 3. Check project Files for published examples as style benchmarks
 4. Write draft
-5. Self-check against Quality Checklist in `ima-copywriting`
+5. Enforce brand terminology: public-facing `Honest Medicine` must read `Honest Medicine™`
+6. Self-check against Quality Checklist in `ima-copywriting`
 
 Deliver draft with brief note on key editorial choices. Use `[brackets]` for missing data. Never invent evidence.
 
@@ -89,8 +90,9 @@ Deliver draft with brief note on key editorial choices. Use `[brackets]` for mis
 
 1. Load `ima-editorial-scorecard`
 2. Auto-detect content type or use specified
-3. Score: Brand Voice · Evidence Quality · Audience Clarity · Structural Craft · CTA Effectiveness
-4. Present: scorecard table → What's Working → Priority Fixes → Line-Level Notes
+3. Run the trademark check before scoring: public-facing `Honest Medicine` must read `Honest Medicine™`
+4. Score: Brand Voice · Evidence Quality · Audience Clarity · Structural Craft · CTA Effectiveness
+5. Present: scorecard table → What's Working → Priority Fixes → Line-Level Notes
 
 For self-review: be honest. Separate what you can fix from what the user must provide (missing data, quotes, approvals).
 

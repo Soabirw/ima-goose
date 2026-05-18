@@ -63,10 +63,20 @@ Brand Book v4.0 (September 2025) — Independent Medical Alliance.
 | Newsletters | Friendly + Supportive |
 | Fundraising | Inspirational + Supportive |
 
+## Brand Terminology
+
+| Avoid | Use |
+|-------|-----|
+| Honest Medicine | Honest Medicine™ |
+| FLCCC | IMA / Independent Medical Alliance |
+
+Public-facing IMA content must use `Honest Medicine™` on every visible occurrence, including headings, CTAs, newsletter closes, campaign names, page copy, metadata, alt text, and UI labels. Preserve source quotes, URLs, slugs, code identifiers, filenames, and historical/legal references unless explicitly asked to update them.
+
 ## Anti-Patterns
 
 | BAD | GOOD |
 |-----|------|
+| "Honest Medicine" in public-facing content | "Honest Medicine™" |
 | "FLCCC" in new content | "IMA" or "Independent Medical Alliance" |
 | Stretched/recolored logo | Approved lockup variants |
 | Logo on busy backgrounds | White, light, dark, or gradient bg |

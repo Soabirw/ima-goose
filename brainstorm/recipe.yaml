@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.3.1"
 title: "Brainstorm"
 description: "Interactive ideation session — shape an idea, problem, or Jira-fuzzy item into something well-defined. Researches memories on demand, iterates Q&A with the user, saves the brainstorm to Serena memory or a file. Stand-alone."
 

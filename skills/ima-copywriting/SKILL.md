@@ -48,6 +48,7 @@ No exclamation points in body copy — exception: social openers, one fundraisin
 
 | Avoid | Use |
 |-------|-----|
+| Honest Medicine | Honest Medicine™ |
 | FLCCC | IMA / Independent Medical Alliance |
 | "cure" / "treatment" (unqualified) | "protocol" / "approach" / "may help with" |
 | "you should" | "you may consider" / "research suggests" |
@@ -78,9 +79,9 @@ Verb-first. One primary CTA per section; repeat in P.S. for fundraising. Never "
 
 ## Structural Patterns
 
-**"Honest Medicine" Close** (every newsletter):
+**"Honest Medicine™" Close** (every newsletter):
 ```
-PLEASE SUPPORT HONEST MEDICINE
+PLEASE SUPPORT HONEST MEDICINE™
 
 [2-3 sentences: this week's outputs → what donors fund.]
 No pharma funding, no institutional strings. Just [what IMA does].
@@ -113,6 +114,7 @@ Please Support IMA's Mission »
 - [ ] Chevron on email/web CTAs; short imperative on social?
 - [ ] Urgency earned, not manufactured?
 - [ ] No AI tells?
+- [ ] Every public-facing "Honest Medicine" reads "Honest Medicine™"?
 - [ ] IMA independence signal present?
 
 ## References

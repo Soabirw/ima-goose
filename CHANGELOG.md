@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.3.1 - 2026-05-18
+
+This patch release adds explicit brand enforcement for the Honest Medicine™
+trademark rule across IMA skills and Goose recipes.
+
+### Changed
+
+- Bumped all recipe versions to `1.3.1`.
+- Updated README release notes for the Honest Medicine™ brand enforcement patch.
+- Added `Honest Medicine™` as required public-facing terminology in
+  `ima-brand`, `shared/ima-brand-book.md`, and the brand identity reference.
+- Updated `ima-copywriting` examples, newsletter support blocks, transitions,
+  and quality checks to use and verify `Honest Medicine™`.
+- Added an editorial scorecard trademark check so unmarked public-facing
+  `Honest Medicine` usage is deducted from Brand Voice and listed in Priority
+  Fixes.
+- Updated `ima-editorial-workflow` so drafting and review phases explicitly
+  enforce the trademark rule.
+- Updated implementation, WordPress, JavaScript, task-runner, code-review, and
+  review-verifier recipes to load/apply brand checks when public-facing IMA copy
+  or UI text is touched.
+
+### Fixed
+
+- Fixed remaining public-facing editorial examples that used `Honest Medicine`
+  without the trademark mark.
+
+### Validation
+
+- Parsed all recipe YAML files.
+- Validated all recipe files with `goose recipe validate`.
+- Ran `git diff --check`.
+
 ## v1.3.0 - 2026-05-18
 
 This release restores the full IMA Goose operating environment inside recipes

@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.3.1"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 
@@ -84,6 +84,8 @@ instructions: |
     - js-fp — core FP principles (purity, composition, immutability, side-effect isolation)
     - js-fp-api — Node API patterns (security-first SQL, middleware DI, error boundaries)
     - ima-bootstrap — Bootstrap 5 utility-first + IMA brand tokens (applies to any Bootstrap UI, not just WP)
+    - ima-brand — required for public-facing IMA copy, UI labels, metadata, alt text, and brand terminology
+    - ima-copywriting — required when drafting or revising editorial/public copy
     - unit-testing — test strategy router (vitest/node:test/playwright)
     - playwright — E2E and component testing
     - mcp-serena — navigate existing code BEFORE reading files (40-70% token savings)
@@ -98,6 +100,7 @@ instructions: |
   2. Separate pure logic (functional core) from IO/framework (imperative shell).
   3. Default to standard-library APIs — prefer Node 24+ built-ins (`node:test`, `node:fs/promises`, native fetch, native TS) over adding deps.
   4. For unknown library APIs, use mcp-context7 BEFORE guessing or websearching.
+  5. For public-facing IMA copy or UI text, enforce brand terminology: `Honest Medicine` must read `Honest Medicine™` on visible occurrences.
 
   ### Target-specific guidance
 

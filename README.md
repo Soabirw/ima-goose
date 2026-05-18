@@ -2,20 +2,19 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.3.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.3.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.3.0
+## What's New In v1.3.1
 
-- Recipes now include the critical IMA MCP baseline directly: Serena, Vestige,
-  Qdrant Memory, Tavily, Sequential Thinking, Context7, and TOM/MOIM.
-- Jira-aware workflows now include `atlassian-rovo` and the `mcp-atlassian`
-  skill includes a REST helper for scripted Jira/Confluence operations.
-- Implementation, review, task, and test recipes now get targeted workflow
-  tools such as Todo, Chrome DevTools, Fetch, and Code Mode where they are
-  useful.
-- Release prep is now captured in `.goosehints` so version bumps, changelog
-  entries, README/docs updates, recipe validation, and git review happen
-  consistently.
+- IMA brand guidance now requires public-facing `Honest Medicine™` usage across
+  headings, CTAs, newsletter closes, campaign names, page copy, metadata, alt
+  text, and UI labels.
+- Editorial copywriting, workflow, and scorecard skills now draft and review
+  against the trademark rule.
+- Implementation, WordPress, JavaScript, task-runner, code-review, and
+  review-verifier recipes now surface the brand check when public-facing copy is
+  touched.
+- All recipe versions are bumped to `1.3.1`.
 
 ---
 

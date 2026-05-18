@@ -10,7 +10,7 @@ Adapted from IMA's published content patterns and the University of Manchester A
 
 Use to orient readers and signal what's coming:
 
-- Here's what's new in Honest Medicine.
+- Here's what's new in Honest Medicine™.
 - This week brought [number] studies, [event], and [development].
 - Also this week: [quick preview of secondary items].
 - Let's break this down.
@@ -188,7 +188,7 @@ These phrases signal AI-generated content and erode trust. Never use them:
 
 Phrases that appear across IMA content and define the editorial voice:
 
-- "Honest Medicine" — IMA's tagline; use as a proper noun
+- "Honest Medicine™" — IMA's tagline; use with the trademark mark in public-facing content
 - "funded by people, not pharma"
 - "independent, evidence-based"
 - "patient-centered care"

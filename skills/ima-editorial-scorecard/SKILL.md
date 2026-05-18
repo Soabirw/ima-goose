@@ -109,6 +109,15 @@ For health content, verify:
 - "Not medical advice" language where needed
 - "Consult your physician" for patient-facing content
 
+### Trademark Check
+
+For public-facing IMA content, verify:
+- Every visible `Honest Medicine` occurrence reads `Honest Medicine™`
+- Headings, CTAs, newsletter closes, metadata, alt text, and UI labels comply
+- Source quotes, URLs, slugs, code identifiers, filenames, and historical/legal references are left alone unless the brief asks to update them
+
+Deduct from Brand Voice for unmarked public-facing usage and list exact replacements in Priority Fixes.
+
 ### Independence Signal
 
 Verify at least one marker:

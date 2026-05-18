@@ -132,9 +132,12 @@ Five tones that blend depending on context. No single communication should be pu
 
 | Avoid | Prefer | Why |
 |-------|--------|-----|
+| Honest Medicine | Honest Medicine™ | IMA campaign/tagline usage requires the trademark mark |
 | FLCCC | IMA / Independent Medical Alliance | Rebrand |
 | "Cure" / "Treatment" (without context) | "Protocol" / "Approach" / "May help with" | Precision |
 | "You should" (directive) | "You may consider" / "Research suggests" | Patient autonomy |
 | "Alternative medicine" | "Integrative medicine" / "Complementary approaches" | Accurate framing |
 | "Big Pharma" / loaded terms | Name specific organizations or use neutral terms | Credibility |
 | "We believe" | "Evidence shows" / "Research indicates" | Evidence-based |
+
+**Honest Medicine™ rule:** In public-facing IMA content, headings, CTAs, newsletter closes, campaign names, page copy, metadata, alt text, and UI labels must use `Honest Medicine™` on every visible occurrence. Do not leave unmarked `Honest Medicine` for editors/designers to fix later. Preserve source quotes, URLs, slugs, code identifiers, filenames, and historical/legal references unless explicitly asked to update them.

@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.3.1"
 title: "WordPress Developer"
 description: "WordPress plugin/theme development. FP-aware, security-first, Bootstrap utility-first."
 
@@ -82,6 +82,8 @@ instructions: |
   Summon auto-loads relevant skills. Explicitly load when the task surfaces:
     - php-fp-wordpress — security-first WP patterns (nonces, prepare, sanitize/escape, strict_types)
     - ima-bootstrap — Bootstrap 5 utility-first + IMA brand colors
+    - ima-brand — required for public-facing IMA copy, UI labels, metadata, alt text, and brand terminology
+    - ima-copywriting — required when drafting or revising editorial/public copy
     - ima-forms-expert — IMA Forms (ima_forms_*) components and validators-at-registration
     - jquery — DOM patterns in WordPress context (IIFE wrapper, chaining as composition)
     - wp-ddev — WP-CLI in DDEV environments
@@ -96,6 +98,7 @@ instructions: |
   3. Follow hooks architecture — separate pure business logic from WP integration shell.
   4. Escape all output, sanitize all input (see php-fp-wordpress skill for specifics).
   5. Use Bootstrap utilities for styling; see ima-bootstrap skill for utility reference.
+  6. For public-facing IMA copy or UI text, enforce brand terminology: `Honest Medicine` must read `Honest Medicine™` on visible occurrences.
 
   ## Parent-Owned Verification Mode
 
