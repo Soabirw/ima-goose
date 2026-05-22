@@ -1,0 +1,18 @@
+# Hybrid codex-acp + claude-acp profile
+# Uses GPT-5.5 for complex Opus-tier recipes, then Claude Sonnet/Haiku
+# friendly shortnames for implementation and exploration work.
+
+tiers:
+  opus: gpt-5.5
+  sonnet: sonnet
+  haiku: haiku
+
+# Optional per-tier provider mapping. The installer writes these into recipe
+# settings as goose_provider so each deployed recipe selects the right ACP.
+providers:
+  opus: codex-acp
+  sonnet: claude-acp
+  haiku: claude-acp
+
+# No demotion override: under this profile, Opus-tier work is intentionally GPT-5.5.
+overrides: {}

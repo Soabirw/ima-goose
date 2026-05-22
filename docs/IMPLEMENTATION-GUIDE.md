@@ -32,7 +32,7 @@ delegation goes through `sub_recipes:` YAML, not the orchestrator.
 node scripts/install.ts
 ```
 
-Copies all 42 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
+Copies all 44 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
 
 ---
 

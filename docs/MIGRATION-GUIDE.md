@@ -56,6 +56,11 @@ GOOSE_MODEL: "gpt-5.5"
 ```
 Then run `node scripts/install.ts --profile openai` to rewrite recipe tier pins to GPT model IDs.
 
+**Hybrid Codex ACP + Claude ACP:**
+Install both ACP binaries, keep either as your global fallback provider, then run
+`node scripts/install.ts --profile hybrid` to write Opus recipes as
+`codex-acp` / `gpt-5.5` and lower-tier recipes as `claude-acp`.
+
 **OpenRouter (multi-provider routing):**
 Edit `~/.config/goose/config.yaml`:
 ```yaml
@@ -71,7 +76,7 @@ OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
 ```
 
-**Switching profiles:** recipes pin tier shortnames (`opus` / `sonnet` / `haiku`); the installer rewrites them at deploy time. See `docs/MODEL-TIERS.md` for the full mapping. Available profiles: `claude-acp` (default), `anthropic`, `openai`.
+**Switching profiles:** recipes pin tier shortnames (`opus` / `sonnet` / `haiku`); the installer rewrites them at deploy time. See `docs/MODEL-TIERS.md` for the full mapping. Available profiles: `claude-acp` (default), `anthropic`, `openai`, `hybrid`.
 
 ### 3. Connect Recipe Repo
 
@@ -105,7 +110,7 @@ delegation goes through `sub_recipes:`.
 node scripts/install.ts
 ```
 
-Copies all 42 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 44 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 6. Add MCP Extensions and API Keys (Optional)
 
@@ -510,7 +515,7 @@ Yes. ima-claude and ima-goose are independent. The skill files are cross-compati
 No. Recipes are pre-built — just `goose run --recipe <name>`. YAML matters only if you want to create or modify recipes.
 
 **Q: Where did all 63 ima-claude skills go?**
-42 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
+44 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
 
 **Q: What about the advisor pattern (ESCALATION)?**
 The concept survives. Sub-recipes surface failures to task-master; task-master retries once with adjusted brief, then escalates to the user. The exact ESCALATION: text protocol from ima-claude is not required — the sub-recipe summary carries the failure reason.

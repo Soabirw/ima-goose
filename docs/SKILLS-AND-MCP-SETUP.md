@@ -71,7 +71,7 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all 42 `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 44 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
@@ -91,14 +91,14 @@ ls ~/.agents/skills/
 # espocrm              ima-copywriting      mcp-context7         php-fp-wordpress
 # functional-programmer ima-editorial-scorecard mcp-fetch        phpunit-wp
 # gh-cli               ima-editorial-workflow mcp-qdrant         playwright
-# ima-forms-expert     ima-git              mcp-sequential-thinking py-fp
+# ima-forms-expert     ima-git              ima-researcher      mcp-sequential-thinking py-fp
 # jquery               js-fp                mcp-serena           rails
 # js-fp-api            js-fp-react          mcp-tavily           rg
-# js-fp-vue            js-fp-wordpress      mcp-vestige          ruby-fp
+# js-fp-vue            js-fp-wordpress      mcp-vestige          patristic-researcher ruby-fp
 # livecanvas           unit-testing         wp-ddev              wp-local
 
 ls ~/.agents/skills/ | wc -l
-# 42
+# 44
 ```
 
 ---
@@ -264,7 +264,7 @@ goose session
 /skills
 ```
 
-Goose should list all 42 installed skills from `~/.agents/skills/`.
+Goose should list all 44 installed skills from `~/.agents/skills/`.
 
 **Test Tavily:**
 ```
@@ -347,7 +347,7 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - Restart Goose and re-run the connection flow
 - If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
-**Only 9 skills showing (not 42):**
+**Only 9 skills showing (not 44):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory
 - Verify the script completed without errors
-- Check `ls ~/.agents/skills/ | wc -l` — expect 42
+- Check `ls ~/.agents/skills/ | wc -l` — expect 44

@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.4.0 - 2026-05-22
+
+### Added
+
+- Added a `hybrid` model profile that routes Opus-tier recipes through
+  `codex-acp` / `gpt-5.5` and Sonnet/Haiku-tier recipes through `claude-acp`.
+- Added `adversarial-review`, a read-only dual-model review pipeline that runs
+  Claude Opus and GPT-5.5 adversaries against the same evidence packet and
+  reconciles their findings.
+- Added `goose-ship-it`, a release-prep recipe for IMA staging branches and
+  production `v*` tag preparation.
+- Added `ima-researcher` and `patristic-researcher` recipes plus matching
+  skills for evidence-driven medical research and patristic source research.
+- Added shell aliases for adversarial review, ship-it release prep, IMA medical
+  research, and patristic research.
+
+### Changed
+
+- Extended the recipe installer profile schema with optional per-tier
+  `goose_provider` rewrites.
+- Updated setup and model-tier docs for the hybrid profile and dual-model
+  adversarial review workflow.
+- Bumped all recipe versions to `1.4.0`.
+
 ## v1.3.1 - 2026-05-18
 
 This patch release adds explicit brand enforcement for the Honest Medicine™

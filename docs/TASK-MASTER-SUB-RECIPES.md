@@ -209,6 +209,7 @@ Not just task-master — other recipes also declare sub-recipes:
 | `wp-developer` | write_tests, code_review |
 | `task-runner` | write_tests, code_review |
 | `code-review` | verify |
+| `adversarial-review` | claude_opus_adversary, gpt55_adversary |
 | `architect` | (none — terminal) |
 | `task-planner` | (none — terminal) |
 | `document-learn` | (none — terminal) |

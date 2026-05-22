@@ -1,6 +1,6 @@
 // ima-goose developer setup
 // Run: node scripts/install.ts [--profile <name>]
-// Profiles: claude-acp (default), anthropic, openai
+// Profiles: claude-acp (default), anthropic, openai, hybrid
 // Requires: Node 24+ (native TypeScript support)
 
 import { execSync } from "node:child_process";
@@ -17,6 +17,7 @@ const __dirname = path.dirname(__filename);
 type Profile = {
   name: string;
   tiers: Record<string, string>;
+  providers: Record<string, string>;
   overrides: Record<string, string>;
 };
 
@@ -39,20 +40,32 @@ function parseArgs(): { profile: string } {
 //     opus: <id>
 //     sonnet: <id>
 //     haiku: <id>
+//   providers:
+//     opus: <provider>
+//     sonnet: <provider>
+//     haiku: <provider>
 //   overrides:
 //     <recipe-name>: <id>
 //     ...   (or "{}" for empty)
-function parseProfileYaml(content: string): { tiers: Record<string, string>; overrides: Record<string, string> } {
-  const result = { tiers: {} as Record<string, string>, overrides: {} as Record<string, string> };
-  let section: "tiers" | "overrides" | null = null;
+function parseProfileYaml(content: string): {
+  tiers: Record<string, string>;
+  providers: Record<string, string>;
+  overrides: Record<string, string>;
+} {
+  const result = {
+    tiers: {} as Record<string, string>,
+    providers: {} as Record<string, string>,
+    overrides: {} as Record<string, string>,
+  };
+  let section: "tiers" | "providers" | "overrides" | null = null;
 
   for (const rawLine of content.split("\n")) {
     const line = rawLine.replace(/#.*$/, "").replace(/\s+$/, "");
     if (!line.trim()) continue;
 
-    const sectionMatch = line.match(/^(tiers|overrides):\s*(\{\s*\})?\s*$/);
+    const sectionMatch = line.match(/^(tiers|providers|overrides):\s*(\{\s*\})?\s*$/);
     if (sectionMatch) {
-      section = sectionMatch[1] as "tiers" | "overrides";
+      section = sectionMatch[1] as "tiers" | "providers" | "overrides";
       continue;
     }
 
@@ -96,6 +109,12 @@ const tierSummary = Object.entries(profile.tiers)
   .map(([k, v]) => (k === v ? k : `${k}→${v}`))
   .join(", ");
 console.log(`  Tiers:    ${tierSummary}`);
+const providerSummary = Object.entries(profile.providers)
+  .map(([k, v]) => `${k}→${v}`)
+  .join(", ");
+if (providerSummary) {
+  console.log(`  Providers: ${providerSummary}`);
+}
 const overrideCount = Object.keys(profile.overrides).length;
 if (overrideCount > 0) {
   console.log(`  Overrides: ${overrideCount} (${Object.keys(profile.overrides).join(", ")})`);
@@ -178,16 +197,39 @@ function flattenSubRecipePaths(content: string): string {
 }
 
 function applyModelProfile(content: string, recipeName: string): string {
+  const modelMatch = content.match(/^\s*goose_model:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m);
+  const sourceTier = modelMatch?.[1]?.trim();
+  const hasExplicitProvider = /^\s*goose_provider:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m.test(content);
+  const tierProvider = !hasExplicitProvider && sourceTier ? profile.providers[sourceTier] : undefined;
+  let result = content;
+
+  if (tierProvider) {
+    const providerRe = /^(\s*)goose_provider:\s*["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m;
+    if (providerRe.test(result)) {
+      result = result.replace(providerRe, `$1goose_provider: "${tierProvider}"$3`);
+    } else {
+      result = result.replace(
+        /^(\s*)goose_model:\s*["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m,
+        `$1goose_provider: "${tierProvider}"\n$1goose_model: "$2"$3`,
+      );
+    }
+  }
+
+  // Recipes with a source-level provider are intentionally pinned. Do not
+  // rewrite their model tier; adversarial child recipes rely on this.
+  if (hasExplicitProvider) {
+    return result;
+  }
+
   // Per-recipe override wins over tier mapping.
   const override = profile.overrides[recipeName];
   if (override) {
-    return content.replace(
+    return result.replace(
       /^(\s*goose_model:\s*)["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m,
       `$1"${override}"$3`,
     );
   }
   // Otherwise rewrite tier shortname → profile-specific model ID.
-  let result = content;
   for (const [tier, modelId] of Object.entries(profile.tiers)) {
     if (tier === modelId) continue; // identity mapping (claude-acp); skip
     const re = new RegExp(`^(\\s*goose_model:\\s*)["']?${tier}["']?(\\s*(?:#.*)?)$`, "m");
@@ -281,6 +323,7 @@ function printNextSteps(): void {
   console.log("  4. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  5. Switch model profile any time:");
   console.log("       node scripts/install.ts --profile openai     # GPT via codex-acp");
+  console.log("       node scripts/install.ts --profile hybrid     # GPT-5.5 for opus, Claude for sonnet/haiku");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Default — Claude shortnames");
   console.log('  6. Run: goose-wp, goose-explore, goose-implement FNR-123, etc.');

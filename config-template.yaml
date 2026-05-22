@@ -199,6 +199,10 @@ GOOSE_MODEL: "sonnet"
 # GOOSE_MODEL: "gpt-5.5"
 # Installer profile: openai. Rewrites opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini.
 # Both ACPs can coexist — both are installed per README.
+#
+# Hybrid installer profile: hybrid. Writes per-recipe providers:
+# opus→codex-acp/gpt-5.5, sonnet→claude-acp/sonnet, haiku→claude-acp/haiku.
+# Install both ACP binaries before using this profile.
 
 # Option C: Anthropic direct API (per-token billing)
 # GOOSE_PROVIDER: anthropic

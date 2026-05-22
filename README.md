@@ -2,19 +2,17 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.3.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.4.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.3.1
+## What's New In v1.4.0
 
-- IMA brand guidance now requires public-facing `Honest Medicine™` usage across
-  headings, CTAs, newsletter closes, campaign names, page copy, metadata, alt
-  text, and UI labels.
-- Editorial copywriting, workflow, and scorecard skills now draft and review
-  against the trademark rule.
-- Implementation, WordPress, JavaScript, task-runner, code-review, and
-  review-verifier recipes now surface the brand check when public-facing copy is
-  touched.
-- All recipe versions are bumped to `1.3.1`.
+- Added a hybrid profile that sends Opus-tier recipes to `codex-acp` /
+  `gpt-5.5` while keeping Sonnet/Haiku work on `claude-acp`.
+- Added adversarial review: a coordinator runs Claude Opus and GPT-5.5 against
+  the same evidence packet, then reconciles the strongest findings.
+- Added `goose-ship-it` release-prep workflow plus IMA medical and patristic
+  research recipes/skills.
+- All recipe versions are bumped to `1.4.0`.
 
 ---
 
@@ -71,7 +69,7 @@ Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex.
 node scripts/install.ts
 ```
 
-Copies all 42 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
+Copies all 44 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
 
 ### 5. Set up shell aliases
 
@@ -101,7 +99,7 @@ goose-help                    # prints all the workflow commands
 goose-explore                 # launches the explore recipe at Haiku
 ```
 
-Inside the interactive session, type `/skills` — you should see ~42 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+Inside the interactive session, type `/skills` — you should see ~44 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
 
 ### Troubleshooting
 
@@ -178,6 +176,7 @@ Recipes pin a tier (`opus` / `sonnet` / `haiku`) and the installer rewrites thos
 
 ```bash
 node scripts/install.ts --profile openai      # opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini
+node scripts/install.ts --profile hybrid      # opus→codex-acp/gpt-5.5, sonnet+haiku→claude-acp
 node scripts/install.ts --profile anthropic   # full claude-* model IDs
 node scripts/install.ts --profile claude-acp  # default — friendly shortnames
 ```
@@ -216,7 +215,7 @@ enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
 node scripts/install.ts
 ```
 
-Copies all 42 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 44 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
 
@@ -250,7 +249,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Slash commands:** `/skills` lists available skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
-### Installed Skills (42 total)
+### Installed Skills (44 total)
 
 **FP languages (5):** `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp`
 
@@ -259,6 +258,8 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 **WordPress / IMA framework (6):** `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas`, `wp-ddev`, `wp-local`
 
 **Editorial / brand (4):** `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`
+
+**Research (2):** `ima-researcher`, `patristic-researcher`
 
 **Workflow / git / arch (4):** `ima-git`, `architect`, `gh-cli`, `tea-gitea`
 
@@ -291,6 +292,8 @@ them.
 | `plan` | Interactive technical planning session — research codebase + docs, iterate Q&A on implementation, save to Serena/file | Opus 4.7 |
 | `implement` | General-purpose FP-aware coding | Sonnet 4.6 |
 | `code-review` | Read-only FP + security review | Opus 4.7 |
+| `adversarial-review` | Read-only dual-model adversarial review with Claude Opus + GPT-5.5 | Opus 4.7 coordinator |
+| `goose-ship-it` | IMA release-prep workflow for staging branches and production tags | Sonnet 4.6 |
 | `wp-developer` | WordPress with security + Bootstrap + FP | Sonnet 4.6 |
 | `explore` | Fast read-only codebase exploration | Haiku 4.5 |
 | `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
@@ -301,6 +304,8 @@ them.
 | `task-planner` | Decomposition — Epic → Story → Task hierarchy for `task-master` consumption | Opus 4.7 |
 | `task-runner` | Execute detailed task plans | Sonnet 4.6 |
 | `prompt-starter` | Prompt-builder — turn raw ideas or Jira issues into structured implementation prompts (legacy; prefer `brainstorm` for new work) | Opus 4.7 |
+| `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | Opus 4.7 |
+| `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | Opus 4.7 |
 
 ### Sub-Recipe Wiring
 
@@ -312,7 +317,9 @@ them.
 
 `task-runner` delegates to: `write_tests`, `code_review`.
 
-Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`.
+`adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5`, independent of installer profile tier rewrites.
+
+Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
 **Brainstorm → Plan → Orchestrate chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner`/`task-master` for Epic→Story→Task decomposition and execution. Each link is terminal; nothing auto-spawns the next session.
 
@@ -355,6 +362,10 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `prompt-starter` | `opus` | Research + template fill |
 | `task-planner` | `opus` | Decomposition |
 | `code-review` | `opus` | Security + logic flaws |
+| `adversarial-review` | `opus` | Dual-model adversarial review coordination |
+| `adversarial-review-claude` | `claude-acp` / `opus` | Explicit Claude Opus adversary |
+| `adversarial-review-openai` | `codex-acp` / `gpt-5.5` | Explicit GPT-5.5 adversary |
+| `goose-ship-it` | `sonnet` | Release prep |
 | `implement` | `sonnet` | Coding |
 | `wp-developer` | `sonnet` | Coding |
 | `test-writer` | `sonnet` | Test coding |
@@ -362,7 +373,7 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `document-learn` | `sonnet` | Documentation and memory closeout |
 | `explore` | `haiku` | Cheap read-only |
 
-The `settings.goose_model` field in source recipes uses tier shortnames (`opus` / `sonnet` / `haiku`). The installer rewrites these to provider-specific model IDs at deploy time based on `--profile` — see [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the full mapping including per-recipe overrides (e.g., `task-master` demoted to `gpt-5.4` under the OpenAI profile to protect the GPT-5.5 rate-limit budget).
+The `settings.goose_model` field in source recipes uses tier shortnames (`opus` / `sonnet` / `haiku`). The installer rewrites these to provider-specific model IDs at deploy time based on `--profile`; profiles may also set per-tier `settings.goose_provider` values. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the full mapping including per-recipe overrides and the hybrid GPT-5.5/Claude profile.
 
 ---
 
