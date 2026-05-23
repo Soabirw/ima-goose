@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Adversarial Review"
 description: "Read-only adversarial code review that pits Claude Opus and OpenAI GPT-5.5 against the same review brief, then reconciles their strongest objections."
 

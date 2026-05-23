@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 

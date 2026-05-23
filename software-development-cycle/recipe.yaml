@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Software Development Cycle"
 description: "Top-level conductor for the IMA software development cycle: brainstorm, plan, decompose, implement, test, review, document, and learn. Owns all phase calls directly; does not call task-master."
 

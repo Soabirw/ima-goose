@@ -197,6 +197,10 @@ goose-js() {
   goose run --recipe js-developer --name "js-$(date +%Y%m%d-%H%M)" --interactive
 }
 
+goose-ui() {
+  goose run --recipe ui-ux-designer --name "ui-ux-$(date +%Y%m%d-%H%M)" --interactive
+}
+
 goose-explore() {
   goose run --recipe explore --name "explore-$(date +%Y%m%d-%H%M)" --interactive
 }
@@ -280,6 +284,7 @@ DIRECT RECIPES:
 
   goose-wp                      WordPress development (ad hoc)
   goose-js                      JavaScript/TypeScript development (Svelte, Node, APIs, CLIs, TUIs)
+  goose-ui                      UI/UX review with Chrome DevTools + Bootstrap/IMA CSS guidance
   goose-explore                 Read-only codebase exploration
   goose-tests                   Write or debug tests
   goose-ship-it stg|prod        Prepare IMA ship-it release branches/tags

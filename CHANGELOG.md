@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.5.0 - 2026-05-23
+
+### Added
+
+- Added `ui-ux-designer`, a browser-based UI/UX review recipe that uses Chrome
+  DevTools for live interface inspection, responsive checks, accessibility
+  basics, interaction states, and implementation-ready CSS guidance.
+- Added a `goose-ui` shell alias for launching the UI/UX designer recipe.
+
+### Changed
+
+- Updated README recipe, model, and quick-start references for the UI/UX
+  designer workflow.
+- Bumped all active root recipe versions to `1.5.0`.
+
+### Validation
+
+- Parsed recipe YAML files.
+- Validated recipe files with `goose recipe validate`.
+- Ran `git diff --check`.
+
 ## v1.4.0 - 2026-05-22
 
 ### Added

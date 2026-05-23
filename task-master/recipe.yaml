@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Task Master"
 description: |
   Orchestrate complex implementation plans by decomposing work into atomic

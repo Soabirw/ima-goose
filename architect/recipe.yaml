@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Architect"
 description: "Convert implementation plans into technical architecture specs. FP-first, pure core / impure shell."
 

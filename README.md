@@ -2,17 +2,15 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.4.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.5.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.4.0
+## What's New In v1.5.0
 
-- Added a hybrid profile that sends Opus-tier recipes to `codex-acp` /
-  `gpt-5.5` while keeping Sonnet/Haiku work on `claude-acp`.
-- Added adversarial review: a coordinator runs Claude Opus and GPT-5.5 against
-  the same evidence packet, then reconciles the strongest findings.
-- Added `goose-ship-it` release-prep workflow plus IMA medical and patristic
-  research recipes/skills.
-- All recipe versions are bumped to `1.4.0`.
+- Added `ui-ux-designer`, a browser-based UI/UX review recipe for live Chrome
+  DevTools inspection, responsive behavior, accessibility basics, interaction
+  states, and Bootstrap/IMA CSS guidance.
+- Added the `goose-ui` shell alias for launching UI/UX review sessions.
+- Active root recipe versions are bumped to `1.5.0`.
 
 ---
 
@@ -97,6 +95,7 @@ Re-source your shell. Now every Goose session — IMA recipes or not — gets th
 ```bash
 goose-help                    # prints all the workflow commands
 goose-explore                 # launches the explore recipe at Haiku
+goose-ui                      # launches the UI/UX designer recipe at Sonnet
 ```
 
 Inside the interactive session, type `/skills` — you should see ~44 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
@@ -295,6 +294,7 @@ them.
 | `adversarial-review` | Read-only dual-model adversarial review with Claude Opus + GPT-5.5 | Opus 4.7 coordinator |
 | `goose-ship-it` | IMA release-prep workflow for staging branches and production tags | Sonnet 4.6 |
 | `wp-developer` | WordPress with security + Bootstrap + FP | Sonnet 4.6 |
+| `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | Sonnet 4.6 |
 | `explore` | Fast read-only codebase exploration | Haiku 4.5 |
 | `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
 | `architect` | Architecture guidance and technology selection | Opus 4.7 |
@@ -319,7 +319,7 @@ them.
 
 `adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5`, independent of installer profile tier rewrites.
 
-Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
 **Brainstorm → Plan → Orchestrate chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner`/`task-master` for Epic→Story→Task decomposition and execution. Each link is terminal; nothing auto-spawns the next session.
 
@@ -368,6 +368,7 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `goose-ship-it` | `sonnet` | Release prep |
 | `implement` | `sonnet` | Coding |
 | `wp-developer` | `sonnet` | Coding |
+| `ui-ux-designer` | `sonnet` | Browser UI review and CSS guidance |
 | `test-writer` | `sonnet` | Test coding |
 | `task-runner` | `sonnet` | Execution |
 | `document-learn` | `sonnet` | Documentation and memory closeout |

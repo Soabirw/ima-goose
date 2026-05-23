@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 title: "Code Review"
 description: "FP-aware, security-first code review. Three modes: full review, prompt-only generation, or execute a pre-built review prompt. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 

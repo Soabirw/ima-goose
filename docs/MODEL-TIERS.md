@@ -91,6 +91,7 @@ does not demote `task-master`; Opus-tier recipes intentionally stay on GPT-5.5.
 | `review-verify` | sonnet | `gpt-5.3-codex` |
 | `task-runner` | sonnet | `gpt-5.3-codex` |
 | `test-writer` | sonnet | `gpt-5.3-codex` |
+| `ui-ux-designer` | sonnet | `gpt-5.3-codex` |
 | `wp-developer` | sonnet | `gpt-5.3-codex` |
 | `explore` | haiku | `gpt-5.4-mini` |
 
@@ -117,6 +118,7 @@ does not demote `task-master`; Opus-tier recipes intentionally stay on GPT-5.5.
 | `review-verify` | sonnet | `claude-acp` / `sonnet` |
 | `task-runner` | sonnet | `claude-acp` / `sonnet` |
 | `test-writer` | sonnet | `claude-acp` / `sonnet` |
+| `ui-ux-designer` | sonnet | `claude-acp` / `sonnet` |
 | `wp-developer` | sonnet | `claude-acp` / `sonnet` |
 | `explore` | haiku | `claude-acp` / `haiku` |
 
