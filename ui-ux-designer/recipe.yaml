@@ -4,13 +4,13 @@ description: "Browser-based UI/UX review agent. Uses Chrome DevTools to inspect 
 
 # UI review needs visual judgment plus implementation-level CSS advice.
 settings:
-  goose_model: "sonnet"
+  goose_model: "opus"
   temperature: 0.4
   max_turns: 30
 
 extensions:
   - { type: builtin, name: developer }
-  - { type: builtin, name: summon }     # auto-discovers skills
+  - { type: builtin, name: summon } # auto-discovers skills
 
   - type: stdio
     name: serena
@@ -93,6 +93,14 @@ instructions: |
     - rg — fast recursive search for classes, templates, and component usage
 
   ## Operating modes
+  On session start, do not inspect files, launch browsers, start dev servers, or
+  call tools until the user provides a concrete UI/UX request. If `target` is
+  empty, greet briefly and ask what UI, URL, route, screenshot, component, or
+  project area they want reviewed.
+
+  If `target` is provided, treat it as the initial request and proceed in the
+  selected mode.
+
   Pick the lightest mode that satisfies the request:
 
   **Review-only** — Inspect the UI and provide prioritized UX/CSS recommendations.
@@ -174,17 +182,17 @@ instructions: |
   - Ignore console errors, failed assets, overflow, focus states, or loading/error states.
 
 prompt: |
-  UI review target: {{ target }}.
+  {% if target %}UI review target: {{ target }}.
   Review mode: {{ mode }}.
 
-  What UI/UX review or design task should we work on?
+  Start the requested UI/UX review or design task.{% else %}UI/UX design mode. What UI, URL, route, screenshot, component, or project area should we review? I will wait for your request before opening the browser, inspecting files, or starting any tools.{% endif %}
 
 parameters:
   - key: target
     input_type: string
     requirement: optional
-    default: "current project"
-    description: "URL, route, screenshot, component, or project area to review"
+    default: ""
+    description: "Optional. URL, route, screenshot, component, or project area to review. If empty, the recipe greets and waits."
   - key: mode
     input_type: select
     requirement: optional
