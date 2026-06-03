@@ -1,4 +1,4 @@
-version: "1.5.0"
+version: "1.6.0"
 title: "WordPress Developer"
 description: "WordPress plugin/theme development. FP-aware, security-first, Bootstrap utility-first."
 
@@ -92,13 +92,25 @@ instructions: |
     - mcp-serena — navigate existing code BEFORE reading files
 
   ## How to work
-  Use the `environment` parameter to select the correct WP-CLI skill (wp-ddev or wp-local).
+  Treat `environment=ddev` as the default for IMA WordPress repos. If a repo has
+  `.ddev/config.yaml`, load/use `wp-ddev` and run WP-CLI as `ddev wp ...`; run
+  container shell commands as `ddev exec "..."`.
   1. Identify WordPress context (plugin, theme, mu-plugin).
   2. Use mcp-serena to navigate code structure before opening files.
   3. Follow hooks architecture — separate pure business logic from WP integration shell.
   4. Escape all output, sanitize all input (see php-fp-wordpress skill for specifics).
   5. Use Bootstrap utilities for styling; see ima-bootstrap skill for utility reference.
   6. For public-facing IMA copy or UI text, enforce brand terminology: `Honest Medicine` must read `Honest Medicine™` on visible occurrences.
+
+  ## IMA DDEV Recovery Cues
+  - Host `wp`, `phpunit`, `composer`, or `npm` missing is not a blocker; use DDEV.
+  - PHPUnit missing after production Composer install: run `npm run composer:dev`
+    from the repo root, then rerun the DDEV-wrapped test command.
+  - Production deploy prep may run `npm run composer:prod`; that uses Composer
+    `--no-dev` and removes PHPUnit/dev packages.
+  - SCSS compiles through `ima-scss`: use `ddev wp ima-scss compile` and inspect
+    `ddev wp ima-scss status`. Do not use standalone Sass, the Picostrap browser
+    compiler, or the Customizer compiler.
 
   ## Parent-Owned Verification Mode
 
@@ -134,7 +146,7 @@ parameters:
     input_type: select
     requirement: optional
     description: "WordPress local development environment"
-    default: "other"
+    default: "ddev"
     options:
       - ddev
       - local-wp

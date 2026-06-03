@@ -190,7 +190,7 @@ goose-sessions() {
 # ── Direct Recipe Shortcuts ───────────────────────────────────────────────────
 
 goose-wp() {
-  goose run --recipe wp-developer --name "wp-$(date +%Y%m%d-%H%M)" --interactive
+  goose run --recipe wp-developer --params "environment=ddev" --name "wp-$(date +%Y%m%d-%H%M)" --interactive
 }
 
 goose-js() {
