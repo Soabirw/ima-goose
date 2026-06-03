@@ -15,6 +15,7 @@ const usage = `Usage:
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
+const atlassianLocale = env.ATLASSIAN_LOCALE || 'en-US';
 
 const requireEnv = (name) => {
   if (!env[name]) throw new Error(`Missing ${name}`);
@@ -29,6 +30,7 @@ const authConfig = () => {
       headers: {
         Authorization: `Bearer ${env.ATLASSIAN_BEARER_TOKEN}`,
         Accept: 'application/json',
+        'Accept-Language': atlassianLocale,
       },
       mode: 'bearer',
     };
@@ -43,6 +45,7 @@ const authConfig = () => {
       headers: {
         Authorization: `Basic ${token}`,
         Accept: 'application/json',
+        'Accept-Language': atlassianLocale,
       },
       mode: 'basic',
     };

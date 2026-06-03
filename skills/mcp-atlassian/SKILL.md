@@ -156,6 +156,18 @@ https://$ATLASSIAN_DOMAIN/wiki/rest/api
 
 Do not print tokens. When debugging auth, call `jira:myself` and report only status, account display name, and whether auth succeeded.
 
+## Locale
+
+Always send `Accept-Language: en-US` with Atlassian REST API requests. Jira
+Cloud localizes issue type names, status names, and field names in API
+responses, and some app accounts can otherwise receive non-English labels even
+when the Jira site is intended to be English. The bundled helper defaults to
+`en-US`; override only when a user explicitly asks for another locale:
+
+```bash
+ATLASSIAN_LOCALE=en-US node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-2549
+```
+
 ## Helper Commands
 
 Use the bundled script for routine Jira work:
