@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.6.0 - 2026-06-03
+
+### Added
+
+- Added strict saved-plan handoff requirements to the `plan` recipe so memory
+  and file saves produce detailed, self-contained implementation briefs for
+  lower-capability implementation agents.
+- Added `Detailed Code Instructions`, `Acceptance Criteria`, and
+  `Verification Commands` sections to the saved plan template.
+- Added `Accept-Language: en-US` handling to the Atlassian REST helper, with
+  `ATLASSIAN_LOCALE` available for explicit overrides.
+
+### Changed
+
+- Updated OpenAI and hybrid model profiles to express tiers with GPT-5.5
+  reasoning effort suffixes: `gpt-5.5/high`, `gpt-5.5/medium`, and
+  `gpt-5.5/low`.
+- Updated OpenAI profile docs, README setup guidance, migration notes, and the
+  adversarial OpenAI child recipe for GPT-5.5 high-reasoning IDs.
+- Defaulted the WordPress developer recipe and `goose-wp` alias to
+  `environment=ddev`.
+- Added DDEV recovery cues to the WordPress developer recipe for WP-CLI,
+  Composer dev dependencies, PHPUnit, and `ima-scss`.
+- Bumped all active root recipe versions to `1.6.0`.
+
+### Validation
+
+- Parsed recipe YAML files.
+- Validated recipe files with `goose recipe validate`.
+- Ran `git diff --check`.
+- Syntax-checked `scripts/install.ts` and the Atlassian REST helper.
+
 ## v1.5.0 - 2026-05-23
 
 ### Added

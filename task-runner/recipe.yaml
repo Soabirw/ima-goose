@@ -1,4 +1,4 @@
-version: "1.5.0"
+version: "1.6.0"
 title: "Task Runner"
 description: "Execute pre-decomposed task specs from task-planner. Implements code, delegates tests and review."
 

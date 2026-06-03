@@ -1,4 +1,4 @@
-version: "1.5.0"
+version: "1.6.0"
 title: "IMA Researcher"
 description: "Evidence-driven medical research assistant for Independent Medical Alliance content, IMA protocols, repurposed therapeutics, informed consent, medical ethics, and patient-centered Honest Medicine™ literature synthesis using the future `ima-research` Qdrant collection plus current primary-source verification."
 

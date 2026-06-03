@@ -1,4 +1,4 @@
-version: "1.5.0"
+version: "1.6.0"
 title: "Patristic Researcher"
 description: "Research assistant for the New Testament epistles, Apostolic Fathers, Ante-Nicene Fathers, and Nicene/Post-Nicene Fathers through Augustine, using the local Qdrant theology corpus plus primary-source verification."
 

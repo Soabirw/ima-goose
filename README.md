@@ -2,15 +2,19 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.5.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.6.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.5.0
+## What's New In v1.6.0
 
-- Added `ui-ux-designer`, a browser-based UI/UX review recipe for live Chrome
-  DevTools inspection, responsive behavior, accessibility basics, interaction
-  states, and Bootstrap/IMA CSS guidance.
-- Added the `goose-ui` shell alias for launching UI/UX review sessions.
-- Active root recipe versions are bumped to `1.5.0`.
+- Updated OpenAI model profiles to use GPT-5.5 reasoning effort suffixes:
+  `high` for Opus-tier planning/review, `medium` for implementation, and `low`
+  for exploration.
+- Hardened the planning recipe so saved plans become detailed implementation
+  handoffs, not short discussion summaries.
+- Defaulted the WordPress developer workflow and `goose-wp` alias to DDEV.
+- Added `en-US` locale headers to the Atlassian REST helper to keep Jira field,
+  status, and issue type names in English.
+- Active root recipe versions are bumped to `1.6.0`.
 
 ---
 
@@ -154,7 +158,7 @@ Friendly model names: `sonnet`, `opus`, `haiku`, `default` (= opus). Recipes pin
 ```yaml
 # Codex ACP (OpenAI via ChatGPT Pro/Max subscription)
 GOOSE_PROVIDER: "codex-acp"
-GOOSE_MODEL: "gpt-5.5"
+GOOSE_MODEL: "gpt-5.5/medium"
 
 # Direct Anthropic
 GOOSE_PROVIDER: "anthropic"
@@ -174,8 +178,8 @@ GOOSE_MODEL: "your-deployed-model"
 Recipes pin a tier (`opus` / `sonnet` / `haiku`) and the installer rewrites those to provider-specific model IDs at deploy time. Switch profiles any time:
 
 ```bash
-node scripts/install.ts --profile openai      # opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini
-node scripts/install.ts --profile hybrid      # opus→codex-acp/gpt-5.5, sonnet+haiku→claude-acp
+node scripts/install.ts --profile openai      # opus→gpt-5.5/high, sonnet→gpt-5.5/medium, haiku→gpt-5.5/low
+node scripts/install.ts --profile hybrid      # opus→codex-acp/gpt-5.5/high, sonnet+haiku→claude-acp
 node scripts/install.ts --profile anthropic   # full claude-* model IDs
 node scripts/install.ts --profile claude-acp  # default — friendly shortnames
 ```
@@ -317,7 +321,7 @@ them.
 
 `task-runner` delegates to: `write_tests`, `code_review`.
 
-`adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5`, independent of installer profile tier rewrites.
+`adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rewrites.
 
 Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
@@ -363,12 +367,12 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `task-planner` | `opus` | Decomposition |
 | `code-review` | `opus` | Security + logic flaws |
 | `adversarial-review` | `opus` | Dual-model adversarial review coordination |
+| `ui-ux-designer` | `opus` | Browser UI review and CSS guidance |
 | `adversarial-review-claude` | `claude-acp` / `opus` | Explicit Claude Opus adversary |
-| `adversarial-review-openai` | `codex-acp` / `gpt-5.5` | Explicit GPT-5.5 adversary |
+| `adversarial-review-openai` | `codex-acp` / `gpt-5.5/high` | Explicit GPT-5.5 high adversary |
 | `goose-ship-it` | `sonnet` | Release prep |
 | `implement` | `sonnet` | Coding |
 | `wp-developer` | `sonnet` | Coding |
-| `ui-ux-designer` | `sonnet` | Browser UI review and CSS guidance |
 | `test-writer` | `sonnet` | Test coding |
 | `task-runner` | `sonnet` | Execution |
 | `document-learn` | `sonnet` | Documentation and memory closeout |
