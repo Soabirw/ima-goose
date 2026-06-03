@@ -323,7 +323,7 @@ function printNextSteps(): void {
   console.log("  4. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  5. Switch model profile any time:");
   console.log("       node scripts/install.ts --profile openai     # GPT via codex-acp");
-  console.log("       node scripts/install.ts --profile hybrid     # GPT-5.5 for opus, Claude for sonnet/haiku");
+  console.log("       node scripts/install.ts --profile hybrid     # GPT-5.5/high for opus, Claude for sonnet/haiku");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Default — Claude shortnames");
   console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement FNR-123, etc.');

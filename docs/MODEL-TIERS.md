@@ -6,7 +6,7 @@ Recipes pin a **tier** (`opus` / `sonnet` / `haiku`) rather than a concrete mode
 
 ## Why tier abstraction
 
-A single recipe should run identically against Anthropic, OpenAI via codex-acp, or any future provider. Hard-coding `claude-opus-4-7` or `gpt-5.5` in every recipe means re-editing every recipe file when we change providers. Tier names are stable; provider IDs aren't.
+A single recipe should run identically against Anthropic, OpenAI via codex-acp, or any future provider. Hard-coding `claude-opus-4-7` or `gpt-5.5/high` in every recipe means re-editing every recipe file when we change providers. Tier names are stable; provider IDs aren't.
 
 `opus` / `sonnet` / `haiku` are Anthropic-flavored shorthand but serve as our internal tier vocabulary. Revisit naming when a third provider lands.
 
@@ -32,9 +32,9 @@ A single recipe should run identically against Anthropic, OpenAI via codex-acp, 
 
 | Tier | Model | Rationale |
 |---|---|---|
-| opus | `gpt-5.5` | Flagship general/reasoning (Apr 23, 2026). 1M context. Opus 4.7 equivalent. |
-| sonnet | `gpt-5.3-codex` | Agentic coding specialist (Feb 2026). SWE-Bench Pro ~72%. Higher rate-limit ceiling on Pro $200 (600–3,000 msg/5hr) than gpt-5.4. Better fit than gpt-5.4 because our sonnet recipes are all coding workhorses. |
-| haiku | `gpt-5.4-mini` | Fast sub-agent tier. 400K context. $0.25/$2.00 per 1M API. Mature function calling. Pro $200 budget: 1,200–7,000 msg/5hr. |
+| opus | `gpt-5.5/high` | GPT-5.5 with high reasoning effort for orchestration, review, and planning. |
+| sonnet | `gpt-5.5/medium` | GPT-5.5 with the default everyday reasoning balance for implementation and verification. |
+| haiku | `gpt-5.5/low` | GPT-5.5 with lighter reasoning for fast exploration and low-stakes scans. |
 
 ### Hybrid codex-acp + claude-acp
 
@@ -43,7 +43,7 @@ subscription models for lower tiers.
 
 | Tier | Provider | Model |
 |---|---|---|
-| opus | `codex-acp` | `gpt-5.5` |
+| opus | `codex-acp` | `gpt-5.5/high` |
 | sonnet | `claude-acp` | `sonnet` |
 | haiku | `claude-acp` | `haiku` |
 
@@ -53,18 +53,17 @@ Friendly shortnames (`opus`, `sonnet`, `haiku`) are resolved by the claude-acp p
 
 ## Per-recipe overrides
 
-Some recipes fan out heavily and would otherwise burn through the flagship rate-limit budget. The OpenAI profile demotes them from `gpt-5.5` to `gpt-5.4`:
+OpenAI tiering is expressed through `codex-acp` model IDs with reasoning effort
+suffixes (`gpt-5.5/low`, `gpt-5.5/medium`, `gpt-5.5/high`). There are no
+per-recipe demotions in the OpenAI profile at this point.
 
-| Recipe | Default tier | OpenAI override | Why |
-|---|---|---|---|
-| `task-master` | opus | `gpt-5.4` | Orchestrates many sub-recipe calls; protect 5.5 budget. |
-
-Adjust `profiles/openai.yaml` `overrides:` block to tune. The hybrid profile
-does not demote `task-master`; Opus-tier recipes intentionally stay on GPT-5.5.
+Adjust `profiles/openai.yaml` `overrides:` block only if a recipe needs to break
+from the tier mapping. The hybrid profile also keeps Opus-tier recipes on
+GPT-5.5 high reasoning.
 
 ## Models considered but not used
 
-- **`gpt-5.4`** — strong general flagship, but for our sonnet tier `gpt-5.3-codex` outscores it on SWE-Bench Pro and has higher rate-limit ceilings. Used only as an opus override for the heaviest orchestration recipe.
+- **`gpt-5.4` / `gpt-5.4-mini`** — strong alternatives, but not used while `codex-acp` can express lower tiers as GPT-5.5 reasoning effort.
 - **`gpt-5.3-codex-spark`** — Cerebras-served, 1,000+ tok/s, but SWE-Bench Pro drops to ~56% and reasoning state collapses after 6–8 steps. Pro $200 exclusive. Skip for recipes that orchestrate 12+ step plans. Revisit if we add a one-shot "quickfix" recipe.
 - **`gpt-5.2`** — superseded by 5.3/5.4/5.5. Available in the codex-acp menu but no current use case.
 
@@ -74,44 +73,47 @@ does not demote `task-master`; Opus-tier recipes intentionally stay on GPT-5.5.
 
 | Recipe | Tier (source) | Resolves to |
 |---|---|---|
-| `architect` | opus | `gpt-5.5` |
-| `brainstorm` | opus | `gpt-5.5` |
-| `code-review` | opus | `gpt-5.5` |
-| `document-learn` | sonnet | `gpt-5.3-codex` |
-| `plan` | opus | `gpt-5.5` |
-| `prompt-starter` | opus | `gpt-5.5` |
-| `software-development-cycle` | opus | `gpt-5.5` |
-| `task-master` | opus | `gpt-5.4` (override) |
-| `task-planner` | opus | `gpt-5.5` |
-| `adversarial-review` | opus | `gpt-5.5` |
+| `architect` | opus | `gpt-5.5/high` |
+| `brainstorm` | opus | `gpt-5.5/high` |
+| `code-review` | opus | `gpt-5.5/high` |
+| `ima-researcher` | opus | `gpt-5.5/high` |
+| `patristic-researcher` | opus | `gpt-5.5/high` |
+| `plan` | opus | `gpt-5.5/high` |
+| `prompt-starter` | opus | `gpt-5.5/high` |
+| `software-development-cycle` | opus | `gpt-5.5/high` |
+| `task-master` | opus | `gpt-5.5/high` |
+| `task-planner` | opus | `gpt-5.5/high` |
+| `ui-ux-designer` | opus | `gpt-5.5/high` |
+| `adversarial-review` | opus | `gpt-5.5/high` |
 | `adversarial-review-claude` | explicit | `claude-acp` / `opus` |
-| `adversarial-review-openai` | explicit | `codex-acp` / `gpt-5.5` |
-| `implement` | sonnet | `gpt-5.3-codex` |
-| `js-developer` | sonnet | `gpt-5.3-codex` |
-| `review-verify` | sonnet | `gpt-5.3-codex` |
-| `task-runner` | sonnet | `gpt-5.3-codex` |
-| `test-writer` | sonnet | `gpt-5.3-codex` |
-| `ui-ux-designer` | sonnet | `gpt-5.3-codex` |
-| `wp-developer` | sonnet | `gpt-5.3-codex` |
-| `explore` | haiku | `gpt-5.4-mini` |
+| `adversarial-review-openai` | explicit | `codex-acp` / `gpt-5.5/high` |
+| `document-learn` | sonnet | `gpt-5.5/medium` |
+| `goose-ship-it` | sonnet | `gpt-5.5/medium` |
+| `implement` | sonnet | `gpt-5.5/medium` |
+| `js-developer` | sonnet | `gpt-5.5/medium` |
+| `review-verify` | sonnet | `gpt-5.5/medium` |
+| `task-runner` | sonnet | `gpt-5.5/medium` |
+| `test-writer` | sonnet | `gpt-5.5/medium` |
+| `wp-developer` | sonnet | `gpt-5.5/medium` |
+| `explore` | haiku | `gpt-5.5/low` |
 
 ### Under `--profile hybrid`
 
 | Recipe | Tier (source) | Resolves to |
 |---|---|---|
-| `architect` | opus | `codex-acp` / `gpt-5.5` |
-| `brainstorm` | opus | `codex-acp` / `gpt-5.5` |
-| `code-review` | opus | `codex-acp` / `gpt-5.5` |
-| `ima-researcher` | opus | `codex-acp` / `gpt-5.5` |
-| `patristic-researcher` | opus | `codex-acp` / `gpt-5.5` |
-| `plan` | opus | `codex-acp` / `gpt-5.5` |
-| `prompt-starter` | opus | `codex-acp` / `gpt-5.5` |
-| `software-development-cycle` | opus | `codex-acp` / `gpt-5.5` |
-| `task-master` | opus | `codex-acp` / `gpt-5.5` |
-| `task-planner` | opus | `codex-acp` / `gpt-5.5` |
-| `adversarial-review` | opus | `codex-acp` / `gpt-5.5` |
+| `architect` | opus | `codex-acp` / `gpt-5.5/high` |
+| `brainstorm` | opus | `codex-acp` / `gpt-5.5/high` |
+| `code-review` | opus | `codex-acp` / `gpt-5.5/high` |
+| `ima-researcher` | opus | `codex-acp` / `gpt-5.5/high` |
+| `patristic-researcher` | opus | `codex-acp` / `gpt-5.5/high` |
+| `plan` | opus | `codex-acp` / `gpt-5.5/high` |
+| `prompt-starter` | opus | `codex-acp` / `gpt-5.5/high` |
+| `software-development-cycle` | opus | `codex-acp` / `gpt-5.5/high` |
+| `task-master` | opus | `codex-acp` / `gpt-5.5/high` |
+| `task-planner` | opus | `codex-acp` / `gpt-5.5/high` |
+| `adversarial-review` | opus | `codex-acp` / `gpt-5.5/high` |
 | `adversarial-review-claude` | explicit | `claude-acp` / `opus` |
-| `adversarial-review-openai` | explicit | `codex-acp` / `gpt-5.5` |
+| `adversarial-review-openai` | explicit | `codex-acp` / `gpt-5.5/high` |
 | `document-learn` | sonnet | `claude-acp` / `sonnet` |
 | `implement` | sonnet | `claude-acp` / `sonnet` |
 | `js-developer` | sonnet | `claude-acp` / `sonnet` |
@@ -139,13 +141,13 @@ with `claude-acp`.
 
 The adversarial child recipes intentionally bypass tier rewriting by pinning
 concrete providers and models in source: Claude Opus uses `claude-acp` / `opus`,
-and GPT-5.5 uses `codex-acp` / `gpt-5.5`. This keeps dual-model review intact
+and GPT-5.5 uses `codex-acp` / `gpt-5.5/high`. This keeps dual-model review intact
 under every installer profile.
 
 Switching providers also requires updating `~/.config/goose/config.yaml` `GOOSE_PROVIDER` and auth env vars. See `config-template.yaml`.
 
 ## Open questions to revisit
 
-1. **GPT-5.5 budget under orchestration load.** Bake-off will show whether the per-recipe overrides are sufficient or whether more recipes need demotion.
+1. **GPT-5.5 effort budget under orchestration load.** Bake-off will show whether Opus-tier `high` is appropriate for every orchestration recipe.
 2. **Tier renaming.** If a third provider lands, consider renaming `opus/sonnet/haiku` to provider-neutral `flagship/standard/fast`. Cost: 16 recipe files + docs.
 3. **Express tier.** Whether to add a fourth tier for `gpt-5.3-codex-spark` / a hypothetical Anthropic ultra-fast model. Defer until a recipe genuinely needs it.

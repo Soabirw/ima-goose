@@ -3,11 +3,11 @@
 # See docs/MODEL-TIERS.md for the full rationale.
 
 tiers:
-  opus: gpt-5.5 # Flagship reasoning — orchestration, code review, planning
-  sonnet: gpt-5.3-codex # Agentic coding specialist — implementation work
-  haiku: gpt-5.4-mini # Fast sub-agent — exploration, lookups
+  opus: gpt-5.5/high # Flagship reasoning — orchestration, code review, planning
+  sonnet: gpt-5.5/medium # Everyday coding — implementation and verification
+  haiku: gpt-5.5/low # Fast sub-agent — exploration and lookups
 
 # Per-recipe overrides applied AFTER tier mapping.
-# Demote heavy-fan-out orchestrators off gpt-5.5 to protect the rate-limit budget.
-overrides:
-  task-master: gpt-5.4 # orchestrates many sub-recipe calls
+# OpenAI tiering is expressed as gpt-5.5 reasoning effort, so no model demotions
+# are needed for heavy-fan-out recipes.
+overrides: {}

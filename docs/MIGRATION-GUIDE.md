@@ -52,14 +52,14 @@ goose configure
 **Codex ACP (OpenAI via ChatGPT Pro/Max):**
 ```yaml
 GOOSE_PROVIDER: "codex-acp"
-GOOSE_MODEL: "gpt-5.5"
+GOOSE_MODEL: "gpt-5.5/medium"
 ```
 Then run `node scripts/install.ts --profile openai` to rewrite recipe tier pins to GPT model IDs.
 
 **Hybrid Codex ACP + Claude ACP:**
 Install both ACP binaries, keep either as your global fallback provider, then run
 `node scripts/install.ts --profile hybrid` to write Opus recipes as
-`codex-acp` / `gpt-5.5` and lower-tier recipes as `claude-acp`.
+`codex-acp` / `gpt-5.5/high` and lower-tier recipes as `claude-acp`.
 
 **OpenRouter (multi-provider routing):**
 Edit `~/.config/goose/config.yaml`:

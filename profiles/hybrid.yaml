@@ -3,7 +3,7 @@
 # friendly shortnames for implementation and exploration work.
 
 tiers:
-  opus: gpt-5.5
+  opus: gpt-5.5/high
   sonnet: sonnet
   haiku: haiku
 
@@ -14,5 +14,5 @@ providers:
   sonnet: claude-acp
   haiku: claude-acp
 
-# No demotion override: under this profile, Opus-tier work is intentionally GPT-5.5.
+# No demotion override: under this profile, Opus-tier work is intentionally GPT-5.5 high.
 overrides: {}

@@ -1,10 +1,10 @@
-version: "1.5.0"
+version: "1.6.0"
 title: "GPT-5.5 Adversary"
 description: "OpenAI GPT-5.5 read-only adversarial reviewer. Attacks one self-contained review brief and returns evidence-backed objections only."
 
 settings:
   goose_provider: "codex-acp"
-  goose_model: "gpt-5.5"
+  goose_model: "gpt-5.5/high"
   temperature: 0.1
   max_turns: 18
 
