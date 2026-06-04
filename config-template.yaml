@@ -183,6 +183,16 @@ extensions:
 GOOSE_MODE: auto
 GOOSE_MAX_TURNS: 1000
 
+# ── Custom slash commands ──
+# Use inside any interactive Goose session:
+#   /serena-bootstrap
+#   /serena-memorize Our design source lives at ./claude-design
+slash_commands:
+  - command: "serena-bootstrap"
+    recipe_path: "/home/YOUR_USER/.config/goose/recipes/serena-bootstrap.yaml"
+  - command: "serena-memorize"
+    recipe_path: "/home/YOUR_USER/.config/goose/recipes/serena-memorize.yaml"
+
 # ── Provider (choose one) ──
 #
 # Recipes pin a tier (opus/sonnet/haiku) and the installer rewrites those to

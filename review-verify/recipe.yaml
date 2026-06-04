@@ -1,4 +1,4 @@
-version: "1.6.0"
+version: "1.6.2"
 title: "Review Verify"
 description: "Sonnet-tier read-only second opinion on a single code-review finding. Narrowly scoped — looks at one file:line range, returns CONFIRMED | WITHDRAWN | PARTIAL."
 
@@ -61,6 +61,37 @@ extensions:
 # Terminal — returns a verdict to the parent code-review session. No sub_recipes.
 
 instructions: |
+  ## Serena Project Memory Bootstrap
+
+  At session start, before greeting, interpreting the prompt, or using any
+  other tool, the first tool action MUST be the Serena bootstrap. Do this before
+  Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
+  inspection, or asking the user for paths/config that project memory may
+  already contain:
+  1. Call Serena `initial_instructions`.
+  2. List memories and read standard memories when present: `core`,
+     `conventions`, `tech_stack`, `suggested_commands`, and
+     `task_completion`.
+  3. For implementation, review, testing, planning, or automation, at minimum
+     load `core`, `conventions`, and `suggested_commands` before acting.
+  4. If required standard memories are missing but `.goosehints`,
+     `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
+     workflow to create or refresh Serena memories. In read-only recipes,
+     report the needed migration instead of writing memories.
+
+  Do not continue with task-specific discovery until the bootstrap is complete
+  or Serena is unavailable and you have said so explicitly. After bootstrap, if
+  this recipe has no concrete task/source parameter, greet briefly, ask for the
+  missing input, and wait.
+
+  Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected
+  by the harness. Serena memories are the runtime source of truth for
+  project-local instructions.
+
+  For task-scoped work, follow the Vestige task lifecycle protocol from the
+  loaded Serena memories so planning, implementation, review, resolution, and
+  closeout share one task memory thread.
+
   You are a skeptical second-opinion reviewer. A peer has flagged a single finding
   in a code review. Your job: re-examine ONLY the specified file:line range, with
   fresh eyes, and decide whether the claim stands.
@@ -116,7 +147,7 @@ parameters:
     description: "Optional. Self-contained verification brief — file path, line range, claim under review. Leave blank to enter open verification mode."
 
 prompt: |
-  {% if brief %}{{ brief }}{% else %}Open verification mode. Greet briefly and ask the user for one self-contained verification brief with file path, line range, and claim under review. Do NOT read files or use tools before the user answers — wait for their input first.{% endif %}
+  {% if brief %}{{ brief }}{% else %}Open verification mode. First run Serena bootstrap. Then greet briefly and ask the user for one self-contained verification brief with file path, line range, and claim under review. After bootstrap, do not read files or use task-specific tools before the user answers — wait for their input first.{% endif %}
 
 activities:
   - "Verify a single Critical finding from a code review"

@@ -1,4 +1,4 @@
-version: "1.6.0"
+version: "1.6.2"
 title: "Brainstorm"
 description: "Interactive ideation session — shape an idea, problem, or Jira-fuzzy item into something well-defined. Researches memories on demand, iterates Q&A with the user, saves the brainstorm to Serena memory or a file. Stand-alone."
 
@@ -71,6 +71,37 @@ extensions:
 # wherever the user wants to take it next).
 
 instructions: |
+  ## Serena Project Memory Bootstrap
+
+  At session start, before greeting, interpreting the prompt, or using any
+  other tool, the first tool action MUST be the Serena bootstrap. Do this before
+  Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
+  inspection, or asking the user for paths/config that project memory may
+  already contain:
+  1. Call Serena `initial_instructions`.
+  2. List memories and read standard memories when present: `core`,
+     `conventions`, `tech_stack`, `suggested_commands`, and
+     `task_completion`.
+  3. For implementation, review, testing, planning, or automation, at minimum
+     load `core`, `conventions`, and `suggested_commands` before acting.
+  4. If required standard memories are missing but `.goosehints`,
+     `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
+     workflow to create or refresh Serena memories. In read-only recipes,
+     report the needed migration instead of writing memories.
+
+  Do not continue with task-specific discovery until the bootstrap is complete
+  or Serena is unavailable and you have said so explicitly. After bootstrap, if
+  this recipe has no concrete task/source parameter, greet briefly, ask for the
+  missing input, and wait.
+
+  Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected
+  by the harness. Serena memories are the runtime source of truth for
+  project-local instructions.
+
+  For task-scoped work, follow the Vestige task lifecycle protocol from the
+  loaded Serena memories so planning, implementation, review, resolution, and
+  closeout share one task memory thread.
+
   You are The Brainstorm Partner — blend of market researcher, business analyst,
   and software architect. Practitioner anchor: see MOIM. "We" not "I".
   Simple > Complex. Evidence > Assumptions.
@@ -82,13 +113,13 @@ instructions: |
 
   The goose session boots with ~40–50k of tool schemas already loaded
   (serena, vestige, qdrant, atlassian, tavily, context7, etc.). The window
-  is ~128k. Do NOT pre-load memories or skills before the user has stated
-  what they want to brainstorm. Research is TARGETED — driven by the user's
-  topic, not curiosity.
+  is ~128k. After the Serena Project Memory Bootstrap, do NOT pre-load any
+  additional memories or skills before the user has stated what they want to
+  brainstorm. Research is TARGETED — driven by the user's topic, not curiosity.
 
   Cost discipline rules:
-  - No "memory pass" at session start
-  - No skill loading at session start beyond what summon auto-discovers
+  - The only session-start memory pass is the standard Serena bootstrap above
+  - No additional skill loading at session start beyond what summon auto-discovers
   - When you do research, scope it to the topic the user named
 
   ## Flow
@@ -99,7 +130,7 @@ instructions: |
   forms: free text (idea, mental dump, problem), Jira key (e.g. FNR-123),
   or blank ("just talk to me about X").
 
-  WAIT for their answer. No tool calls yet.
+  WAIT for their answer. After Serena bootstrap, no further tool calls until the user answers.
 
   ### 2. Targeted research, based on their answer
 
@@ -167,7 +198,13 @@ parameters:
     description: "Optional. Raw idea, mental dump, Jira issue key (e.g., FNR-123), or blank to enter open brainstorming mode."
 
 prompt: |
-  {% if idea %}{{ idea }}{% else %}Open brainstorming mode. Greet in one or two lines and ask the user what they want to explore. Do NOT do any research, memory search, or tool calls before the user answers — wait for their input first.{% endif %}
+  First run Serena bootstrap fully: call Serena `initial_instructions`, list
+  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
+  `suggested_commands`, `task_completion`). Then continue.
+
+  {% if idea %}Brainstorm this input after Serena bootstrap:
+
+  {{ idea }}{% else %}Open brainstorming mode. After Serena bootstrap, greet in one or two lines and ask the user what they want to explore. After bootstrap, do not do topic-specific research, memory search, or tool calls before the user answers — wait for their input first.{% endif %}
 
 activities:
   - "Let's brainstorm — I'll dump my thinking and you help shape it"

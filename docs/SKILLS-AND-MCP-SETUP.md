@@ -71,7 +71,7 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all 44 `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 46 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
@@ -93,12 +93,12 @@ ls ~/.agents/skills/
 # gh-cli               ima-editorial-workflow mcp-qdrant         playwright
 # ima-forms-expert     ima-git              ima-researcher      mcp-sequential-thinking py-fp
 # jquery               js-fp                mcp-serena           rails
-# js-fp-api            js-fp-react          mcp-tavily           rg
+# js-fp-api            js-fp-react          mcp-tavily           mcp-taskwarrior rg
 # js-fp-vue            js-fp-wordpress      mcp-vestige          patristic-researcher ruby-fp
 # livecanvas           unit-testing         wp-ddev              wp-local
 
 ls ~/.agents/skills/ | wc -l
-# 44
+# 46
 ```
 
 ---
@@ -216,7 +216,36 @@ Serena requires:
 
 The `serena` extension in `config-template.yaml` is pre-configured with the correct command. Just ensure `uvx` is on your PATH.
 
-If you're not using JetBrains, set `enabled: false` for the serena extension.
+Serena memory tools work without JetBrains. Keep Serena enabled when you want
+standard project memories, even if `jet_brains_*` code-navigation tools are not
+available. If you disable Serena, recipes lose the cross-harness project memory
+bootstrap. Serena-enabled recipes should load standard memories as the first
+tool action at session start before greeting, Taskwarrior, Jira, Vestige, file
+discovery, or asking for local paths/config.
+
+To migrate existing project context files into Serena memories, load the
+`mcp-serena` skill and run:
+
+```bash
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root .
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root . --include-org-standards
+```
+
+Review the generated blocks, then write them to Serena memories named `core`,
+`conventions`, `tech_stack`, `suggested_commands`, `task_completion`, and
+`memory_maintenance`. Use `--include-org-standards` for IMA-style projects so
+the generated memories include the Vestige task lifecycle protocol.
+
+Inside an interactive Goose session, use `/serena-bootstrap` to reload standard
+Serena project memories on demand. The installer registers this custom slash
+command in `~/.config/goose/config.yaml` when that config file exists.
+
+Use `/serena-memorize <note>` to add stable project context to the appropriate
+standard Serena memory:
+
+```text
+/serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
+```
 
 ---
 
@@ -264,7 +293,7 @@ goose session
 /skills
 ```
 
-Goose should list all 44 installed skills from `~/.agents/skills/`.
+Goose should list all 46 installed skills from `~/.agents/skills/`.
 
 **Test Tavily:**
 ```
@@ -336,6 +365,8 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - Ensure JetBrains IDE is running with the project open
 - Verify Serena MCP plugin is installed and enabled in the IDE
 - Check `uvx` is on PATH: `which uvx`
+- Memory tools can still work without JetBrains; only symbol-aware IDE tools are
+  affected.
 
 **Context7 tool not found:**
 - The correct tools are `resolve-library-id` and `query-docs` — not `search`
@@ -347,7 +378,7 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - Restart Goose and re-run the connection flow
 - If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
-**Only 9 skills showing (not 44):**
+**Only 9 skills showing (not 46):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory
 - Verify the script completed without errors
-- Check `ls ~/.agents/skills/ | wc -l` — expect 44
+- Check `ls ~/.agents/skills/ | wc -l` — expect 46

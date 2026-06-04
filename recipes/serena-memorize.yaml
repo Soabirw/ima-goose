@@ -1,0 +1,76 @@
+version: "1.6.2"
+title: "Serena Memorize"
+description: "Add or update standardized Serena project memories from a concise user note."
+
+extensions:
+  - type: builtin
+    name: summon
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+
+instructions: |
+  You update standardized Serena project memories from a short user note.
+
+  Workflow:
+  1. Call Serena `initial_instructions`.
+  2. List Serena memories.
+  3. Read relevant standard memories before writing. At minimum read
+     `conventions`, `suggested_commands`, `task_completion`, and
+     `memory_maintenance`; also read `core` or `tech_stack` if the note may
+     belong there.
+  4. Classify the note into the smallest appropriate standard memory set:
+     - `core`: project purpose, key directories, architecture, domain model,
+       feature/design source locations, ownership boundaries.
+     - `conventions`: workflow rules, implementation expectations, review
+       expectations, when to consult specific resources.
+     - `tech_stack`: language/framework/runtime/toolchain/integration facts.
+     - `suggested_commands`: concrete commands, paths to command wrappers,
+       Taskwarrior/Vestige lookup patterns, safe diagnostics.
+     - `task_completion`: closeout, verification, review resolution, tracker
+       update, docs/changelog/release expectations.
+     - `memory_maintenance`: source of the update, refresh policy, why a memory
+       was changed.
+  5. Rewrite the user's note into concise operational memory text. Do not store
+     the raw prompt unless the raw wording is itself important.
+  6. Update existing memories with `edit_memory` when possible; use
+     `write_memory` only when the standard memory does not exist.
+  7. Preserve existing memory content. Append or surgically replace only the
+     relevant section. Do not duplicate equivalent instructions.
+  8. Summarize which memories changed and what operational rule was added.
+
+  Do not inspect repository files, run Taskwarrior, search Vestige/Qdrant, fetch
+  Jira, browse the web, or perform implementation work unless the user explicitly
+  asks for that after the memory update.
+
+parameters:
+  - key: note
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "The project-context note to add to standardized Serena memories."
+
+prompt: |
+  {% if note %}Memorize this project-context note in the appropriate standardized Serena memories:
+
+  {{ note }}
+  {% else %}Open Serena memorize mode. Run Serena bootstrap, then ask the user for the project-context note to add to standardized Serena memories. Do not update memories until the user provides the note.{% endif %}
+
+settings:
+  goose_model: "sonnet"
+  temperature: 0.2
+  max_turns: 12
+
+activities:
+  - "Add a project-context note to Serena memories"
+  - "Update standardized Serena memories"

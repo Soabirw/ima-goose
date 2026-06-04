@@ -1,5 +1,109 @@
 # Changelog
 
+## v1.6.2 - 2026-06-04
+
+### Added
+
+- Added `ima-email-creator`, an IMA-branded email HTML rendering skill with
+  table-based email layouts, EspoCRM prep, CSS inlining helpers, newsletter,
+  drip, campaign, and WordPress transactional email references.
+- Added `mcp-taskwarrior`, a Taskwarrior CLI skill for safe local task
+  inspection and updates with `task`, including temporary `TASKRC`/`TASKDATA`
+  experiments, JSON export parsing, filters, dates, contexts, import/export,
+  and hooks.
+- Added a Serena project memory standard for cross-harness project context:
+  `core`, `conventions`, `tech_stack`, `suggested_commands`,
+  `task_completion`, and `memory_maintenance`.
+- Added an `mcp-serena` migration helper that converts `.goosehints`,
+  `CLAUDE.md`, and `AGENTS.md` into reviewable standard Serena memory blocks.
+- Added the Vestige task lifecycle protocol for carrying Taskwarrior, Jira, or
+  project task work through plan, implementation, review, resolution, and
+  closeout with one shared task memory thread.
+- Added `serena-bootstrap`, a reusable recipe registered as `/serena-bootstrap`
+  for loading standardized Serena project memories on demand inside an
+  interactive Goose session.
+- Added `serena-memorize`, a reusable recipe registered as `/serena-memorize`
+  for classifying concise project-context notes and updating the appropriate
+  standardized Serena memories.
+
+### Release Payload
+
+This release intentionally includes all current local repository changes, not
+only the latest session's work:
+
+- Updated release and operator docs: `README.md`, `CHANGELOG.md`,
+  `.goosehints`, `docs/IMPLEMENTATION-GUIDE.md`,
+  `docs/MIGRATION-GUIDE.md`, and `docs/SKILLS-AND-MCP-SETUP.md`.
+- Updated install/config artifacts: `scripts/install.ts`,
+  `config-template.yaml`, and `.goose-aliases.example`.
+- Added new recipes: `recipes/serena-bootstrap.yaml` and
+  `recipes/serena-memorize.yaml`.
+- Added new skills and support files: `skills/ima-email-creator/`,
+  `skills/mcp-taskwarrior/`, and
+  `skills/mcp-serena/scripts/migrate-context-to-serena.py`.
+- Updated existing skills: `skills/mcp-serena/SKILL.md` and
+  `skills/mcp-vestige/SKILL.md`.
+- Updated changed root recipes:
+  `adversarial-review-claude`, `adversarial-review-openai`,
+  `adversarial-review`, `architect`, `brainstorm`, `code-review`,
+  `document-learn`, `explore`, `implement`, `js-developer`, `plan`,
+  `prompt-starter`, `review-verify`, `software-development-cycle`,
+  `task-master`, `task-planner`, `task-runner`, `test-writer`,
+  `ui-ux-designer`, and `wp-developer`.
+
+### Changed
+
+- Hardened the `plan` recipe's defect-ticket research flow so Jira keys,
+  pasted tickets, defect descriptions, routes, stack traces, and feature names
+  trigger autonomous Jira, memory, code, Serena, WordPress/DDEV, and browser
+  discovery before asking humans for file paths.
+- Updated the WordPress developer recipe to load `ima-email-creator` when
+  rendering branded, email-client-safe HTML or WordPress transactional email
+  templates.
+- Updated README, migration, implementation, and skills/MCP setup docs for the
+  46-skill bundle and 10 MCP/API guide skills.
+- Updated all Serena-enabled recipes to bootstrap standard Serena memories
+  before project-specific action, with read-only recipes reporting missing
+  migrations instead of writing memories.
+- Updated Serena-enabled recipes to follow the loaded Vestige task lifecycle
+  protocol for task-scoped work.
+- Hardened the Serena bootstrap so project-specific requests load standard
+  memories before Taskwarrior, Jira, Vestige, file discovery, or asking users
+  for local paths/config.
+- Hardened Serena-enabled recipes so bootstrap is the first tool action at
+  session start, before greeting or waiting for open-mode input.
+- Reinforced prompt-level Serena bootstrap instructions for the most-used
+  aliases: `goose-brainstorm`, `goose-plan`, `goose-wp`, `goose-js`,
+  `goose-review`, `goose-implement`, and `goose-cycle`.
+- Updated `plan` and `mcp-taskwarrior` so missing default Taskwarrior rc files
+  trigger Serena memory lookup for `TASKRC`, `TASKDATA`, wrapper commands, and
+  project-local task setup before asking the user.
+- Updated `goose-implement` shell alias so it can launch open interactive
+  implementation orchestration without requiring a task/Jira argument.
+- Extended the Serena migration helper with `--include-org-standards` to seed
+  the shared Vestige task lifecycle into project memories.
+- Bumped changed Serena-enabled recipe versions and new Serena command recipes
+  to `1.6.2`.
+- Added the release policy that recipe YAML versions are bumped only when that
+  specific recipe changes.
+
+### Validation
+
+- Validated frontmatter for `skills/ima-email-creator`, `skills/mcp-serena`,
+  `skills/mcp-vestige`, and `skills/mcp-taskwarrior`.
+- Validated all 23 active root recipe files and all 3 flat `recipes/*.yaml`
+  files with `goose recipe validate`.
+- Validated `.goose-aliases.example` and live `~/.goose-aliases` with
+  `bash -n`.
+- Ran `node ./scripts/install.ts --profile openai` and confirmed
+  `ima-email-creator`, `mcp-taskwarrior`, updated Serena skills, and Serena
+  command recipes install to the expected local Goose/Summon locations.
+- Verified `/serena-bootstrap` and `/serena-memorize` slash-command
+  registration is idempotent.
+- Ran `git diff --check`.
+- Verified local Taskwarrior CLI behavior against an isolated temporary
+  `TASKRC`/`TASKDATA` setup.
+
 ## v1.6.0 - 2026-06-03
 
 ### Added

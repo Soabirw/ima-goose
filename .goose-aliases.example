@@ -101,10 +101,15 @@ goose-story-prompt() {
 }
 
 # ── Phase 3b: Implement a Story ───────────────────────────────────────────────
-# Usage: goose-implement FNR-123
+# Usage: goose-implement
+#        goose-implement FNR-123
 goose-implement() {
-  local key="${1:?Usage: goose-implement FNR-123}"
-  goose run --recipe task-master --params "task_or_jira_key=${key}" --name "story-${key}-impl" --interactive
+  local key="${1:-}"
+  if [ -n "$key" ]; then
+    goose run --recipe task-master --params "task_or_jira_key=${key}" --name "story-${key}-impl" --interactive
+  else
+    goose run --recipe task-master --name "story-$(date +%Y%m%d-%H%M)-impl" --interactive
+  fi
 }
 
 # ── Phase 4: Code Review ──────────────────────────────────────────────────────
@@ -270,7 +275,7 @@ WORKFLOW (run in order per feature):
   goose-plan [seed]             Phase 2 — interactive technical plan, saves to Serena/file
   goose-orchestrate [FNR-###]   Phase 2b — task-master: Epic→Story→Task + Jira + delegation
   goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt (legacy)
-  goose-implement FNR-123       Phase 3b — implementation prompt → code + PR
+  goose-implement [FNR-123]     Phase 3b — implementation prompt → code + PR
   goose-review [FNR-123]        Phase 4 — PR review, comment, Jira update
   goose-adversarial-review [target]
                                 Phase 4b — Claude Opus + GPT-5.5 adversarial review

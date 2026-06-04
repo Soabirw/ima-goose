@@ -1,13 +1,15 @@
 ---
 name: mcp-serena
-description: "Serena MCP — use for ALL code investigation before Read/Grep. Saves 40-70% tokens. Triggers on: find function, find class, find method, where is X defined, what calls X, find references, find callers, show usage, understand this code, explore this file, what does X do, rename symbol, refactor, search pattern in code, symbol-aware editing, replace function body, insert after function, get file structure overview, list methods in class, navigate codebase, locate implementation."
+description: "Serena MCP — use for code investigation, symbol-aware editing, and project-scoped memory. Use before Read/Grep for code navigation; use project memories to load cross-harness project context; use the migration workflow to convert .goosehints, CLAUDE.md, or AGENTS.md into standard Serena memories. Triggers on: Serena, project memory, .goosehints, CLAUDE.md, AGENTS.md, find function, find class, find references, rename symbol, refactor, search code, onboarding, initial_instructions."
 ---
 
-# Serena MCP - Code Symbol Navigation
+# Serena MCP - Code Navigation and Project Memory
 
 Use Serena FIRST for all code investigation — before Read, before Grep. Reading entire files wastes 40-70% of token budget. Serena gives precise symbol-level access.
 
 **NOTE:** JetBrains tools (`jet_brains_*`) require a JetBrains IDE (IntelliJ, WebStorm, PHPStorm) running with the Serena MCP plugin installed. Memory and onboarding tools work standalone without an IDE.
+
+Use Serena project memories as the cross-harness replacement for project-local context files that may or may not be injected by Goose, Claude Code, Codex, or another runner. `.goosehints`, `CLAUDE.md`, and `AGENTS.md` are useful source files, but Serena memories are the reliable runtime source of truth once migrated.
 
 ## Tools
 
@@ -64,6 +66,96 @@ Use Serena FIRST for all code investigation — before Read, before Grep. Readin
 | `mcp__serena__serena_info` | Get Serena server info |
 | `mcp__serena__open_dashboard` | Open Serena dashboard |
 
+## Project Memory Bootstrap
+
+At the start of project-specific work in any Serena-enabled harness:
+
+1. At session start, call `mcp__serena__initial_instructions` as the first tool
+   action before greeting, interpreting the prompt, or using other tools.
+2. List memories with `mcp__serena__list_memories`.
+3. Read the standard memories that exist and are relevant to the task:
+   - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
+   - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
+   - Read `task_completion` before final verification, release work, or handoff.
+   - Read `memory_maintenance` when updating or migrating project knowledge.
+4. If standard memories are missing and `.goosehints`, `CLAUDE.md`, or `AGENTS.md` exists, migrate the source file content into Serena memories before depending on it. In read-only recipes, report that migration is needed instead of writing memories.
+
+Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected into the model context. If the task depends on project conventions, load Serena memories explicitly.
+
+Do not ask the user for project paths, task configuration, `TASKRC`, `TASKDATA`,
+Jira setup, wrapper commands, or local workflow details until the standard
+memories have been checked. Project memory may already contain that information.
+
+## Standard Project Memories
+
+Use these memory names consistently across projects:
+
+| Memory | Contents |
+|--------|----------|
+| `core` | Project purpose, key directories, domain model, architecture overview, ownership boundaries |
+| `conventions` | Coding standards, security rules, release/version policy, naming, review expectations, team preferences, task lifecycle memory rules |
+| `tech_stack` | Languages, frameworks, runtimes, package managers, infrastructure, integrations |
+| `suggested_commands` | Taskwarrior commands, Vestige search/store patterns, test/build/dev commands, environment commands, safe read-only diagnostics |
+| `task_completion` | Required validation, Vestige closeout updates, docs/changelog/release expectations, commit/PR rules |
+| `memory_maintenance` | Source files migrated, refresh policy, what belongs in each memory, last known migration notes |
+
+Keep memories concise and operational. Prefer a clear summary with exact commands and paths over dumping a whole context file into one memory.
+
+## Org-Standard Memory Seeds
+
+When bootstrapping a project for IMA-style task work, seed these cross-project
+rules into the standard Serena memories:
+
+- `conventions`: For task-scoped project work, use Vestige as the living task
+  memory across planning, implementation, review, resolution, and closeout.
+  Search Vestige by the Taskwarrior ID/UUID, Jira key, or project task key before
+  planning, implementing, reviewing, or closing the task.
+- `suggested_commands`: Search Vestige for the active task key and related keys
+  before acting. Example queries include `CM-001`, `CM-010`, `CM-011`, Jira
+  keys, Taskwarrior UUIDs, and feature names from the task source.
+- `task_completion`: Before marking a Taskwarrior task or equivalent tracker
+  item complete, update Vestige with final outcome, verification performed,
+  review concerns resolved, remaining risk, and any follow-up tasks.
+- `memory_maintenance`: Note that Serena stores stable project instructions,
+  while Vestige stores the evolving task lifecycle thread.
+
+## Migrate Context Files
+
+Use this workflow when a project has `.goosehints`, `CLAUDE.md`, or `AGENTS.md` and Serena memories are missing or stale:
+
+1. Inspect the source files at the project root.
+2. Run the helper from this skill directory. Include org standards when this is
+   an IMA-style project or the user asks for the shared task lifecycle workflow:
+
+```bash
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root .
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root . --include-org-standards
+```
+
+3. Review the generated memory blocks. Adjust anything that was routed poorly.
+4. Write each block with `mcp__serena__write_memory` using the standard memory name.
+5. Record the migrated source files in `memory_maintenance`.
+
+The helper does not call Serena. It only converts source files into suggested memory content so the agent can review before writing.
+
+## Memorize New Project Context
+
+Use `/serena-memorize <note>` inside Goose when the user wants to add a concise
+project-context fact or workflow rule to the standardized Serena memories. The
+memorize recipe bootstraps Serena, reads existing memories, classifies the note,
+rewrites it into operational memory text, updates the smallest appropriate
+memory set, and summarizes what changed.
+
+Good examples:
+
+```text
+/serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
+/serena-memorize Use scripts/task-next.sh to locate the project Taskwarrior database before running task next.
+```
+
+Do not use `/serena-memorize` for one-off session notes, secrets, or active task
+progress. Use Vestige for evolving task lifecycle state.
+
 ## Decision Matrix
 
 ```
@@ -75,6 +167,13 @@ Need to find a function/class?
 
 Need to find all callers?
   → jet_brains_find_referencing_symbols (NOT Grep)
+
+Need project rules, commands, or local workflow?
+  → initial_instructions, list_memories, read standard memories
+     (NOT relying on .goosehints/CLAUDE.md injection)
+
+Need to migrate .goosehints or CLAUDE.md?
+  → scripts/migrate-context-to-serena.py, then write_memory
 
 Need the function body to modify it?
   → jet_brains_find_symbol with include_body: true
@@ -134,8 +233,25 @@ mcp__serena__replace_symbol_body
 
 ```
 mcp__serena__write_memory
-  memory_file_name: "auth-architecture"
-  memory: "Auth uses JWT. Tokens validated in AuthService.validateToken. Refresh handled by /api/auth/refresh endpoint."
+  memory_name: "core"
+  content: "Auth uses JWT. Tokens validated in AuthService.validateToken. Refresh handled by /api/auth/refresh endpoint."
+```
+
+### Read standard project memories
+
+```
+mcp__serena__initial_instructions
+
+mcp__serena__list_memories
+
+mcp__serena__read_memory
+  memory_name: "core"
+
+mcp__serena__read_memory
+  memory_name: "conventions"
+
+mcp__serena__read_memory
+  memory_name: "suggested_commands"
 ```
 
 ## Setup

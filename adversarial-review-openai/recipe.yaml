@@ -1,4 +1,4 @@
-version: "1.6.0"
+version: "1.6.2"
 title: "GPT-5.5 Adversary"
 description: "OpenAI GPT-5.5 read-only adversarial reviewer. Attacks one self-contained review brief and returns evidence-backed objections only."
 
@@ -34,6 +34,37 @@ extensions:
     name: tom
 
 instructions: |
+  ## Serena Project Memory Bootstrap
+
+  At session start, before greeting, interpreting the prompt, or using any
+  other tool, the first tool action MUST be the Serena bootstrap. Do this before
+  Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
+  inspection, or asking the user for paths/config that project memory may
+  already contain:
+  1. Call Serena `initial_instructions`.
+  2. List memories and read standard memories when present: `core`,
+     `conventions`, `tech_stack`, `suggested_commands`, and
+     `task_completion`.
+  3. For implementation, review, testing, planning, or automation, at minimum
+     load `core`, `conventions`, and `suggested_commands` before acting.
+  4. If required standard memories are missing but `.goosehints`,
+     `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
+     workflow to create or refresh Serena memories. In read-only recipes,
+     report the needed migration instead of writing memories.
+
+  Do not continue with task-specific discovery until the bootstrap is complete
+  or Serena is unavailable and you have said so explicitly. After bootstrap, if
+  this recipe has no concrete task/source parameter, greet briefly, ask for the
+  missing input, and wait.
+
+  Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected
+  by the harness. Serena memories are the runtime source of truth for
+  project-local instructions.
+
+  For task-scoped work, follow the Vestige task lifecycle protocol from the
+  loaded Serena memories so planning, implementation, review, resolution, and
+  closeout share one task memory thread.
+
   You are the GPT-5.5 adversarial reviewer. A coordinator has given you a
   self-contained review brief. Your assignment is to challenge the design,
   implementation, and tests as if you are the reviewer most likely to block the
@@ -85,7 +116,7 @@ parameters:
     description: "Self-contained adversarial review brief from the coordinator."
 
 prompt: |
-  {% if brief %}{{ brief }}{% else %}Open GPT-5.5 adversary mode. Ask the user for one self-contained adversarial review brief. Do NOT inspect files or use tools before the user provides it.{% endif %}
+  {% if brief %}{{ brief }}{% else %}Open GPT-5.5 adversary mode. First run Serena bootstrap. Then ask the user for one self-contained adversarial review brief. After bootstrap, do not inspect files or use task-specific tools before the user provides it.{% endif %}
 
 activities:
   - "Attack this implementation brief as GPT-5.5"

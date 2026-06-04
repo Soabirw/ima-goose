@@ -26,13 +26,24 @@ should still match `config-template.yaml` so ad-hoc work has the same tool
 environment. The `orchestrator` extension is session management only —
 delegation goes through `sub_recipes:` YAML, not the orchestrator.
 
+Serena-enabled recipes call Serena `initial_instructions` and load standard
+project memories (`core`, `conventions`, `tech_stack`, `suggested_commands`,
+`task_completion`) before project-specific action. Keep Serena enabled for
+consistent project context across Goose, Claude Code, Codex, and other
+harnesses. For task-scoped work, those memories can seed the Vestige lifecycle
+protocol so the task's plan, implementation updates, review findings,
+resolutions, and closeout remain connected by task key across recipe sessions.
+This Serena bootstrap is the first tool action at session start before greeting,
+Taskwarrior, Jira, Vestige, file discovery, or asking the user for local
+paths/config.
+
 ### 3. Install Skills
 
 ```bash
 node scripts/install.ts
 ```
 
-Copies all 44 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
+Copies all 46 skills to `~/.agents/skills/`. Required for Summon auto-discovery.
 
 ---
 

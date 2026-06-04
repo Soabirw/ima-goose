@@ -279,6 +279,57 @@ function installRecipes(): void {
   }
 }
 
+// ── Install slash commands ───────────────────────────────────────────────────
+
+const slashCommands = [
+  {
+    command: "serena-bootstrap",
+    recipe: "serena-bootstrap.yaml",
+  },
+  {
+    command: "serena-memorize",
+    recipe: "serena-memorize.yaml",
+  },
+];
+
+function ensureSlashCommand(): void {
+  const configPath = path.join(os.homedir(), ".config", "goose", "config.yaml");
+
+  if (!fs.existsSync(configPath)) {
+    console.log("\nSlash commands: config.yaml not found; skipping custom slash command registration.");
+    return;
+  }
+
+  let content = fs.readFileSync(configPath, "utf8");
+  const registered: string[] = [];
+  const existing: string[] = [];
+
+  for (const slashCommand of slashCommands) {
+    const recipePath = path.join(os.homedir(), ".config", "goose", "recipes", slashCommand.recipe);
+    const commandBlock = `  - command: "${slashCommand.command}"\n    recipe_path: "${recipePath}"`;
+
+    if (new RegExp(`command:\\s*["']?${slashCommand.command}["']?`).test(content)) {
+      existing.push(`/${slashCommand.command}`);
+      continue;
+    }
+
+    if (/^slash_commands:\s*$/m.test(content)) {
+      content = content.replace(/^slash_commands:\s*$/m, `slash_commands:\n${commandBlock}`);
+    } else {
+      content = `${content.replace(/\s*$/, "\n\n")}slash_commands:\n${commandBlock}\n`;
+    }
+    registered.push(`/${slashCommand.command}`);
+  }
+
+  fs.writeFileSync(configPath, content);
+  if (registered.length > 0) {
+    console.log(`\nSlash commands: registered ${registered.join(", ")}.`);
+  }
+  if (existing.length > 0) {
+    console.log(`\nSlash commands: already registered ${existing.join(", ")}.`);
+  }
+}
+
 // ── Check env vars ────────────────────────────────────────────────────────────
 
 function checkEnvVars(): void {
@@ -326,7 +377,9 @@ function printNextSteps(): void {
   console.log("       node scripts/install.ts --profile hybrid     # GPT-5.5/high for opus, Claude for sonnet/haiku");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Default — Claude shortnames");
-  console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement FNR-123, etc.');
+  console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
+  console.log('     Inside a session, run /serena-bootstrap to reload project memory.');
+  console.log('     Use /serena-memorize <note> to update standard Serena memories.');
   console.log("");
 }
 
@@ -336,5 +389,6 @@ checkGoose();
 checkNodeVersion();
 installSkills();
 installRecipes();
+ensureSlashCommand();
 checkEnvVars();
 printNextSteps();

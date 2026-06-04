@@ -10,16 +10,16 @@ Transitioning from Claude Code (ima-claude plugin) to Goose (ima-goose recipe re
 |---|---|---|
 | **Unit of work** | Skill (injected into running session) | Recipe (standalone agent config, launched independently) |
 | **Config format** | SKILL.md + frontmatter | recipe.yaml (YAML) |
-| **Project context** | CLAUDE.md | .goosehints |
-| **Guardrails** | Python hook scripts (hooks.json) | Skill files (php-fp-wordpress, etc.) + .goosehints; model-enforced |
+| **Project context** | CLAUDE.md | Standard Serena project memories (`core`, `conventions`, `tech_stack`, `suggested_commands`, `task_completion`) |
+| **Guardrails** | Python hook scripts (hooks.json) | Skill files + recipe instructions + Serena project memories; model-enforced |
 | **Agent delegation** | `Agent(subagent_type: "ima-claude:implementer")` | `sub_recipes:` (declarative YAML) + subagents (natural-language) |
-| **Session memory** | Vestige + Qdrant + Serena MCP | chatrecall extension; or configure Vestige/Qdrant as MCP extensions |
+| **Session memory** | Vestige + Qdrant + Serena MCP | Serena project memories + chatrecall/session history; optional Vestige/Qdrant MCP extensions |
 | **Model selection** | Per-agent (haiku/sonnet/opus) | Per-recipe `settings.goose_model` (tier shortname; installer rewrites per `--profile`) |
 | **Installation** | `/plugin install ima-claude` | `GOOSE_RECIPE_GITHUB_REPO` + `node scripts/install.ts` for skills |
 | **Invocation** | `/ima-claude:skill-name` or auto-discovery | `goose run --recipe recipe-name`; `/skills` lists available skills |
-| **Persistent instructions** | CLAUDE.md + hooks | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) for every-turn injection; .goosehints at session start |
+| **Persistent instructions** | CLAUDE.md + hooks | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) for every-turn persona; Serena memories for project context |
 
-**The correct framing:** The migration preserved both layers from ima-claude. Skills stay skills — 42 are now installed in `~/.agents/skills/` and auto-discovered by Summon. Recipes are thin workflow bootstrappers that orchestrate via sub-recipes. The old "skills became recipes" framing was wrong; only orchestration skills (task-master, task-planner, task-runner) became recipes. Everything else stayed a skill.
+**The correct framing:** The migration preserved both layers from ima-claude. Skills stay skills — 46 are now installed in `~/.agents/skills/` and auto-discovered by Summon. Recipes are thin workflow bootstrappers that orchestrate via sub-recipes. The old "skills became recipes" framing was wrong; only orchestration skills (task-master, task-planner, task-runner) became recipes. Everything else stayed a skill.
 
 **Key paradigm shift:** In Claude Code, you open a session and invoke skills within it. In Goose, each recipe launches a fresh, purpose-built agent. You pick the recipe before starting, not during. But within a recipe session, Summon auto-loads the relevant skills from `~/.agents/skills/` as the conversation calls for them.
 
@@ -110,7 +110,7 @@ delegation goes through `sub_recipes:`.
 node scripts/install.ts
 ```
 
-Copies all 44 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 46 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 6. Add MCP Extensions and API Keys (Optional)
 
@@ -215,12 +215,12 @@ Most ima-claude skills stayed as skills. They're now installed in `~/.agents/ski
 | `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp` | Same names in `~/.agents/skills/` | FP knowledge |
 | `js-fp-api`, `js-fp-react`, `js-fp-vue`, `js-fp-wordpress`, `php-fp-wordpress`, `rails` | Same names | Framework FP |
 | `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas` | Same names | WP/IMA framework |
-| `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow` | Same names | Editorial / brand |
+| `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`, `ima-email-creator` | Same names | Editorial / brand |
 | `ima-git`, `architect`, `gh-cli` | Same names | Workflow / tooling |
 | `unit-testing`, `phpunit-wp`, `playwright` | Same names | Testing |
 | `rg`, `wp-ddev`, `wp-local` | Same names | CLI tools |
 | `discourse`, `espocrm`, `php-authnet` | Same names | Domain |
-| `mcp-tavily`, `mcp-context7`, `mcp-serena`, etc. | Same names (9 MCP guides) | MCP guides |
+| `mcp-tavily`, `mcp-context7`, `mcp-serena`, `mcp-taskwarrior`, etc. | Same names (10 MCP guides) | MCP guides |
 
 ### Workflow Recipes (matching ima-claude agents)
 
@@ -400,14 +400,14 @@ Cross-cutting rules that apply to every task stay in recipe instructions:
 | No custom pipe/compose/curry | All coding recipe instructions + functional-programmer skill |
 | Parameterized SQL only | All coding recipe instructions |
 
-### Baked Into .goosehints
+### Baked Into Serena Project Memories
 
-Per-project rules that apply to any Goose session in the repo:
+Per-project rules that apply to Serena-enabled sessions in the repo:
 
-| Former Hook | .goosehints Rule |
+| Former Hook | Serena Memory |
 |---|---|
-| `enforce_rg_over_grep.py` | "Prefer rg over grep" |
-| `docs_organization.py` | Three-tier docs structure |
+| `enforce_rg_over_grep.py` | `suggested_commands` / `conventions` |
+| `docs_organization.py` | `conventions` |
 
 ### Dropped (Claude Code-Specific)
 
@@ -417,18 +417,40 @@ Per-project rules that apply to any Goose session in the repo:
 
 ---
 
-## .goosehints = Your New CLAUDE.md
+## Serena Memories Replace Context Injection
 
-Every project can have a `.goosehints` file at the root. Goose reads it automatically at session start — same role as CLAUDE.md in Claude Code.
+Every project can keep `.goosehints`, `CLAUDE.md`, or `AGENTS.md` at the root,
+but do not depend on any one harness injecting those files automatically.
+Serena-enabled recipes load standardized project memories instead. That Serena
+bootstrap should happen as the first tool action at session start before
+greeting, Taskwarrior, Jira, Vestige, file discovery, or asking for local
+paths/config that project memory may already know.
 
-**What goes in .goosehints:**
+**What goes in Serena project memories:**
 - Project-specific dev standards
 - Tool preferences (rg over grep, DDEV vs Local WP)
 - Architecture notes
 - Security requirements
 - Framework constraints
+- Org-standard task workflow rules, including how Vestige carries a task from
+  planning through implementation, review, resolution, and closeout
 
-The repo includes a starter `.goosehints` you can copy to project repos.
+Use the `mcp-serena` skill migration workflow to convert `.goosehints`,
+`CLAUDE.md`, or `AGENTS.md` into `core`, `conventions`, `tech_stack`,
+`suggested_commands`, `task_completion`, and `memory_maintenance`.
+
+For IMA-style projects, include org-standard seeds:
+
+```bash
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root . --include-org-standards
+```
+
+Inside an interactive Goose session, `/serena-bootstrap` reloads the standard
+Serena project memories without starting task-specific work.
+
+Use `/serena-memorize <note>` to add stable project facts or workflow rules to
+the right standardized Serena memory without hand-writing a full migration
+prompt.
 
 ---
 
@@ -515,7 +537,7 @@ Yes. ima-claude and ima-goose are independent. The skill files are cross-compati
 No. Recipes are pre-built — just `goose run --recipe <name>`. YAML matters only if you want to create or modify recipes.
 
 **Q: Where did all 63 ima-claude skills go?**
-44 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
+46 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
 
 **Q: What about the advisor pattern (ESCALATION)?**
 The concept survives. Sub-recipes surface failures to task-master; task-master retries once with adjusted brief, then escalates to the user. The exact ESCALATION: text protocol from ima-claude is not required — the sub-recipe summary carries the failure reason.
@@ -524,7 +546,12 @@ The concept survives. Sub-recipes surface failures to task-master; task-master r
 Not directly. Each `goose run --recipe` is a standalone session. Use `task-master` to orchestrate multiple recipes automatically, or chain them manually.
 
 **Q: What replaces Vestige/Qdrant/Serena?**
-You can configure them as MCP extensions in Goose — same servers, Goose config format. chatrecall covers session history. MOIM covers the persistent persona anchor.
+Serena remains the project-scoped context layer. Standard Serena memories carry
+project rules across Goose, Claude Code, Codex, and other harnesses. You can
+also configure Vestige/Qdrant as MCP extensions in Goose for broader semantic
+memory. Vestige carries the evolving task lifecycle thread keyed by Taskwarrior
+IDs, Jira keys, or project task IDs; chatrecall covers session history and MOIM
+covers the persistent persona anchor.
 
 **Q: What is the orchestrator extension for?**
 Session management — listing, viewing, and interrupting sessions. It is NOT the delegation engine. Delegation is `sub_recipes:` (declarative YAML) and natural-language subagents.

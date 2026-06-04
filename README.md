@@ -2,19 +2,41 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.6.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v1.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.6.0
+## What's New In v1.6.2
 
-- Updated OpenAI model profiles to use GPT-5.5 reasoning effort suffixes:
-  `high` for Opus-tier planning/review, `medium` for implementation, and `low`
-  for exploration.
-- Hardened the planning recipe so saved plans become detailed implementation
-  handoffs, not short discussion summaries.
-- Defaulted the WordPress developer workflow and `goose-wp` alias to DDEV.
-- Added `en-US` locale headers to the Atlassian REST helper to keep Jira field,
-  status, and issue type names in English.
-- Active root recipe versions are bumped to `1.6.0`.
+- Added the `ima-email-creator` skill for branded, email-client-safe HTML
+  rendering across newsletters, campaigns, drip emails, EspoCRM, and WordPress
+  transactional templates.
+- Added the `mcp-taskwarrior` skill for safe local Taskwarrior CLI usage,
+  including isolated test data, JSON export parsing, filters, dates, contexts,
+  and hooks.
+- Hardened the planning recipe so defect tickets and named workflows trigger
+  autonomous Jira, memory, code, WordPress/DDEV, and browser discovery before
+  asking for file paths.
+- Updated the WordPress developer recipe to route email HTML work through
+  `ima-email-creator`.
+- Added the Serena project memory standard so recipes load cross-harness
+  project context from standardized memories instead of relying on context-file
+  injection.
+- Added the Vestige task lifecycle protocol so Taskwarrior/Jira/project tasks
+  carry one living memory thread from plan to implementation, review,
+  resolution, and closeout.
+- Hardened the Serena bootstrap so recipes load project memories before
+  Taskwarrior/Jira/Vestige/file discovery or asking users for local config.
+- Added `/serena-bootstrap`, a custom Goose slash command that loads standard
+  Serena project memories on demand inside an existing session.
+- Added `/serena-memorize <note>`, a custom Goose slash command for updating
+  standardized Serena project memories from concise project-context notes.
+- Updated install and migration docs for the 46-skill bundle.
+- Changed recipe versions are bumped to `1.6.2` only for recipes whose
+  behavior changed in this release.
+
+This release includes the full local repository payload: release/docs updates,
+installer/config updates, alias updates, all changed Serena-enabled recipes,
+the new Serena command recipes, the new email and Taskwarrior skills, and the
+Serena/Vestige skill updates.
 
 ---
 
@@ -71,7 +93,7 @@ Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex.
 node scripts/install.ts
 ```
 
-Copies all 44 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
+Copies all 46 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
 
 ### 5. Set up shell aliases
 
@@ -102,7 +124,7 @@ goose-explore                 # launches the explore recipe at Haiku
 goose-ui                      # launches the UI/UX designer recipe at Sonnet
 ```
 
-Inside the interactive session, type `/skills` — you should see ~44 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+Inside the interactive session, type `/skills` — you should see ~46 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
 
 ### Troubleshooting
 
@@ -128,6 +150,7 @@ The hybrid model uses six distinct layers. Understanding which layer does what p
 | **Skills** (`~/.agents/skills/<name>/SKILL.md`) | Summon extension, auto-discovered | Frontmatter always loaded, body on-demand | Deep domain knowledge — FP patterns, framework rules, brand |
 | **Sub-recipes** (`sub_recipes:` YAML) | Tool per child, parent invokes by call | Spawn on tool call; fresh session, own pinned model | Deterministic delegation with parameters |
 | **Subagents** (natural-language) | "Use the X recipe to…" in instructions | Spawned ad-hoc, own context | Parallel ad-hoc work without a YAML contract |
+| **Serena project memories** (`core`, `conventions`, etc.) | Serena MCP memory | Loaded by Serena-enabled recipes | Cross-harness project context migrated from `.goosehints`, `CLAUDE.md`, or `AGENTS.md` |
 | **`settings.goose_model`** | YAML field per recipe | Per-recipe pin | Opus orchestrate, Sonnet implement, Haiku explore |
 
 **Key point:** The orchestrator extension is *session management* (list/view/interrupt sessions) — it is NOT the delegation engine. Delegation is sub-recipes and subagents.
@@ -218,7 +241,7 @@ enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
 node scripts/install.ts
 ```
 
-Copies all 44 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Copies all 46 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
 
@@ -252,7 +275,39 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Slash commands:** `/skills` lists available skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
-### Installed Skills (44 total)
+### Serena Project Memories
+
+Serena-enabled recipes bootstrap standardized project memories before acting:
+`core`, `conventions`, `tech_stack`, `suggested_commands`, and
+`task_completion`. Treat `.goosehints`, `CLAUDE.md`, and `AGENTS.md` as source
+files for migration, not as guaranteed runtime context. The `mcp-serena` skill
+includes a helper script that converts those files into reviewable Serena
+memory blocks. In Serena-enabled recipes, Serena bootstrap is the first tool
+action at session start before greeting, Taskwarrior, Jira, Vestige, repository
+search, or asking for local paths/config.
+
+For task-scoped work, seed the org standards so Serena tells recipes how to use
+Vestige as the living task memory:
+
+```bash
+python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root . --include-org-standards
+```
+
+Serena holds the stable startup instructions; Vestige carries each task's
+plan, implementation updates, review findings, resolutions, and final closeout
+under the task key.
+
+Inside any interactive Goose session, run `/serena-bootstrap` to reload the
+standard Serena project memories on demand.
+
+Use `/serena-memorize <note>` to add stable project context to the appropriate
+standard Serena memory:
+
+```text
+/serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
+```
+
+### Installed Skills (46 total)
 
 **FP languages (5):** `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp`
 
@@ -260,7 +315,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **WordPress / IMA framework (6):** `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas`, `wp-ddev`, `wp-local`
 
-**Editorial / brand (4):** `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`
+**Editorial / brand (5):** `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`, `ima-email-creator`
 
 **Research (2):** `ima-researcher`, `patristic-researcher`
 
@@ -268,7 +323,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Testing (3):** `unit-testing`, `phpunit-wp`, `playwright`
 
-**MCP/API guides (9):** `mcp-tavily`, `mcp-context7`, `mcp-sequential-thinking`, `mcp-atlassian` (Atlassian REST API), `mcp-serena`, `mcp-fetch`, `mcp-chrome-devtools`, `mcp-qdrant`, `mcp-vestige`
+**MCP/API guides (10):** `mcp-tavily`, `mcp-context7`, `mcp-sequential-thinking`, `mcp-atlassian` (Atlassian REST API), `mcp-serena`, `mcp-fetch`, `mcp-chrome-devtools`, `mcp-qdrant`, `mcp-vestige`, `mcp-taskwarrior`
 
 **Goose docs (1):** `goose-doc-guide`
 
@@ -409,9 +464,13 @@ shared/
 
 ---
 
-## Per-Project Hints
+## Per-Project Context
 
-Copy `.goosehints` to your project repos for persistent project context. Goose reads it at session start — same role as CLAUDE.md in Claude Code. It covers tool preferences, architecture notes, security requirements, and framework constraints.
+Use Serena project memories as the reliable runtime source for project context.
+You can still keep `.goosehints`, `CLAUDE.md`, or `AGENTS.md` in project repos,
+but treat them as migration sources. Use the `mcp-serena` skill to convert them
+into standard Serena memories so Goose, Claude Code, Codex, and other harnesses
+can load the same project rules consistently.
 
 ---
 

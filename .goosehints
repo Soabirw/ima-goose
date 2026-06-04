@@ -25,10 +25,26 @@ Trunk-based development with release branches.
 ## Documentation
 Three-tier: Active (permanent), Archive (historical), Transient (ephemeral, git-ignored).
 
+## Serena Project Memory Standard
+Treat `.goosehints`, `CLAUDE.md`, and `AGENTS.md` as source files for project
+context, not as guaranteed runtime context. Serena-enabled recipes must call
+Serena `initial_instructions` and load standard memories (`core`,
+`conventions`, `tech_stack`, `suggested_commands`, `task_completion`) before
+project-specific action. This is the first tool action at session start, before
+greeting, Taskwarrior/Jira/Vestige/file discovery, or asking the user for local
+paths/config. Use the `mcp-serena` skill migration workflow to convert context
+files into those memories. For task-scoped work, seed the Vestige lifecycle
+protocol so plans, implementation updates, review findings, resolutions, and
+final closeouts stay connected by task key.
+
 ## Release Checklist
 Before preparing a release:
 - Review all local changes with `git status --short`, `git diff --stat`, and targeted diffs.
-- Bump the repo release version in README and recipe YAML files when recipe behavior changes.
+- Bump the repo release version in README for the overall release.
+- Bump a recipe YAML `version` only when that specific recipe's behavior,
+  instructions, parameters, or workflow changed. Do not bump unchanged recipes
+  just because the project release advanced; per-recipe versions track when
+  that recipe actually changed.
 - Add a top changelog entry with Added, Changed, Fixed, and Validation sections.
 - Update README/setup docs for any new workflow, extension, environment variable, or command.
 - Validate all recipes with `goose recipe validate` and run YAML/syntax checks for touched scripts.
