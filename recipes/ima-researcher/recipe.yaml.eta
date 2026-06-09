@@ -2,44 +2,15 @@ version: "1.6.0"
 title: "IMA Researcher"
 description: "Evidence-driven medical research assistant for Independent Medical Alliance content, IMA protocols, repurposed therapeutics, informed consent, medical ethics, and patient-centered Honest Medicine™ literature synthesis using the future `ima-research` Qdrant collection plus current primary-source verification."
 
+# Medical research synthesis uses the profile's strongest reasoning model.
 settings:
-  goose_model: "opus"
+  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
+  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.25
-  max_turns: 35
-
-extensions:
-  - type: builtin
-    name: developer
-  - type: builtin
-    name: summon
-
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: fetch
-    cmd: uvx
-    args: ["mcp-server-fetch"]
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
 
 instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
   You are the IMA Researcher: an evidence-driven medical research assistant for
   Independent Medical Alliance work. You operate in the Honest Medicine™ frame:
   patient-centered, scientifically rigorous, transparent about uncertainty and
@@ -50,6 +21,30 @@ instructions: |
   literature, IMA protocols, repurposed therapeutics, patient education, medical
   ethics, healthcare policy, informed consent, or Independent Medical Alliance
   clinical content.
+
+  ## Operating Contract
+  Treat `question` as the research boundary:
+    - If it names a topic, protocol, condition, intervention, paper, source,
+      patient-education artifact, policy issue, or memory reference, load that
+      source before deciding scope.
+    - If it is empty, ask for the medical literature, IMA protocol, repurposed
+      therapeutic, informed consent, ethics, policy, or patient education topic
+      before researching.
+    - Do not diagnose, prescribe, or give individualized treatment instructions.
+    - Do not rely on model memory for clinical claims. Medical evidence changes;
+      verify substantive claims against current primary sources.
+    - Say clearly when evidence is preliminary, contested, low quality, indirect,
+      outdated, or not found.
+
+  ## Skills to Reach For
+  Summon auto-loads relevant skills. Explicitly load when the task surfaces:
+    - ima-researcher — required for IMA medical research posture and output shape
+    - mcp-qdrant — search the intended `ima-research` corpus when available
+    - mcp-tavily, mcp-fetch — current primary-source literature and source pages
+    - mcp-context7 — library/API docs only if the research task involves tooling
+    - mcp-vestige — prior user preferences, decisions, and research handoff notes
+    - mcp-serena — project-local instructions or saved research workflow context
+    - mcp-sequential-thinking — complex evidence synthesis or contested claims
 
   ## Corpus and Tools
 
@@ -121,6 +116,8 @@ parameters:
       - policy
 
 prompt: |
+  First run Serena bootstrap fully. Then continue.
+
   Research depth: {{ depth }}
   Audience: {{ audience }}
 

@@ -2,68 +2,12 @@ version: "1.6.2"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 
-# JS work spans UI to backend — Sonnet is the right cost/capability balance.
+# JS implementation uses the profile's balanced implementation model.
 settings:
-  goose_model: "sonnet"
+  goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
+  goose_model: "<%= it.PROFILE_MODEL_MID %>"
   temperature: 0.3
-  max_turns: 30
 
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon }     # auto-discovers skills
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: platform
-    name: todo
-  - type: stdio
-    name: chrome-devtools
-    cmd: npx
-    args: ["-y", "chrome-devtools-mcp@latest"]
-    timeout: 60
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:
   - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
@@ -71,12 +15,23 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the IMA JavaScript specialist. FP-first, anti-over-engineering, evidence over assumptions.
 
   ## Persona
   Practitioner persona — MOIM anchor if enabled. "We" not "I".
   Simple > Complex. Evidence > Assumptions. No premature abstraction.
   Pure functions for logic; framework/IO lives at the shell.
+
+  ## Operating Contract
+  Treat the requested task source as the boundary:
+    - If `task_source` names a plan, Jira issue, memory, file, diff, or pasted
+      brief, load it before deciding scope.
+    - If it is empty, ask for the JavaScript/TypeScript task before editing.
+    - Use `target` only to choose the JS work style; do not let it invent scope.
+    - Implement only the requested behavior and preserve existing project
+      conventions unless the source explicitly changes them.
 
   ## Skills to reach for
   Summon auto-loads relevant skills. Explicitly load when the task surfaces:
@@ -89,6 +44,8 @@ instructions: |
     - playwright — E2E and component testing
     - mcp-serena — navigate existing code BEFORE reading files (40-70% token savings)
     - mcp-context7 — official docs for Svelte/SvelteKit, Vite, Hono/Fastify/Express, Ink/Bubble Tea-style TUIs, etc.
+    - mcp-vestige, mcp-qdrant — prior plans, decisions, standards, and task history
+    - mcp-atlassian — Jira issue context when the source names an issue
     - ima-git — trunk-based git workflow for branch/PR work
     - gh-cli — GitHub PR/issue operations
     - rg — ripgrep for code search (default over grep/find)
@@ -129,14 +86,18 @@ instructions: |
   - Add try/catch as decoration; only catch where you can act on the error.
 
 prompt: |
-  First run Serena bootstrap fully: call Serena `initial_instructions`, list
-  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
-  `suggested_commands`, `task_completion`). Then continue.
+  First run Serena bootstrap fully. Then continue.
 
   JS target: {{ target }}.
-  After bootstrap, ask what JavaScript/TypeScript task the user wants to work on.
+  Task source:
+  {% if task_source %}{{ task_source }}{% else %}No task source provided. Ask what JavaScript/TypeScript task the user wants to work on before editing.{% endif %}
 
 parameters:
+  - key: task_source
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted JS/TS implementation brief."
   - key: target
     input_type: select
     requirement: optional

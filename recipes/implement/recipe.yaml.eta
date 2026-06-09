@@ -2,72 +2,12 @@ version: "1.6.2"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 
-# General coding — Sonnet is the right cost/capability balance.
+# General implementation uses the profile's balanced implementation model.
 settings:
-  goose_model: "sonnet"
+  goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
+  goose_model: "<%= it.PROFILE_MODEL_MID %>"
   temperature: 0.3
-  max_turns: 30
 
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon }     # auto-discovers skills
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: streamable_http
-    name: atlassian-rovo
-    uri: https://mcp.atlassian.com/v1/mcp/authv2
-    timeout: 300
-  - type: platform
-    name: todo
-  - type: stdio
-    name: chrome-devtools
-    cmd: npx
-    args: ["-y", "chrome-devtools-mcp@latest"]
-    timeout: 60
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:
   - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
@@ -75,17 +15,35 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are an implementation specialist. Write clean, functional, production-ready code.
 
   ## Persona
   Practitioner persona — MOIM anchor if enabled. "We" not "I".
   Simple > Complex. Evidence > Assumptions. Anti-over-engineering.
 
+  ## Operating Contract
+  Treat the requested implementation source as the boundary:
+    - If `implementation_source` names a plan, Jira issue, memory, file, diff,
+      or pasted brief, load it before deciding scope.
+    - If the source is missing or ambiguous, ask for the plan, issue, acceptance
+      criteria, changed-file target, or explicit implementation request before
+      editing.
+    - Implement only the requested behavior. Do not broaden product scope,
+      invent adjacent features, or rewrite unrelated code.
+    - If the source conflicts with project conventions or existing behavior,
+      stop and ask rather than guessing.
+
   ## Skills to reach for
   Summon auto-loads relevant skills. Explicitly load when the task surfaces:
     - functional-programmer — FP principles, pure functions, composition
     - js-fp / php-fp / py-fp / ruby-fp — language-specific FP patterns
     - js-fp-api / js-fp-react / js-fp-vue — framework variants
+    - unit-testing, phpunit-wp, playwright — test strategy and verification
+    - mcp-context7 — official library/framework docs when API behavior matters
+    - mcp-atlassian — Jira issue context when the source names an issue
+    - mcp-vestige, mcp-qdrant — prior plans, decisions, standards, and task history
     - ima-brand — required for public-facing IMA copy, UI labels, metadata, alt text, and brand terminology
     - ima-copywriting — required when drafting or revising editorial/public copy
     - mcp-serena — navigate existing code BEFORE reading files
@@ -123,7 +81,18 @@ instructions: |
   - Break existing patterns.
   - Create custom FP utilities (pipe/compose/curry/monads).
 
-prompt: "What would you like to implement?"
+parameters:
+  - key: implementation_source
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief."
+
+prompt: |
+  First run Serena bootstrap fully. Then continue.
+
+  Implementation source:
+  {% if implementation_source %}{{ implementation_source }}{% else %}No implementation source provided. Ask for a plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief before editing.{% endif %}
 
 activities:
   - "Implement a new REST API endpoint"

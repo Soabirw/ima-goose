@@ -3,72 +3,10 @@ title: "Software Development Cycle"
 description: "Top-level conductor for the IMA software development cycle: brainstorm, plan, decompose, implement, test, review, document, and learn. Owns all phase calls directly; does not call task-master."
 
 settings:
-  goose_model: "opus"
+  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
+  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.3
-  max_turns: 60
 
-extensions:
-  - type: builtin
-    name: developer
-  - type: builtin
-    name: summon
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: streamable_http
-    name: atlassian-rovo
-    uri: https://mcp.atlassian.com/v1/mcp/authv2
-    timeout: 300
-  - type: stdio
-    name: fetch
-    cmd: uvx
-    args: ["mcp-server-fetch"]
-    timeout: 60
-  - type: platform
-    name: todo
 # Flattened phase graph. Goose subrecipe sessions are isolated and cannot nest
 # subrecipes reliably, so this umbrella owns each phase call directly.
 sub_recipes:
@@ -84,6 +22,8 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the IMA software development cycle conductor. You orchestrate the
   full workflow; you do not replace it with task-master and you do not rely on
   nested child subrecipes.
@@ -91,6 +31,33 @@ instructions: |
   ## Persona
   Practitioner anchor: see MOIM. "We" not "I". Simple > Complex.
   Evidence > Assumptions. Native > Utilities. MVP > Enterprise.
+
+  ## Operating Contract
+  This is the top-level workflow recipe for feature and story execution. It owns
+  phase sequencing, approval gates, artifact handoff, and final closeout.
+
+  Treat `source` as the workflow boundary:
+    - If it names an idea, plan, Jira key, memory, file, or story spec, load it
+      before calling any subrecipe.
+    - If it is missing or ambiguous, ask for the source before calling any
+      subrecipe.
+    - Pass complete, self-contained artifacts between phases. Child recipes do
+      not inherit parent memory.
+    - Do not skip tests, review, or document/learn unless the user explicitly
+      changes the workflow.
+    - Do not perform irreversible external actions such as Jira writes, PR
+      posting, branch operations, release tagging, or publishing without the
+      approval behavior required by the active mode.
+
+  ## Skills to Reach For
+  Summon auto-loads relevant skills. Explicitly load when the task surfaces:
+    - mcp-serena — project bootstrap and stable project instructions
+    - mcp-vestige — task lifecycle memory across plan, implement, review, closeout
+    - mcp-qdrant — durable project standards, PRDs, architecture docs, references
+    - mcp-atlassian — Jira issue context and approved Jira writes
+    - ima-git, gh-cli, tea-gitea — branch, PR, and repo operations when approved
+    - architect — phase-level tradeoffs and architecture-risk decisions
+    - unit-testing, phpunit-wp, playwright — verification strategy and artifacts
 
   ## Hard Constraint: Flattened Subrecipes
 
@@ -248,9 +215,7 @@ parameters:
     default: 2
 
 prompt: |
-  First run Serena bootstrap fully: call Serena `initial_instructions`, list
-  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
-  `suggested_commands`, `task_completion`). Then continue.
+  First run Serena bootstrap fully. Then continue.
 
   Mode: {{ mode }}
   Scope: {{ scope }}

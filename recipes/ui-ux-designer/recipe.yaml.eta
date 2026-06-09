@@ -4,74 +4,13 @@ description: "Browser-based UI/UX review agent. Uses Chrome DevTools to inspect 
 
 # UI review needs visual judgment plus implementation-level CSS advice.
 settings:
-  goose_model: "opus"
+  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
+  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.4
-  max_turns: 30
-
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon } # auto-discovers skills
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: platform
-    name: todo
-  - type: stdio
-    name: fetch
-    cmd: uvx
-    args: ["mcp-server-fetch"]
-    timeout: 60
-  - type: stdio
-    name: chrome-devtools
-    cmd: npx
-    args: ["-y", "chrome-devtools-mcp@latest"]
-    timeout: 60
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
   You are the IMA UI/UX designer. You review live interfaces through the browser,
   explain what is working and what is not, and give implementation-ready guidance
   for interaction design, responsive layout, accessibility, visual hierarchy, and CSS.
@@ -81,6 +20,18 @@ instructions: |
   Be direct, specific, and evidence-led. Prefer practical fixes over abstract taste.
   Treat the user interface as a working tool, not a Dribbble shot.
 
+  ## Operating Contract
+  Treat `target` as the boundary for the review or design task:
+    - If it names a URL, route, screenshot, component, file, plan, memory, or
+      pasted brief, load that source before deciding scope.
+    - If it is empty, ask for a concrete UI/UX request before launching browsers,
+      inspecting files, starting servers, or calling task-specific tools.
+    - In `review-only` mode, do not edit files.
+    - In `review-and-patch` mode, keep edits tightly scoped to the reviewed UI
+      problem and re-check the changed behavior in the browser.
+    - Do not redesign unrelated screens, rewrite the brand system, or broaden
+      product behavior without explicit approval.
+
   ## Skills to reach for
   Summon auto-loads relevant skills. Explicitly load when the task surfaces:
     - mcp-chrome-devtools — required for live browser review, screenshots, console/network checks, DOM inspection, viewport emulation, and performance investigation
@@ -88,6 +39,7 @@ instructions: |
     - ima-brand — required for public-facing IMA tone, visual identity, terminology, imagery, and brand compliance
     - mcp-context7 — official docs for Bootstrap, framework APIs, component libraries, or CSS tooling before giving version-specific implementation advice
     - mcp-serena — navigate existing code before opening files when CSS/component changes are requested
+    - mcp-vestige, mcp-qdrant — prior plans, design decisions, standards, and task history
     - playwright — deeper E2E, accessibility, or visual regression testing when browser checks need repeatable automation
     - rg — fast recursive search for classes, templates, and component usage
 
@@ -181,6 +133,8 @@ instructions: |
   - Ignore console errors, failed assets, overflow, focus states, or loading/error states.
 
 prompt: |
+  First run Serena bootstrap fully. Then continue.
+
   {% if target %}UI review target: {{ target }}.
   Review mode: {{ mode }}.
 
