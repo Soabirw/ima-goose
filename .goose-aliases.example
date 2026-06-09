@@ -25,9 +25,10 @@
 # Uncomment to enable globally (applies to ALL goose sessions, not just IMA recipes).
 # export GOOSE_MOIM_MESSAGE_FILE="$HOME/IMA/dev/ima-goose/moim/ima-practitioner.md"
 
-# ── Full Cycle: Brainstorm → Plan → Implement → Test → Review → Document/Learn ─
-# Preferred umbrella for the complete IMA software development cycle. Pass a
-# raw idea, Serena memory, file path, Jira key, existing plan, or story spec.
+# ── Experimental Full Cycle: Brainstorm → Plan → Implement → Test → Review → Document/Learn ─
+# Experimental umbrella for the complete IMA software development cycle. HITL
+# manual handoff remains the recommended default. Pass a raw idea, Serena
+# memory, file path, Jira key, existing plan, or story spec.
 # Usage: goose-cycle
 #        goose-cycle "goose-software-development-cycle-technical-plan"
 goose-cycle() {
@@ -78,9 +79,12 @@ goose-plan() {
   fi
 }
 
-# ── Phase 2b: Task Planning ───────────────────────────────────────────────────
-# Use when you have a saved plan and want Epic→Story→Task decomposition.
+# ── Product Requirements: Task Planning ───────────────────────────────────────
+# Use after brainstorm/PRD shaping to decompose requirements into Epic→Story→Task
+# artifacts. For per-story implementation, prefer goose-plan first unless the
+# story is large enough to need localized decomposition.
 # Usage: goose-orchestrate
+#        goose-orchestrate "<brainstorm-memory-name>"
 #        goose-orchestrate FNR-123
 goose-orchestrate() {
   local key="${1:-}"
@@ -147,6 +151,38 @@ goose-adversarial-review() {
     goose run --recipe adversarial-review --params "target=${target}" --name "adversarial-review-${slug}-$(date +%Y%m%d-%H%M)" --interactive
   else
     goose run --recipe adversarial-review --name "adversarial-review-$(date +%Y%m%d-%H%M)" --interactive
+  fi
+}
+
+# ── Phase 5: Document/Learn ──────────────────────────────────────────────────
+# Close out completed work by updating docs and routing durable learning to
+# Serena, Vestige, and Qdrant.
+# Usage: goose-learn
+#        goose-learn "artifact bundle"
+#        goose-learn "artifact bundle" feature
+goose-learn() {
+  local artifact_bundle="${1:-}"
+  local update_scope="${2:-story}"
+
+  case "$update_scope" in
+    story|feature|release) ;;
+    *)
+      echo "Usage: goose-learn [artifact-bundle] [story|feature|release]" >&2
+      return 2
+      ;;
+  esac
+
+  if [ -n "$artifact_bundle" ]; then
+    goose run --recipe document-learn \
+      --params "artifact_bundle=${artifact_bundle}" \
+      --params "update_scope=${update_scope}" \
+      --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" \
+      --interactive
+  else
+    goose run --recipe document-learn \
+      --params "update_scope=${update_scope}" \
+      --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" \
+      --interactive
   fi
 }
 
@@ -290,17 +326,27 @@ goose-help() {
   cat <<'EOF'
 IMA Goose Workflow Commands
 ────────────────────────────────────────────────────────
-WORKFLOW (run in order per feature):
+RECOMMENDED HITL WORKFLOWS:
 
-  goose-cycle [source]          Preferred full cycle: brainstorm → plan → story loop → document/learn
-  goose-brainstorm [seed]       Phase 1 — interactive brainstorm, saves to Serena/file
-  goose-plan [seed]             Phase 2 — interactive technical plan, saves to Serena/file
-  goose-orchestrate [source]    Phase 2b — task-planner: Epic→Story→Task
-  goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt (legacy)
-  goose-implement [source]      Phase 3b — plan/story → WordPress implementation
-  goose-review [FNR-123]        Phase 4 — PR review, comment, Jira update
+  Product requirements:
+    goose-brainstorm [seed]       Concept/new site/large feature → PRD draft
+    goose-orchestrate [source]    PRD/brainstorm → Epic→Story→Task requirements
+    goose-learn [artifact] feature
+                                  Document approved PRD + story map
+
+  Per-story delivery:
+    goose-plan [story]            Story → detailed implementation plan
+    goose-implement [source]      Approved plan/story → implementation
+    goose-tests                   Write or debug tests
+    goose-review [FNR-123]        PR review, comment, Jira update
+    goose-learn [artifact] story  Document story closeout
+
+EXPERIMENTAL:
+
+  goose-cycle [source]          Experimental umbrella: supervise every gate
+  goose-story-prompt FNR-123    Jira story → implementation prompt (legacy)
   goose-adversarial-review [target]
-                                Phase 4b — experimental Anthropic + GPT-5.5 adversarial review
+                                Experimental Anthropic + GPT-5.5 adversarial review
 
 SESSION MANAGEMENT:
 

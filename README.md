@@ -2,16 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.0.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.0.3**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.0.2
+## What's New In v2.0.3
 
-- Made `scripts/install.ts` read-only for `~/.config/goose/config.yaml` by
-  default; it now prints slash-command config for manual merge.
-- Added `--register-slash-commands` as an explicit opt-in write path with a
-  timestamped `config.yaml` backup before changes.
-- Updated setup docs so `config-template.yaml` is treated as a reference, not a
-  file to copy over an existing Goose config.
+- Added a recommended-use guide that separates product requirements work from
+  per-story delivery.
+- Reframed `goose-cycle` as experimental; HITL manual handoff is the
+  recommended default.
+- Added `goose-learn` as a dedicated document/learn alias and updated
+  `goose-help` around the two recommended HITL workflows.
 
 ---
 
@@ -117,6 +117,14 @@ Inside the interactive session, type `/skills` — you should see ~49 skills lis
 | Sub-recipe tool calls fail with path errors | Installed recipes are stale — rerun `node scripts/install.ts --validate` |
 | MOIM persona not active | `echo $GOOSE_MOIM_MESSAGE_FILE` empty, or file missing |
 | `goose run --recipe <name>` "recipe not found" | Recipes have not been rendered into `~/.config/goose/recipes/` — rerun `node scripts/install.ts --validate` |
+
+---
+
+## Recommended Use
+
+For day-to-day guidance on the recommended human-in-the-loop workflow, the
+experimental full-cycle recipe, and direct specialty recipes, see
+[`docs/RECOMMENDED-USE.md`](docs/RECOMMENDED-USE.md).
 
 ---
 
@@ -357,9 +365,9 @@ Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner
 
 Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, `/serena-memorize`.
 
-**Brainstorm → Plan → Task Planner chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner` for Epic→Story→Task decomposition. Each link is terminal; nothing auto-spawns the next session.
+**Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 
-**Software development cycle.** `software-development-cycle` is the top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout.
+**Software development cycle.** `software-development-cycle` is the experimental top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout. The recommended default remains HITL manual handoff.
 
 ### P3 — Specialized
 

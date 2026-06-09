@@ -4,6 +4,26 @@
 
 No unreleased changes.
 
+## v2.0.3 - 2026-06-09
+
+### Added
+
+- Added `docs/RECOMMENDED-USE.md`, a practical use guide for the recommended
+  human-in-the-loop workflow.
+- Added `goose-learn`, a dedicated shell alias for the `document-learn` closeout
+  recipe.
+
+### Changed
+
+- Reframed the recommended workflow as two explicit HITL paths:
+  `brainstorm -> task-planner -> document-learn` for product requirements and
+  `plan -> implement -> test -> review -> document-learn` for per-story
+  delivery.
+- Marked `goose-cycle` and autonomous operation as experimental rather than the
+  recommended default.
+- Updated README and `goose-help` workflow guidance to match the requirements
+  decomposition and per-story delivery split.
+
 ## v2.0.2 - 2026-06-09
 
 ### Changed
