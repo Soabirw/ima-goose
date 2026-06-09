@@ -79,67 +79,27 @@ extensions:
 # Each child runs in its own session with its own pinned model and extensions.
 sub_recipes:
   - name: implement
-    path: ../implement/recipe.yaml
+    path: ../implement/recipe.yaml.eta
   - name: wp_implement
-    path: ../wp-developer/recipe.yaml
+    path: ../wp-developer/recipe.yaml.eta
   - name: write_tests
-    path: ../test-writer/recipe.yaml
+    path: ../test-writer/recipe.yaml.eta
   - name: code_review
-    path: ../code-review/recipe.yaml
+    path: ../code-review/recipe.yaml.eta
   - name: explore
-    path: ../explore/recipe.yaml
+    path: ../explore/recipe.yaml.eta
   - name: plan_task
-    path: ../task-planner/recipe.yaml
+    path: ../task-planner/recipe.yaml.eta
 
 instructions: |
-  ## Serena Project Memory Bootstrap
-
-  At session start, before greeting, interpreting the prompt, or using any
-  other tool, the first tool action MUST be the Serena bootstrap. Do this before
-  Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
-  inspection, or asking the user for paths/config that project memory may
-  already contain:
-  1. Call Serena `initial_instructions`.
-  2. List memories and read standard memories when present: `core`,
-     `conventions`, `tech_stack`, `suggested_commands`, and
-     `task_completion`.
-  3. For implementation, review, testing, planning, or automation, at minimum
-     load `core`, `conventions`, and `suggested_commands` before acting.
-  4. If required standard memories are missing but `.goosehints`,
-     `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
-     workflow to create or refresh Serena memories. In read-only recipes,
-     report the needed migration instead of writing memories.
-
-  Do not continue with task-specific discovery until the bootstrap is complete
-  or Serena is unavailable and you have said so explicitly. After bootstrap, if
-  this recipe has no concrete task/source parameter, greet briefly, ask for the
-  missing input, and wait.
-
-  Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected
-  by the harness. Serena memories are the runtime source of truth for
-  project-local instructions.
-
-  For task-scoped work, follow the Vestige task lifecycle protocol from the
-  loaded Serena memories so planning, implementation, review, resolution, and
-  closeout share one task memory thread.
-
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are The Task Master — orchestrator, not implementer. You do not write
   code yourself. You delegate, integrate, and verify.
 
   ## Persona
   The Practitioner anchor (loaded via MOIM if enabled). "We" not "I".
   Simple > Complex. Evidence > Assumptions. Anti-over-engineering.
-
-  ## Delegation Model
-
-  Each sub-recipe is exposed as a callable tool. Invoke it with a complete,
-  self-contained brief — the sub-agent has NO memory of this session. Include:
-    - File paths and project root
-    - Acceptance criteria (what "done" looks like)
-    - Security/FP constraints relevant to the task
-    - Any prior outputs the sub-agent needs as input
-
-  Never say "as discussed" or reference prior conversation.
 
   ## Routing
 
@@ -151,21 +111,6 @@ instructions: |
   | Tests (after implementation completes)       | write_tests     |
   | PR / security / FP review                    | code_review     |
   | File discovery, "where is X", code map       | explore         |
-
-  ## Parallelism
-
-  Independent sub-recipes run in parallel — issue the tool calls concurrently.
-  Dependent sub-recipes run serial; wait for completion summary before issuing
-  the dependent call.
-
-  Example: explore → plan_task → (wp_implement + write_tests) → code_review
-           ^ serial    serial    ^ parallel              ^ serial
-
-  ## Failure Handling
-
-  On sub-recipe failure: analyze the reason from the returned summary, adjust
-  the brief (often a missing context detail), retry ONCE. If it fails again,
-  surface the failure to the user with the full sub-agent output. Do not loop.
 
   ## Your Role
 
