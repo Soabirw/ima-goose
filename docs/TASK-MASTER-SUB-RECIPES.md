@@ -10,21 +10,24 @@ specialist sub-recipes via declarative YAML.
 Sub-recipes are declared in a recipe's YAML under a `sub_recipes:` key. Goose auto-generates one callable tool per sub-recipe. Parent recipes invoke them by tool call with a self-contained brief — not via a CLI flag, not via the orchestrator extension.
 
 ```yaml
-# From task-master/recipe.yaml
+# From recipes/task-master/recipe.yaml.eta
 sub_recipes:
   - name: implement
-    path: ../implement/recipe.yaml
+    path: ../implement/recipe.yaml.eta
   - name: wp_implement
-    path: ../wp-developer/recipe.yaml
+    path: ../wp-developer/recipe.yaml.eta
   - name: write_tests
-    path: ../test-writer/recipe.yaml
+    path: ../test-writer/recipe.yaml.eta
   - name: code_review
-    path: ../code-review/recipe.yaml
+    path: ../code-review/recipe.yaml.eta
   - name: explore
-    path: ../explore/recipe.yaml
+    path: ../explore/recipe.yaml.eta
   - name: plan_task
-    path: ../task-planner/recipe.yaml
+    path: ../task-planner/recipe.yaml.eta
 ```
+
+During install, `scripts/install.ts` renders these source-template paths to flat
+installed Goose paths such as `implement.yaml`.
 
 When task-master invokes the `wp_implement` tool, Goose starts a fresh wp-developer session with its own pinned model (Sonnet 4.6), its own extensions, and the brief as input. The sub-session is fully isolated — it has no memory of the parent task-master session.
 
@@ -40,31 +43,32 @@ parent owns tests and review.
 
 ## Software Development Cycle Umbrella
 
-`software-development-cycle/recipe.yaml` is the top-level recipe for the IMA
-Brainstorm -> Plan -> Decompose -> Implement -> Test -> Review -> Document/Learn
-cycle. It does not call `task-master`.
+`recipes/software-development-cycle/recipe.yaml.eta` is the top-level source
+template for the IMA Brainstorm -> Plan -> Decompose -> Implement -> Test ->
+Review -> Document/Learn cycle. It renders to `software-development-cycle.yaml`
+and does not call `task-master`.
 
 ```yaml
-# From software-development-cycle/recipe.yaml
+# From recipes/software-development-cycle/recipe.yaml.eta
 sub_recipes:
   - name: brainstorm
-    path: ../brainstorm/recipe.yaml
+    path: ../brainstorm/recipe.yaml.eta
   - name: plan_feature
-    path: ../plan/recipe.yaml
+    path: ../plan/recipe.yaml.eta
   - name: decompose
-    path: ../task-planner/recipe.yaml
+    path: ../task-planner/recipe.yaml.eta
   - name: explore
-    path: ../explore/recipe.yaml
+    path: ../explore/recipe.yaml.eta
   - name: implement
-    path: ../implement/recipe.yaml
+    path: ../implement/recipe.yaml.eta
   - name: wp_implement
-    path: ../wp-developer/recipe.yaml
+    path: ../wp-developer/recipe.yaml.eta
   - name: write_tests
-    path: ../test-writer/recipe.yaml
+    path: ../test-writer/recipe.yaml.eta
   - name: code_review
-    path: ../code-review/recipe.yaml
+    path: ../code-review/recipe.yaml.eta
   - name: document_learn
-    path: ../document-learn/recipe.yaml
+    path: ../document-learn/recipe.yaml.eta
 ```
 
 The umbrella owns phase gates, story order, review/fix loop limits, and

@@ -77,7 +77,8 @@ What it does:
 - Checks Goose is installed and prints version
 - Creates `~/.agents/skills/` if it doesn't exist
 - Copies each skill directory
-- Installs all recipes to `~/.config/goose/recipes/`
+- Renders recipe templates from `recipes/**/*.yaml.eta` to
+  `~/.config/goose/recipes/*.yaml`
 - Rewrites recipe model tiers based on the selected provider profile
 - Warns about missing env vars
 - Prints next steps including MOIM setup instructions
@@ -265,7 +266,10 @@ standard Serena memory:
 | `mcp-atlassian` skill REST helper | `ATLASSIAN_BEARER_TOKEN`, `ATLASSIAN_CLOUD_ID`, `ATLASSIAN_DOMAIN`; fallback: `ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL` | Direct REST fallback for Jira/Confluence scripts and workflow updates |
 | `tom` | `GOOSE_MOIM_MESSAGE_TEXT` or `GOOSE_MOIM_MESSAGE_FILE` | Optional persistent instructions injected every turn |
 | `todo` | None | Built-in task checklist extension for complex workflows |
-| `code_execution` | None | Built-in Code Mode extension for batched MCP tool calls |
+
+MCP extensions expose tools directly to Goose. Normal MCP workflows should call
+those tools through Goose's tool interface, not through a JavaScript or
+TypeScript wrapper.
 
 ---
 
@@ -379,6 +383,7 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
 **Only 9 skills showing (not 46):**
-- Run `node scripts/install.ts` from the ima-goose repo root — it copies the full `skills/` directory
+- Run `node scripts/install.ts` from the ima-goose repo root — it renders recipes
+  and copies the full `skills/` directory
 - Verify the script completed without errors
 - Check `ls ~/.agents/skills/ | wc -l` — expect 46

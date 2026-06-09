@@ -15,7 +15,7 @@ Transitioning from Claude Code (ima-claude plugin) to Goose (ima-goose recipe re
 | **Agent delegation** | `Agent(subagent_type: "ima-claude:implementer")` | `sub_recipes:` (declarative YAML) + subagents (natural-language) |
 | **Session memory** | Vestige + Qdrant + Serena MCP | Serena project memories + chatrecall/session history; optional Vestige/Qdrant MCP extensions |
 | **Model selection** | Per-agent (haiku/sonnet/opus) | Per-recipe `settings.goose_model` (tier shortname; installer rewrites per `--profile`) |
-| **Installation** | `/plugin install ima-claude` | `GOOSE_RECIPE_GITHUB_REPO` + `node scripts/install.ts` for skills |
+| **Installation** | `/plugin install ima-claude` | `node scripts/install.ts` renders recipes and installs skills |
 | **Invocation** | `/ima-claude:skill-name` or auto-discovery | `goose run --recipe recipe-name`; `/skills` lists available skills |
 | **Persistent instructions** | CLAUDE.md + hooks | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) for every-turn persona; Serena memories for project context |
 
@@ -78,16 +78,13 @@ GOOSE_MODEL: "your-deployed-model"
 
 **Switching profiles:** recipes pin tier shortnames (`opus` / `sonnet` / `haiku`); the installer rewrites them at deploy time. See `docs/MODEL-TIERS.md` for the full mapping. Available profiles: `claude-acp` (default), `anthropic`, `openai`, `hybrid`.
 
-### 3. Connect Recipe Repo
+### 3. Install Rendered Recipes
+
+This repo stores source templates under `recipes/**/*.yaml.eta`; Goose runs the
+rendered `.yaml` files installed by the script.
 
 ```bash
-goose configure
-# → goose settings → goose recipe github repo → Soabirw/ima-goose
-```
-
-Or add to `~/.config/goose/config.yaml`:
-```yaml
-GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
+node scripts/install.ts --validate
 ```
 
 ### 4. Enable Extensions
@@ -236,7 +233,11 @@ Most ima-claude skills stayed as skills. They're now installed in `~/.agents/ski
 
 ### What Changed in `shared/`
 
-The `shared/` directory is now intentionally slim. Domain knowledge (FP patterns, brand, framework rules) moved to skills. `shared/` now holds only recipe-internal references the `developer` extension reads at runtime:
+The `shared/` directory is intentionally slim. Domain knowledge (FP patterns,
+brand, framework rules) moved to skills. `shared/` now holds build-time include
+snippets plus a few recipe-internal runtime references:
+- `shared/instructions/serena-bootstrap.md` — build-time include injected into
+  rendered Serena-enabled recipes
 - `shared/security-guardrails.md` — consolidated security checks (referenced by coding recipes)
 - `shared/persona.md` — Practitioner persona (also in `moim/ima-practitioner.md`)
 - `shared/tool-guides/tea.md` — Gitea CLI reference
@@ -500,8 +501,8 @@ goose run --recipe implement --name "my-feature"
 # Resume a named session
 goose run --resume --name "my-feature"
 
-# Run local recipe file
-goose run --recipe ./implement/recipe.yaml
+# Run the installed rendered recipe
+goose run --recipe implement
 
 # List available skills (within a session)
 /skills

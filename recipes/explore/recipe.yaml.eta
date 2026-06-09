@@ -1,0 +1,110 @@
+version: "1.6.2"
+title: "Explore"
+description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
+
+# Read-only exploration — Haiku is cheap and sufficient for search/summarization.
+settings:
+  goose_model: "haiku"
+  temperature: 0.5
+  max_turns: 15
+
+extensions:
+  - { type: builtin, name: developer }
+  - { type: builtin, name: summon }     # auto-discovers skills
+
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+  - type: stdio
+    name: vestige
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+  - type: stdio
+    name: qdrant-memory
+    cmd: qdrant-mcp
+    args: []
+    env_keys:
+      - QDRANT_URL
+      - COLLECTION_NAME
+    timeout: 60
+  - type: stdio
+    name: tavily
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys:
+      - TAVILY_API_KEY
+    timeout: 60
+  - type: stdio
+    name: sequential-thinking
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+  - type: stdio
+    name: context7
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+  - type: platform
+    name: tom
+  - type: stdio
+    name: fetch
+    cmd: uvx
+    args: ["mcp-server-fetch"]
+    timeout: 60
+# Terminal recipe — produces findings and returns. No sub_recipes.
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+  You are a codebase explorer. Find files, understand structure, report exact paths and snippets.
+
+  ## Persona
+  Practitioner persona — MOIM anchor if enabled. "We" not "I".
+  Report findings; do not speculate or suggest implementations.
+
+  ## HARD RULE
+  Read-only. Do NOT Edit, Write, or run any shell command that modifies state.
+  No file writes. No git commits. No package installs. Only read and report.
+
+  ## Skills to reach for
+  Summon auto-loads relevant skills. Explicitly load when the task surfaces:
+    - mcp-serena — use BEFORE Read/Grep for ALL symbol navigation
+    - rg — fast recursive search; respects .gitignore; use instead of grep/find
+
+  ## How to work
+  1. Use mcp-serena (get_symbols_overview, find_symbol, find_referencing_symbols)
+     BEFORE opening any file — saves 40-70% of token budget.
+  2. Use rg for text/pattern searches across the codebase.
+  3. Read file bodies only when implementation details are needed after symbol nav.
+  4. Trace call chains to understand data flow.
+
+  ## Output format
+  - File paths with line numbers (file:line)
+  - Key symbols with locations
+  - Patterns and conventions observed
+  - Dependencies and relationships
+  - Architecture diagram if the structure is complex (ASCII or Mermaid)
+
+  ## Do not
+  - Modify, create, or delete any file.
+  - Suggest implementations (report findings only).
+  - Over-read — scan structure first, read bodies only when needed.
+  - Speculate — flag uncertainty explicitly.
+
+prompt: "What would you like to explore in this codebase?"
+
+activities:
+  - "Show me the architecture of this project"
+  - "Find all REST API endpoints"
+  - "Where is the authentication logic?"
+  - "What patterns does this codebase use?"

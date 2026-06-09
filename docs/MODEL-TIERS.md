@@ -133,7 +133,10 @@ node ~/IMA/dev/ima-goose/scripts/install.ts --profile hybrid
 goose-profile openai     # shell helper from .goose-aliases.example
 ```
 
-The installer rewrites `settings.goose_model` in each recipe as it copies to `~/.config/goose/recipes/`. Deployed recipes carry concrete model IDs; the source recipes stay portable.
+The installer renders each `recipes/**/*.yaml.eta` source template to
+`~/.config/goose/recipes/*.yaml` and rewrites `settings.goose_model` during that
+render/install step. Deployed recipes carry concrete model IDs; source templates
+stay portable.
 
 Profiles can also set per-tier `settings.goose_provider` values. The hybrid
 profile uses that to deploy Opus recipes with `codex-acp` and lower-tier recipes

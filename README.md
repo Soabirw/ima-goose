@@ -82,7 +82,6 @@ GOOSE_PROVIDER: "claude-acp"
 GOOSE_MODEL: "sonnet"
 GOOSE_PLANNER_PROVIDER: "claude-acp"
 GOOSE_PLANNER_MODEL: "default"           # maps to opus
-GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"  # enables `goose run --recipe NAME` by short name
 ```
 
 Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex. Alternative providers (Anthropic direct, OpenRouter, RunPod) are in the [Setup](#setup) section below.
@@ -93,7 +92,12 @@ Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex.
 node scripts/install.ts
 ```
 
-Copies all 46 skills from `skills/*/` to `~/.agents/skills/` where Summon auto-discovers them. **Without this step, recipes load but their skill references go nowhere** — Summon has nothing to find and the recipes silently lose their deep domain knowledge. Requires Node 24+.
+Renders recipe templates from `recipes/**/*.yaml.eta` into
+`~/.config/goose/recipes/*.yaml`, then copies all 46 skills from `skills/*/` to
+`~/.agents/skills/` where Summon auto-discovers them. **Without this step,
+recipes load but their skill references go nowhere** — Summon has nothing to
+find and the recipes silently lose their deep domain knowledge. Requires
+Node 24+.
 
 ### 5. Set up shell aliases
 
@@ -133,9 +137,9 @@ Inside the interactive session, type `/skills` — you should see ~46 skills lis
 | Goose "provider not found" or hangs on every call | ACP binary not on PATH — rerun step 2's `npm install -g …` |
 | `/skills` lists only 9 (just MCP guides) | Skipped step 4 — rerun `node scripts/install.ts` |
 | Recipe references a skill that won't load | Skill missing from `~/.agents/skills/<name>/SKILL.md` — re-run installer |
-| Sub-recipe tool calls fail with path errors | `GOOSE_RECIPE_PATH` unset or wrong directory — check `~/.goose-aliases` |
+| Sub-recipe tool calls fail with path errors | Installed recipes are stale — rerun `node scripts/install.ts --validate` |
 | MOIM persona not active | `echo $GOOSE_MOIM_MESSAGE_FILE` empty, or file missing |
-| `goose run --recipe task-master` "recipe not found" | `GOOSE_RECIPE_GITHUB_REPO` not set, or you cloned without `gh` CLI available |
+| `goose run --recipe task-master` "recipe not found" | Recipes have not been rendered into `~/.config/goose/recipes/` — rerun `node scripts/install.ts --validate` |
 
 ---
 
@@ -209,16 +213,13 @@ node scripts/install.ts --profile claude-acp  # default — friendly shortnames
 
 See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides.
 
-### 2. Connect Recipe Repository
+### 2. Install Rendered Recipes
+
+This repository is the source package. Goose consumes the rendered files written
+by the installer, not the `.yaml.eta` source templates directly.
 
 ```bash
-goose configure
-# goose settings → goose recipe github repo → Soabirw/ima-goose
-```
-
-Or add to config.yaml:
-```yaml
-GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
+node scripts/install.ts --validate
 ```
 
 ### 3. Enable Required Extensions
@@ -233,7 +234,9 @@ should still match `config-template.yaml` so ad-hoc Goose work has the same
 tooling available. At minimum keep `developer`, `summon`, `tom`, `tavily`,
 `context7`, `sequential-thinking`, `serena`, `qdrant-memory`, and `vestige`
 enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
-`code_execution` for the workflows that need them.
+other workflow-specific MCP extensions when a recipe explicitly declares them.
+MCP tools are called directly through Goose; do not route normal MCP usage
+through a TypeScript execution wrapper.
 
 ### 4. Install Skills
 
@@ -241,7 +244,9 @@ enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
 node scripts/install.ts
 ```
 
-Copies all 46 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
+Renders recipe templates from `recipes/**/*.yaml.eta` into
+`~/.config/goose/recipes/*.yaml`, then copies all 46 skills from `skills/` to
+`~/.agents/skills/`. Requires Node 24+.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
 
@@ -250,11 +255,8 @@ Source `.goose-aliases.example` and uncomment the `GOOSE_MOIM_MESSAGE_FILE` expo
 ### 6. Run a Recipe
 
 ```bash
-# By name (from configured repo)
+# By name after install
 goose run --recipe implement
-
-# By local path
-goose run --recipe ./implement/recipe.yaml
 
 # Preview without executing
 goose run --recipe implement --explain
@@ -341,8 +343,9 @@ All core recipes follow the hybrid pattern: each pins `settings.goose_model`,
 declares the critical IMA MCP baseline directly, references skills by name in
 instructions, and uses `sub_recipes:` for declarative delegation where natural.
 Recipes add workflow-specific extensions such as `atlassian-rovo`, `fetch`,
-`todo`, `chrome-devtools`, and `code_execution` only where the recipe can use
-them.
+`todo`, and `chrome-devtools` only where the recipe can use them. MCP calls are
+direct Goose tool calls; recipes should not force JavaScript/TypeScript wrapper
+execution for ordinary MCP workflows.
 
 | Recipe | Description | Model |
 |--------|-------------|-------|
@@ -433,7 +436,13 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `document-learn` | `sonnet` | Documentation and memory closeout |
 | `explore` | `haiku` | Cheap read-only |
 
-The `settings.goose_model` field in source recipes uses tier shortnames (`opus` / `sonnet` / `haiku`). The installer rewrites these to provider-specific model IDs at deploy time based on `--profile`; profiles may also set per-tier `settings.goose_provider` values. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the full mapping including per-recipe overrides and the hybrid GPT-5.5/Claude profile.
+The `settings.goose_model` field in source recipe templates uses tier
+shortnames (`opus` / `sonnet` / `haiku`). The installer renders templates into
+Goose-compatible `.yaml` files and rewrites these to provider-specific model IDs
+at deploy time based on `--profile`; profiles may also set per-tier
+`settings.goose_provider` values. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md)
+for the full mapping including per-recipe overrides and the hybrid
+GPT-5.5/Claude profile.
 
 ---
 
@@ -447,7 +456,9 @@ Opt-in by sourcing `.goose-aliases.example` and uncommenting the export. Off by 
 
 ## Shared Reference Files
 
-`shared/` contains recipe-internal references used by the developer extension at runtime. Domain knowledge (FP patterns, brand, framework rules) now lives in skills — shared/ is intentionally slim.
+`shared/` contains build-time snippets injected into rendered recipes and a few
+recipe-internal runtime references. Domain knowledge (FP patterns, brand,
+framework rules) now lives in skills — shared/ is intentionally slim.
 
 Gitea operations are handled by the `tea-gitea` skill, which teaches agents the
 `tea` CLI workflow for PRs, comments, approvals, and API fallbacks. The shared
@@ -455,6 +466,8 @@ Gitea operations are handled by the `tea-gitea` skill, which teaches agents the
 
 ```
 shared/
+├── instructions/
+│   └── serena-bootstrap.md # Build-time include for recipe templates
 ├── persona.md              # Practitioner persona (also in moim/)
 ├── security-guardrails.md  # Consolidated security checks
 └── tool-guides/

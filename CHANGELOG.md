@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Converted recipes from root-level source YAML files to build-time Eta
+  templates under `recipes/<name>/recipe.yaml.eta`.
+- Reworked `scripts/install.ts` into a render/install pipeline that injects
+  shared snippets, writes generated Goose-compatible YAML to the recipe install
+  directory, preserves Goose `{{ parameter }}` runtime syntax, rewrites
+  source-template subrecipe paths to flat installed recipe paths, and applies
+  provider/model profile settings during render.
+- Extracted the repeated Serena project memory bootstrap instructions into
+  `shared/instructions/serena-bootstrap.md` for build-time inclusion.
+- Added a minimal Node package manifest and lockfile for the Eta installer
+  dependency.
+
+### Validation
+
+- Rendered all 26 recipe templates to a temporary directory with
+  `node scripts/install.ts --profile hybrid --dest /tmp/ima-goose-render --validate`.
+- Validated each rendered recipe with `goose recipe validate` through the
+  installer `--validate` path.
+- Syntax-checked `scripts/install.ts` with `node --check`.
+
 ## v1.6.2 - 2026-06-04
 
 ### Added
@@ -234,8 +258,6 @@ deterministic REST fallback.
   - `todo` for implementation, review, task execution, and testing recipes.
   - `chrome-devtools` for implementation, JavaScript, WordPress, testing, and
     review recipes.
-  - `code_execution` for implementation, review, task execution, and test
-    workflows that benefit from batched tool calls.
 - Added a Node-based Atlassian REST helper under
   `skills/mcp-atlassian/scripts/atlassian-api.mjs` for Jira issue reads,
   comments, transitions, JQL search, and Confluence lookup.

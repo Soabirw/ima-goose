@@ -5,8 +5,8 @@ description: "Interactive ideation session — shape an idea, problem, or Jira-f
 # Provider and model are generated from the selected install profile.
 # max_turns unset (goose default 1000).
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER %>"
-  goose_model: "<%= it.PROFILE_MODEL %>"
+  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
+  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.7
 
 # Saved brainstorm is the handoff; user routes it forward. Explore is available
@@ -41,6 +41,19 @@ instructions: |
   - The only session-start memory pass is the standard Serena bootstrap above
   - No additional skill loading at session start beyond what summon auto-discovers
   - When you do research, scope it to the topic the user named
+
+  ## Skills to Reach For
+
+  Summon auto-loads relevant skills. Explicitly load only when the topic
+  surfaces:
+  - architect — pressure-test product shape, MVP scope, technical feasibility, and tradeoffs.
+  - mcp-vestige — prior brainstorms, decisions, preferences, and related memory context.
+  - mcp-qdrant — durable reference material, architecture notes, standards, and research.
+  - mcp-atlassian — Jira keys used as brainstorm seeds.
+  - mcp-tavily — current market, competitor, or external context when needed.
+  - mcp-context7 — framework/library capability checks when the idea depends on technical constraints.
+  - ima-brand / ima-copywriting — IMA-facing messaging, campaign, page, or editorial ideas.
+  - ima-researcher / patristic-researcher — domain research only when the topic matches.
 
   ## Flow
 

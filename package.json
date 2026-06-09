@@ -1,0 +1,16 @@
+{
+  "name": "ima-goose",
+  "version": "1.6.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:recipes": "node scripts/install.ts",
+    "install:recipes:validate": "node scripts/install.ts --validate"
+  },
+  "dependencies": {
+    "eta": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

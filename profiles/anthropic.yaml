@@ -6,6 +6,11 @@ tiers:
   sonnet: claude-sonnet-4-6
   haiku: claude-haiku-4-5
 
+providers:
+  opus: anthropic
+  sonnet: anthropic
+  haiku: anthropic
+
 # No per-recipe overrides — Anthropic billing is per-token, not per-message,
 # so flagship rate-limit protection is not a concern here.
 overrides: {}

@@ -39,14 +39,6 @@ extensions:
     display_name: Todo
     bundled: true
 
-  code_execution:
-    enabled: true
-    type: platform
-    name: code_execution
-    description: Code Mode for batched MCP tool discovery and calls
-    display_name: Code Mode
-    bundled: true
-
   orchestrator:
     enabled: true
     type: platform

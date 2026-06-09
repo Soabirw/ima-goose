@@ -7,6 +7,11 @@ tiers:
   sonnet: gpt-5.5/medium # Everyday coding — implementation and verification
   haiku: gpt-5.5/low # Fast sub-agent — exploration and lookups
 
+providers:
+  opus: codex-acp
+  sonnet: codex-acp
+  haiku: codex-acp
+
 # Per-recipe overrides applied AFTER tier mapping.
 # OpenAI tiering is expressed as gpt-5.5 reasoning effort, so no model demotions
 # are needed for heavy-fan-out recipes.

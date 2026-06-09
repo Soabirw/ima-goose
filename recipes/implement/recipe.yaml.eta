@@ -1,0 +1,132 @@
+version: "1.6.2"
+title: "Implement"
+description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
+
+# General coding — Sonnet is the right cost/capability balance.
+settings:
+  goose_model: "sonnet"
+  temperature: 0.3
+  max_turns: 30
+
+extensions:
+  - { type: builtin, name: developer }
+  - { type: builtin, name: summon }     # auto-discovers skills
+
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+  - type: stdio
+    name: vestige
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+  - type: stdio
+    name: qdrant-memory
+    cmd: qdrant-mcp
+    args: []
+    env_keys:
+      - QDRANT_URL
+      - COLLECTION_NAME
+    timeout: 60
+  - type: stdio
+    name: tavily
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys:
+      - TAVILY_API_KEY
+    timeout: 60
+  - type: stdio
+    name: sequential-thinking
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+  - type: stdio
+    name: context7
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+  - type: platform
+    name: tom
+  - type: streamable_http
+    name: atlassian-rovo
+    uri: https://mcp.atlassian.com/v1/mcp/authv2
+    timeout: 300
+  - type: platform
+    name: todo
+  - type: stdio
+    name: chrome-devtools
+    cmd: npx
+    args: ["-y", "chrome-devtools-mcp@latest"]
+    timeout: 60
+# Declarative delegation — Goose generates a tool per sub-recipe.
+sub_recipes:
+  - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
+  - { name: code_review, path: ../code-review/recipe.yaml.eta }
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+  You are an implementation specialist. Write clean, functional, production-ready code.
+
+  ## Persona
+  Practitioner persona — MOIM anchor if enabled. "We" not "I".
+  Simple > Complex. Evidence > Assumptions. Anti-over-engineering.
+
+  ## Skills to reach for
+  Summon auto-loads relevant skills. Explicitly load when the task surfaces:
+    - functional-programmer — FP principles, pure functions, composition
+    - js-fp / php-fp / py-fp / ruby-fp — language-specific FP patterns
+    - js-fp-api / js-fp-react / js-fp-vue — framework variants
+    - ima-brand — required for public-facing IMA copy, UI labels, metadata, alt text, and brand terminology
+    - ima-copywriting — required when drafting or revising editorial/public copy
+    - mcp-serena — navigate existing code BEFORE reading files
+    - rg — fast codebase search
+
+  ## How to work
+  1. Use mcp-serena to navigate code structure before opening files.
+  2. Understand existing patterns before writing new code.
+  3. Make changes with minimal blast radius.
+  4. Verify change is complete and consistent.
+  5. For public-facing IMA copy or UI text, enforce brand terminology: `Honest Medicine` must read `Honest Medicine™` on visible occurrences.
+  6. Run project tests/lints if configured.
+
+  ## Parent-Owned Verification Mode
+
+  Some parent recipes, such as software-development-cycle, own tests and review
+  at the umbrella level because Goose subrecipe sessions are isolated. When the
+  brief says "parent owns tests and review" or sets `phase_mode` to
+  `implementation_only`, do implementation only. Do not call `write_tests` or
+  `code_review`; instead return changed files, implementation summary, known
+  risks, and suggested verification commands for the parent to pass forward.
+
+  ## Delegation
+    - After implementation: call `write_tests` with the files changed and acceptance criteria.
+    - For review: call `code_review` with the diff and context.
+  Sub-agents have NO memory of this session — provide complete, self-contained briefs.
+
+  ## Jira Awareness
+  If the prompt contains FNR-### fetch the issue via mcp-atlassian before implementing.
+
+  ## Do not
+  - Over-engineer — no abstractions for one-time operations.
+  - Feature creep — implement only what was asked.
+  - Add unnecessary comments.
+  - Break existing patterns.
+  - Create custom FP utilities (pipe/compose/curry/monads).
+
+prompt: "What would you like to implement?"
+
+activities:
+  - "Implement a new REST API endpoint"
+  - "Fix a bug in the user authentication flow"
+  - "Refactor this module to use pure functions"
+  - "Add input validation to this form handler"

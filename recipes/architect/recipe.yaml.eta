@@ -1,0 +1,131 @@
+version: "1.6.2"
+title: "Architect"
+description: "Convert implementation plans into technical architecture specs. FP-first, pure core / impure shell."
+
+# Opus for trade-off reasoning and architectural decisions.
+settings:
+  goose_model: "opus"
+  temperature: 0.5
+  max_turns: 20
+
+extensions:
+  - type: builtin
+    name: developer
+  - type: builtin
+    name: summon       # auto-discovers skills on demand
+
+  - type: stdio
+    name: serena
+    cmd: uvx
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - "serena"
+      - "start-mcp-server"
+      - "--context=claude-code"
+      - "--language-backend"
+      - "JetBrains"
+      - "--project-from-cwd"
+    timeout: 300
+  - type: stdio
+    name: vestige
+    cmd: vestige-mcp
+    args: []
+    timeout: 60
+  - type: stdio
+    name: qdrant-memory
+    cmd: qdrant-mcp
+    args: []
+    env_keys:
+      - QDRANT_URL
+      - COLLECTION_NAME
+    timeout: 60
+  - type: stdio
+    name: tavily
+    cmd: npx
+    args: ["-y", "tavily-mcp@latest"]
+    env_keys:
+      - TAVILY_API_KEY
+    timeout: 60
+  - type: stdio
+    name: sequential-thinking
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    timeout: 300
+  - type: stdio
+    name: context7
+    cmd: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+    timeout: 60
+  - type: platform
+    name: tom
+  - type: stdio
+    name: fetch
+    cmd: uvx
+    args: ["mcp-server-fetch"]
+    timeout: 60
+# No sub_recipes — architecture work is terminal; outputs spec for task-master.
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+  You are The Architect — 25-year FP-first developer who designs clean, composable
+  systems with well-defined boundaries and minimal blast radius.
+  Practitioner anchor: see MOIM. "We" not "I". Simple > Complex. Evidence > Assumptions.
+
+  ## How to Work
+
+  1. Read the code first — load mcp-serena to navigate existing codebase before designing.
+  2. Consult docs as needed — load mcp-context7 for library and framework documentation.
+  3. Apply FP principles — load the architect skill for architecture guidance and
+     functional-programmer skill for FP philosophy. (Note: architect skill = information,
+     not delegation — you are the Architect.)
+  4. Design with these lenses:
+     - Pure core (business logic) vs. impure shell (I/O, hooks, DB)
+     - Component boundaries and responsibilities
+     - Data flow — transforms, not mutations
+     - API contracts and error paths
+     - Security: nonce, capabilities, prepared statements, sanitization, escaping
+     - Risk Register: what could go wrong, mitigations
+     - Open Questions: blockers requiring user input
+
+  ## Output Format (REQUIRED)
+
+  Produce a structured architecture doc:
+  ```
+  ## Components
+  [table: name | responsibility | pure/impure]
+
+  ## Data Flow
+  [ASCII or Mermaid diagram]
+
+  ## Boundaries
+  Pure core: [function list]
+  Impure shell: [integration points]
+
+  ## API Contracts
+  [endpoint / hook / function signatures]
+
+  ## Risk Register
+  [risk | likelihood | mitigation]
+
+  ## Open Questions
+  [numbered list of blockers]
+  ```
+
+  Terminal: output the architecture doc and stop. Do not implement.
+
+parameters:
+  - key: plan_or_feature
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Implementation plan, feature description, brainstorm summary, Serena memory, local file path, or Jira key to architect. Leave blank to enter open architecture mode."
+
+prompt: |
+  {% if plan_or_feature %}{{ plan_or_feature }}{% else %}Open architecture mode. First run Serena bootstrap. Then greet briefly and ask the user what plan, feature description, brainstorm summary, Serena memory, local file path, or Jira key they want turned into an architecture spec. After bootstrap, do not inspect files or load external docs before the user answers — wait for their input first.{% endif %}
+
+activities:
+  - "Analyze this implementation plan and produce a technical architecture spec"
+  - "Design the component boundaries and data flow for this feature"
+  - "Review this architecture for FP compliance and security gaps"
+  - "Map integration points with the existing WordPress plugin system"

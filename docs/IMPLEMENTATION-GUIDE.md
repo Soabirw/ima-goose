@@ -6,11 +6,13 @@ How to use the task orchestration recipes with Goose.
 
 ## Setup
 
-### 1. Configure Recipe Repository
+### 1. Install Rendered Recipes
 
-Ensure your config has:
-```yaml
-GOOSE_RECIPE_GITHUB_REPO: "Soabirw/ima-goose"
+This repository stores recipe source templates. Render them into Goose's global
+recipe directory before running workflows:
+
+```bash
+node scripts/install.ts --validate
 ```
 
 ### 2. Enable Required Extensions
