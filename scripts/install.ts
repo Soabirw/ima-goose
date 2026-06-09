@@ -1,5 +1,5 @@
 // ima-goose developer setup
-// Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate]
+// Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate] [--register-slash-commands]
 // Profiles: openai (default), hybrid, anthropic, claude-acp
 // Requires: Node 24+ (native TypeScript support)
 
@@ -19,6 +19,7 @@ const repoRoot = path.resolve(__dirname, "..");
 type CliArgs = {
   dest: string;
   profile: string;
+  registerSlashCommands: boolean;
   validate: boolean;
 };
 
@@ -45,6 +46,7 @@ function parseArgs(): CliArgs {
   const parsed = {
     dest: path.join(os.homedir(), ".config", "goose", "recipes"),
     profile: "openai",
+    registerSlashCommands: false,
     validate: false,
   };
 
@@ -57,9 +59,13 @@ function parseArgs(): CliArgs {
       i++;
     } else if (args[i] === "--validate") {
       parsed.validate = true;
+    } else if (args[i] === "--register-slash-commands") {
+      parsed.registerSlashCommands = true;
     } else {
       console.error(`\n[ERROR] Unknown or incomplete argument: ${args[i]}`);
-      console.error("        Usage: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate]");
+      console.error(
+        "        Usage: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate] [--register-slash-commands]",
+      );
       process.exit(1);
     }
   }
@@ -565,17 +571,43 @@ const slashCommands = [
   },
 ];
 
-function ensureSlashCommand(): void {
+function buildSlashCommandBlock(): string {
+  return slashCommands
+    .map((slashCommand) => {
+      const recipePath = path.join(cliArgs.dest, slashCommand.recipe);
+      return `  - command: "${slashCommand.command}"\n    recipe_path: "${recipePath}"`;
+    })
+    .join("\n");
+}
+
+function backupGooseConfig(configPath: string): string {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupPath = `${configPath}.bak-${timestamp}`;
+  fs.copyFileSync(configPath, backupPath);
+  return backupPath;
+}
+
+function printSlashCommandInstructions(): void {
+  console.log("\nSlash commands: not modifying ~/.config/goose/config.yaml.");
+  console.log("To register IMA slash commands manually, merge this block into config.yaml:");
+  console.log("\nslash_commands:");
+  console.log(buildSlashCommandBlock());
+  console.log("\nOr rerun with --register-slash-commands to update config.yaml after creating a backup.");
+}
+
+function registerSlashCommands(): void {
   const configPath = path.join(os.homedir(), ".config", "goose", "config.yaml");
 
   if (!fs.existsSync(configPath)) {
     console.log("\nSlash commands: config.yaml not found; skipping custom slash command registration.");
+    printSlashCommandInstructions();
     return;
   }
 
   let content = fs.readFileSync(configPath, "utf8");
   const registered: string[] = [];
   const existing: string[] = [];
+  const missingCommandBlocks: string[] = [];
 
   for (const slashCommand of slashCommands) {
     const recipePath = path.join(cliArgs.dest, slashCommand.recipe);
@@ -586,20 +618,31 @@ function ensureSlashCommand(): void {
       continue;
     }
 
-    if (/^slash_commands:\s*$/m.test(content)) {
-      content = content.replace(/^slash_commands:\s*$/m, `slash_commands:\n${commandBlock}`);
-    } else {
-      content = `${content.replace(/\s*$/, "\n\n")}slash_commands:\n${commandBlock}\n`;
-    }
+    missingCommandBlocks.push(commandBlock);
     registered.push(`/${slashCommand.command}`);
   }
 
-  fs.writeFileSync(configPath, content);
-  if (registered.length > 0) {
-    console.log(`\nSlash commands: registered ${registered.join(", ")}.`);
+  if (registered.length === 0) {
+    console.log("\nSlash commands: no config changes needed.");
+    if (existing.length > 0) {
+      console.log(`Slash commands: already registered ${existing.join(", ")}.`);
+    }
+    return;
   }
+
+  const missingCommands = missingCommandBlocks.join("\n");
+  if (/^slash_commands:\s*$/m.test(content)) {
+    content = content.replace(/^slash_commands:\s*$/m, `slash_commands:\n${missingCommands}`);
+  } else {
+    content = `${content.replace(/\s*$/, "\n\n")}slash_commands:\n${missingCommands}\n`;
+  }
+
+  const backupPath = backupGooseConfig(configPath);
+  fs.writeFileSync(configPath, content);
+  console.log(`\nSlash commands: backed up config.yaml to ${backupPath}.`);
+  console.log(`Slash commands: registered ${registered.join(", ")}.`);
   if (existing.length > 0) {
-    console.log(`\nSlash commands: already registered ${existing.join(", ")}.`);
+    console.log(`Slash commands: already registered ${existing.join(", ")}.`);
   }
 }
 
@@ -639,7 +682,7 @@ function checkEnvVars(): void {
 function printNextSteps(): void {
   console.log("\n" + "=".repeat(40));
   console.log("Next steps:");
-  console.log("  1. Copy config-template.yaml to ~/.config/goose/config.yaml");
+  console.log("  1. Use config-template.yaml as a reference; do not overwrite an existing Goose config.");
   console.log("  2. Set TAVILY_API_KEY in your shell profile (~/.bashrc or ~/.zshrc)");
   console.log("  3. Copy .goose-aliases.example to ~/.goose-aliases and source it:");
   console.log('       cp .goose-aliases.example ~/.goose-aliases');
@@ -664,6 +707,10 @@ checkGoose();
 checkNodeVersion();
 installSkills();
 installRecipes();
-ensureSlashCommand();
+if (cliArgs.registerSlashCommands) {
+  registerSlashCommands();
+} else {
+  printSlashCommandInstructions();
+}
 checkEnvVars();
 printNextSteps();

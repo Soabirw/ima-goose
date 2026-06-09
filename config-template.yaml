@@ -1,5 +1,6 @@
 # ima-goose Developer Configuration Template
-# Copy to: ~/.config/goose/config.yaml
+# Reference for: ~/.config/goose/config.yaml
+# Do not copy over an existing config. Merge needed sections manually.
 # Set all PLACEHOLDER values before use
 # Last updated: 2026-05-18
 

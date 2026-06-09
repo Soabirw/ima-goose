@@ -2,16 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.0.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.0.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.0.1
+## What's New In v2.0.2
 
-- Fixed sub-recipe recipes so they render enabled extensions from each
-  developer's local Goose config instead of being limited to Goose's
-  auto-injected `summon` extension.
-- Preserved machine-specific extension compatibility for `goose-wp`,
-  `goose-plan`, `goose-implement`, and other recipes that declare
-  `sub_recipes`.
+- Made `scripts/install.ts` read-only for `~/.config/goose/config.yaml` by
+  default; it now prints slash-command config for manual merge.
+- Added `--register-slash-commands` as an explicit opt-in write path with a
+  timestamped `config.yaml` backup before changes.
+- Updated setup docs so `config-template.yaml` is treated as a reference, not a
+  file to copy over an existing Goose config.
 
 ---
 
@@ -72,7 +72,9 @@ Renders recipe templates from `recipes/**/*.yaml.eta` into
 `~/.agents/skills/` where Summon auto-discovers them. **Without this step,
 recipes load but their skill references go nowhere** — Summon has nothing to
 find and the recipes silently lose their deep domain knowledge. Requires
-Node 24+.
+Node 24+. The installer does not modify `~/.config/goose/config.yaml` unless
+you explicitly pass `--register-slash-commands`; that opt-in path creates a
+timestamped backup first.
 
 ### 5. Set up shell aliases
 
@@ -219,7 +221,8 @@ node scripts/install.ts
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
 `~/.config/goose/recipes/*.yaml`, then copies all 49 skills from `skills/` to
-`~/.agents/skills/`. Requires Node 24+.
+`~/.agents/skills/`. Requires Node 24+. By default this does not write
+`~/.config/goose/config.yaml`; it prints slash-command blocks to merge manually.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
 

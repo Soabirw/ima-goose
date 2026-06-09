@@ -98,13 +98,14 @@ ls ~/.agents/skills/ | wc -l
 
 ## Step-by-Step: Configure MCP Extensions and API Keys
 
-### 1. Copy the template
+### 1. Merge from the template
 
 ```bash
-cp config-template.yaml ~/.config/goose/config.yaml
+less config-template.yaml
 ```
 
-If you already have a config, merge the `extensions:` section manually — don't overwrite your provider settings.
+Use `config-template.yaml` as a reference and merge only the sections you need
+into `~/.config/goose/config.yaml`. Do not copy it over an existing config.
 
 ### 2. Set API keys
 
@@ -230,8 +231,10 @@ Review the generated blocks, then write them to Serena memories named `core`,
 the generated memories include the Vestige task lifecycle protocol.
 
 Inside an interactive Goose session, use `/serena-bootstrap` to reload standard
-Serena project memories on demand. The installer registers this custom slash
-command in `~/.config/goose/config.yaml` when that config file exists.
+Serena project memories on demand. The installer prints slash-command config to
+merge manually. To let the installer write slash commands, pass
+`--register-slash-commands`; it creates a timestamped `config.yaml` backup
+before writing.
 
 Use `/serena-memorize <note>` to add stable project context to the appropriate
 standard Serena memory:

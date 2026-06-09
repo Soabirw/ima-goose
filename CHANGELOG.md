@@ -4,6 +4,19 @@
 
 No unreleased changes.
 
+## v2.0.2 - 2026-06-09
+
+### Changed
+
+- Changed `scripts/install.ts` so it does not modify
+  `~/.config/goose/config.yaml` by default. The installer now prints
+  slash-command config for manual merging.
+- Added an explicit `--register-slash-commands` installer flag for users who
+  want automatic slash-command registration; it creates a timestamped
+  `config.yaml` backup before writing.
+- Updated setup docs to stop recommending copying `config-template.yaml` over
+  an existing Goose config.
+
 ## v2.0.1 - 2026-06-09
 
 ### Fixed
