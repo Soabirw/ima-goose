@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "Architect"
 description: "In-session architecture lens command. Applies Architect expertise to the current session context and produces a bounded architecture assessment or spec."
 

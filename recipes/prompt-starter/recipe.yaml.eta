@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "Prompt Starter"
 description: "In-session prompt builder command. Turns rough ideas, Jira issues, plans, or mental dumps into prompts for dedicated recipe sessions."
 

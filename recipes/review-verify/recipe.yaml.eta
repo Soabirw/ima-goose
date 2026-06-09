@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "Review Verify"
 description: "HIGH-tier read-only second opinion on a single code-review finding. Narrowly scoped — looks at one file:line range, returns CONFIRMED | WITHDRAWN | PARTIAL."
 

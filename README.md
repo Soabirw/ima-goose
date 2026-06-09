@@ -2,43 +2,27 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v1.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.0.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v1.6.2
+## What's New In v2.0.0
 
-- Added the `ima-email-creator` skill for branded, email-client-safe HTML
-  rendering across newsletters, campaigns, drip emails, EspoCRM, and WordPress
-  transactional templates.
-- Added the `mcp-taskwarrior` skill for safe local Taskwarrior CLI usage,
-  including isolated test data, JSON export parsing, filters, dates, contexts,
-  and hooks.
-- Hardened the planning recipe so defect tickets and named workflows trigger
-  autonomous Jira, memory, code, WordPress/DDEV, and browser discovery before
-  asking for file paths.
-- Updated the WordPress developer recipe to route email HTML work through
-  `ima-email-creator`.
-- Added the Serena project memory standard so recipes load cross-harness
-  project context from standardized memories instead of relying on context-file
-  injection.
-- Added the Vestige task lifecycle protocol so Taskwarrior/Jira/project tasks
-  carry one living memory thread from plan to implementation, review,
-  resolution, and closeout.
-- Hardened the Serena bootstrap so recipes load project memories before
-  Taskwarrior/Jira/Vestige/file discovery or asking users for local config.
-- Added `/serena-bootstrap`, a custom Goose slash command that loads standard
-  Serena project memories on demand inside an existing session.
-- Added `/serena-memorize <note>`, a custom Goose slash command for updating
-  standardized Serena project memories from concise project-context notes.
-- Added `/architect` and `/prompt-starter` as command-style recipes for
-  current-session architecture guidance and prompt building.
-- Updated install and migration docs for the 49-skill bundle.
-- Changed recipe versions are bumped to `1.6.2` only for recipes whose
-  behavior changed in this release.
-
-This release includes the full local repository payload: release/docs updates,
-installer/config updates, alias updates, all changed Serena-enabled recipes,
-the new Serena command recipes, the new email and Taskwarrior skills, and the
-Serena/Vestige skill updates.
+- Switched recipes to provider-neutral `HIGH` / `MID` / `LOW` profile tiers
+  rendered as both `goose_provider` and `goose_model`.
+- Made the `openai` / Codex ACP profile the default, with `hybrid`,
+  `anthropic`, and `claude-acp` available as explicit alternatives.
+- Removed per-recipe extension whitelists so recipes use installed and
+  configured Goose extensions.
+- Deprecated the old `task-master` / `task-runner` pattern in favor of the
+  explicit brainstorm -> plan -> task-planner -> implement -> test -> review
+  -> document/learn workflow.
+- Added shared memory and sub-recipe delegation instructions for consistent
+  Serena, Vestige, Qdrant, and child-session behavior.
+- Added `design-to-code` and `scorecard` recipes, and wired `scorecard` into
+  code-review as an explicit scoring mode.
+- Added `espocrm-api`, `discourse-admin`, and `ember-discourse` skills,
+  bringing the installed skill bundle to 49 skills.
+- Updated installer, aliases, profiles, recipes, and workflow documentation for
+  the new architecture.
 
 ---
 

@@ -2,27 +2,90 @@
 
 ## Unreleased
 
+No unreleased changes.
+
+## v2.0.0 - 2026-06-09
+
+### Breaking Changes
+
+- Made `openai` the default installer profile, rendering recipes through
+  `codex-acp` and GPT-5.5 effort tiers by default.
+- Replaced the old recipe-tier vocabulary based on `opus`, `sonnet`, and
+  `haiku` with provider-neutral `HIGH`, `MID`, and `LOW` profile tiers.
+- Updated recipes to render both `goose_provider` and `goose_model` from
+  profile variables, so a recipe can select the provider/model it needs
+  without relying on global `goose configure` defaults.
+- Removed per-recipe `extensions` whitelists. Recipes now rely on the user's
+  installed and configured Goose extensions rather than redeclaring access in
+  every recipe.
+- Removed the active `task-master` / `task-runner` workflow and documented the
+  replacement human-in-the-loop flow:
+  `brainstorm -> plan -> task-planner -> implement -> test -> review -> document/learn`.
+- Reworked `scripts/install.ts` to require `high`, `mid`, and `low` profile
+  entries and to drop fallback handling for deprecated tier names.
+
+### Added
+
+- Added shared `instructions/memory-workflow.md` coverage to explain Serena,
+  Vestige, and Qdrant memory roles consistently across recipes.
+- Added shared `instructions/subrecipe-delegation.md` coverage for
+  self-contained child-session briefs and sub-recipe execution rules.
+- Added `design-to-code`, a HIGH-tier dedicated recipe for turning screenshots,
+  mockups, Jira context, or implementation prompts into WordPress/Bootstrap
+  implementation work.
+- Added `scorecard`, a HIGH-tier recipe for evidence-based project, PR, or
+  codebase quality scoring.
+- Added `scorecard` as an explicit `code-review` sub-recipe mode for scoring
+  requests without forcing scorecards into every normal review.
+- Added `espocrm-api`, `discourse-admin`, and `ember-discourse` skills from the
+  selected remaining `ima-claude` migration set.
+- Added `goose-design-to-code` and `goose-scorecard` aliases.
+- Added `docs/SUB-RECIPE-DELEGATION.md` and replaced the old
+  task-master-oriented delegation document.
+
 ### Changed
 
 - Converted recipes from root-level source YAML files to build-time Eta
   templates under `recipes/<name>/recipe.yaml.eta`.
-- Reworked `scripts/install.ts` into a render/install pipeline that injects
-  shared snippets, writes generated Goose-compatible YAML to the recipe install
+- Reworked the installer into a render/install pipeline that injects shared
+  snippets, writes generated Goose-compatible YAML to the recipe install
   directory, preserves Goose `{{ parameter }}` runtime syntax, rewrites
   source-template subrecipe paths to flat installed recipe paths, and applies
   provider/model profile settings during render.
-- Extracted the repeated Serena project memory bootstrap instructions into
-  `shared/instructions/serena-bootstrap.md` for build-time inclusion.
-- Added a minimal Node package manifest and lockfile for the Eta installer
-  dependency.
+- Updated model profiles for the new `high`, `mid`, and `low` schema:
+  `openai`, `hybrid`, `anthropic`, and `claude-acp`.
+- Updated `explore` as a LOW-tier, sub-recipe-oriented codebase discovery
+  recipe.
+- Updated `review-verify` to HIGH because it verifies critical review findings.
+- Updated `goose-ship-it` as a MID-tier direct recipe.
+- Refreshed `adversarial-review` as an experimental dual-model review flow
+  with explicit child provider/model settings.
+- Converted `architect` and `prompt-starter` into current-session slash-command
+  recipes instead of dedicated model-pinned sessions.
+- Updated brainstorm, plan, implementation, testing, review, research, and
+  documentation recipes around the shared memory and sub-recipe contracts.
+- Updated README, migration, implementation, model-tier, setup, workflow, and
+  software-cycle docs for the 2.0 workflow architecture and 49-skill bundle.
+- Bumped all recipe template versions to `2.0.0` because the recipe profile and
+  provider rendering contract changed globally.
+
+### Removed
+
+- Removed `recipes/task-master` and `recipes/task-runner` from the active
+  workflow.
+- Left `quasar-fp`, `docs-organize`, and `jira-checkpoint` intentionally
+  unmigrated from the remaining `ima-claude` skill review.
 
 ### Validation
 
-- Rendered all 26 recipe templates to a temporary directory with
-  `node scripts/install.ts --profile hybrid --dest /tmp/ima-goose-render --validate`.
-- Validated each rendered recipe with `goose recipe validate` through the
-  installer `--validate` path.
 - Syntax-checked `scripts/install.ts` with `node --check`.
+- Ran `git diff --check`.
+- Rendered and validated all 26 recipe templates with the installer for all
+  supported profiles: `openai`, `hybrid`, `anthropic`, and `claude-acp`.
+- Confirmed the installer copies all 49 skills, including `espocrm-api`,
+  `discourse-admin`, and `ember-discourse`.
+- Scanned for stale `46` skill-count references and stale `.claude` paths in
+  the migrated skills.
 
 ## v1.6.2 - 2026-06-04
 

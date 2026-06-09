@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "Design To Code"
 description: "Dedicated design-to-WordPress workflow. Turns screenshots, mockups, Jira context, or an existing design implementation prompt into an implementation prompt and optionally executes through WordPress sub-recipes."
 

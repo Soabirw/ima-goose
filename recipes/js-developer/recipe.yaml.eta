@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 

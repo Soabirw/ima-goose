@@ -1,4 +1,4 @@
-version: "1.6.2"
+version: "2.0.0"
 title: "Scorecard"
 description: "Evidence-based codebase or pull request scorecard. Scores standards, security, tests, documentation, and maintainability with validator-backed letter grades."
 
