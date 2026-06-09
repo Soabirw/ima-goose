@@ -177,9 +177,15 @@ GOOSE_MAX_TURNS: 1000
 
 # ── Custom slash commands ──
 # Use inside any interactive Goose session:
+#   /architect
+#   /prompt-starter
 #   /serena-bootstrap
 #   /serena-memorize Our design source lives at ./claude-design
 slash_commands:
+  - command: "architect"
+    recipe_path: "/home/YOUR_USER/.config/goose/recipes/architect.yaml"
+  - command: "prompt-starter"
+    recipe_path: "/home/YOUR_USER/.config/goose/recipes/prompt-starter.yaml"
   - command: "serena-bootstrap"
     recipe_path: "/home/YOUR_USER/.config/goose/recipes/serena-bootstrap.yaml"
   - command: "serena-memorize"
@@ -187,7 +193,7 @@ slash_commands:
 
 # ── Provider (choose one) ──
 #
-# Recipes pin a tier (opus/sonnet/haiku) and the installer rewrites those to
+# Recipes pin a tier (high/mid/low) and the installer rewrites those to
 # provider-specific model IDs based on the chosen --profile. See docs/MODEL-TIERS.md.
 # Switching provider here = also run: node scripts/install.ts --profile <name>
 

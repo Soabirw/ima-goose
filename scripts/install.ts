@@ -493,6 +493,14 @@ function installRecipes(): void {
 
 const slashCommands = [
   {
+    command: "architect",
+    recipe: "architect.yaml",
+  },
+  {
+    command: "prompt-starter",
+    recipe: "prompt-starter.yaml",
+  },
+  {
     command: "serena-bootstrap",
     recipe: "serena-bootstrap.yaml",
   },
@@ -588,7 +596,9 @@ function printNextSteps(): void {
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Default — Claude shortnames");
   console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
-  console.log('     Inside a session, run /serena-bootstrap to reload project memory.');
+  console.log('     Inside a session, run /architect for architecture guidance.');
+  console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
+  console.log('     Run /serena-bootstrap to reload project memory.');
   console.log('     Use /serena-memorize <note> to update standard Serena memories.');
   console.log("");
 }

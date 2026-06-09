@@ -29,6 +29,8 @@ Current release: **v1.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
   Serena project memories on demand inside an existing session.
 - Added `/serena-memorize <note>`, a custom Goose slash command for updating
   standardized Serena project memories from concise project-context notes.
+- Added `/architect` and `/prompt-starter` as command-style recipes for
+  current-session architecture guidance and prompt building.
 - Updated install and migration docs for the 46-skill bundle.
 - Changed recipe versions are bumped to `1.6.2` only for recipes whose
   behavior changed in this release.
@@ -139,7 +141,7 @@ Inside the interactive session, type `/skills` — you should see ~46 skills lis
 | Recipe references a skill that won't load | Skill missing from `~/.agents/skills/<name>/SKILL.md` — re-run installer |
 | Sub-recipe tool calls fail with path errors | Installed recipes are stale — rerun `node scripts/install.ts --validate` |
 | MOIM persona not active | `echo $GOOSE_MOIM_MESSAGE_FILE` empty, or file missing |
-| `goose run --recipe task-master` "recipe not found" | Recipes have not been rendered into `~/.config/goose/recipes/` — rerun `node scripts/install.ts --validate` |
+| `goose run --recipe <name>` "recipe not found" | Recipes have not been rendered into `~/.config/goose/recipes/` — rerun `node scripts/install.ts --validate` |
 
 ---
 
@@ -359,13 +361,11 @@ execution for ordinary MCP workflows.
 | `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | Sonnet 4.6 |
 | `explore` | Fast read-only codebase exploration | Haiku 4.5 |
 | `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
-| `architect` | Architecture guidance and technology selection | Opus 4.7 |
+| `/architect` | Current-session architecture lens and technology selection command | Current session |
 | `software-development-cycle` | Flattened umbrella for brainstorm, plan, story implementation, tests, review, document/learn | Opus 4.7 |
 | `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | Sonnet 4.6 |
-| `task-master` | Orchestration via sub-recipe delegation | Opus 4.7 |
-| `task-planner` | Decomposition — Epic → Story → Task hierarchy for `task-master` consumption | Opus 4.7 |
-| `task-runner` | Execute detailed task plans | Sonnet 4.6 |
-| `prompt-starter` | Prompt-builder — turn raw ideas or Jira issues into structured implementation prompts (legacy; prefer `brainstorm` for new work) | Opus 4.7 |
+| `task-planner` | Decomposition — Epic → Story → Task hierarchy for human-in-the-loop planning | Opus 4.7 |
+| `/prompt-starter` | Current-session prompt builder for dedicated recipe sessions | Current session |
 | `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | Opus 4.7 |
 | `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | Opus 4.7 |
 
@@ -373,17 +373,15 @@ execution for ordinary MCP workflows.
 
 `software-development-cycle` delegates to: `brainstorm`, `plan_feature` (plan), `decompose` (task-planner), `explore`, `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `document_learn` (document-learn). It owns the full phase graph directly and does not call `task-master`.
 
-`task-master` delegates to: `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `explore`, `plan_task` (task-planner).
-
 `implement` and `wp-developer` delegate to: `write_tests`, `code_review`.
-
-`task-runner` delegates to: `write_tests`, `code_review`.
 
 `adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rewrites.
 
-Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `architect`, `task-planner`, `prompt-starter`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
-**Brainstorm → Plan → Orchestrate chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner`/`task-master` for Epic→Story→Task decomposition and execution. Each link is terminal; nothing auto-spawns the next session.
+Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, `/serena-memorize`.
+
+**Brainstorm → Plan → Task Planner chain.** `brainstorm` and `plan` are stand-alone interactive sessions that save their output to Serena memory (or a file). The user passes those saved artifacts forward — `goose-plan <brainstorm-memory-name>` to enter the plan session pre-loaded with the brainstorm, then optionally hand the plan to `task-planner` for Epic→Story→Task decomposition. Each link is terminal; nothing auto-spawns the next session.
 
 **Software development cycle.** `software-development-cycle` is the top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout.
 
@@ -418,10 +416,7 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 |--------|-------|-----------|
 | `brainstorm` | `opus` | Research + clarifying-question quality |
 | `plan` | `opus` | Trade-off reasoning + technical synthesis |
-| `task-master` | `opus` | Orchestration / decisions |
 | `software-development-cycle` | `opus` | Full-cycle orchestration / phase gates |
-| `architect` | `opus` | Trade-off reasoning |
-| `prompt-starter` | `opus` | Research + template fill |
 | `task-planner` | `opus` | Decomposition |
 | `code-review` | `opus` | Security + logic flaws |
 | `adversarial-review` | `opus` | Dual-model adversarial review coordination |
@@ -432,7 +427,6 @@ Each recipe pins its own model via `settings.goose_model`. No global tier table 
 | `implement` | `sonnet` | Coding |
 | `wp-developer` | `sonnet` | Coding |
 | `test-writer` | `sonnet` | Test coding |
-| `task-runner` | `sonnet` | Execution |
 | `document-learn` | `sonnet` | Documentation and memory closeout |
 | `explore` | `haiku` | Cheap read-only |
 
