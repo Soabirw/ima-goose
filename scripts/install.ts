@@ -34,6 +34,12 @@ type RecipeTemplate = {
   sourcePath: string;
 };
 
+type GooseExtensionConfig = {
+  key: string;
+  enabled: boolean | null;
+  lines: string[];
+};
+
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
   const parsed = {
@@ -343,6 +349,99 @@ function yaml(value: unknown, indent = 0): string {
   return emit(value, indent);
 }
 
+function readGooseConfigExtensions(): GooseExtensionConfig[] {
+  const configPath = path.join(os.homedir(), ".config", "goose", "config.yaml");
+  if (!fs.existsSync(configPath)) return [];
+
+  const lines = fs.readFileSync(configPath, "utf8").split("\n");
+  const extensions: GooseExtensionConfig[] = [];
+  let inExtensions = false;
+  let current: GooseExtensionConfig | null = null;
+
+  const finishCurrent = (): void => {
+    if (current) extensions.push(current);
+    current = null;
+  };
+
+  for (const rawLine of lines) {
+    if (!inExtensions) {
+      if (/^extensions:\s*$/.test(rawLine)) inExtensions = true;
+      continue;
+    }
+
+    if (/^[A-Za-z_][\w-]*:\s*/.test(rawLine)) {
+      finishCurrent();
+      break;
+    }
+
+    const extensionMatch = rawLine.match(/^  ([A-Za-z0-9_-]+):\s*$/);
+    if (extensionMatch) {
+      finishCurrent();
+      current = { key: extensionMatch[1], enabled: null, lines: [] };
+      continue;
+    }
+
+    if (!current || !rawLine.trim()) continue;
+
+    const enabledMatch = rawLine.match(/^    enabled:\s*(true|false)\s*$/);
+    if (enabledMatch) {
+      current.enabled = enabledMatch[1] === "true";
+    }
+    current.lines.push(rawLine);
+  }
+
+  finishCurrent();
+  return extensions;
+}
+
+function renderEnabledGooseExtensions(): string {
+  const extensionConfigs = readGooseConfigExtensions().filter((extension) => extension.enabled === true);
+  if (extensionConfigs.length === 0) return "";
+
+  const allowedFields = new Set([
+    "type",
+    "name",
+    "description",
+    "cmd",
+    "args",
+    "envs",
+    "env_keys",
+    "timeout",
+    "bundled",
+    "available_tools",
+    "uri",
+    "headers",
+    "socket",
+  ]);
+
+  const renderedExtensions = extensionConfigs.flatMap((extension) => {
+    const renderedLines: string[] = [];
+    let currentFieldAllowed = false;
+
+    for (const line of extension.lines) {
+      const fieldMatch = line.match(/^    ([A-Za-z0-9_-]+):/);
+      if (fieldMatch) {
+        const fieldName = fieldMatch[1];
+        currentFieldAllowed = allowedFields.has(fieldName);
+        if (!currentFieldAllowed) continue;
+
+        const stripped = line.slice(4);
+        renderedLines.push(renderedLines.length === 0 ? `  - ${stripped}` : `    ${stripped}`);
+        continue;
+      }
+
+      if (currentFieldAllowed) {
+        renderedLines.push(`    ${line.slice(4)}`);
+      }
+    }
+
+    return renderedLines.length > 0 ? renderedLines : [];
+  });
+
+  if (renderedExtensions.length === 0) return "";
+  return `extensions:\n${renderedExtensions.join("\n")}\n\n`;
+}
+
 function renderTemplate(template: RecipeTemplate): string {
   const eta = new Eta();
   const templateContent = fs.readFileSync(template.sourcePath, "utf8");
@@ -361,6 +460,7 @@ function renderTemplate(template: RecipeTemplate): string {
     PROFILE_PROVIDER_HIGH: profile.providers.high,
     PROFILE_PROVIDER_MID: profile.providers.mid,
     PROFILE_PROVIDER_LOW: profile.providers.low,
+    enabledExtensions: renderEnabledGooseExtensions,
     include: (requestedPath: string, indent = 0): string => {
       const included = fs.readFileSync(resolveIncludePath(requestedPath), "utf8");
       const rendered = indent > 0 ? indentMultiline(included, indent) : included.replace(/\s+$/, "");

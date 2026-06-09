@@ -1,6 +1,8 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
+
+<%~ it.enabledExtensions() %>
 
 # High for trade-off reasoning. Slightly tighter temperature than brainstorm.
 # max_turns is intentionally unset — goose default (1000) is the right ceiling

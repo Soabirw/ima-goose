@@ -2,27 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.0.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.0.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.0.0
+## What's New In v2.0.1
 
-- Switched recipes to provider-neutral `HIGH` / `MID` / `LOW` profile tiers
-  rendered as both `goose_provider` and `goose_model`.
-- Made the `openai` / Codex ACP profile the default, with `hybrid`,
-  `anthropic`, and `claude-acp` available as explicit alternatives.
-- Removed per-recipe extension whitelists so recipes use installed and
-  configured Goose extensions.
-- Deprecated the old `task-master` / `task-runner` pattern in favor of the
-  explicit brainstorm -> plan -> task-planner -> implement -> test -> review
-  -> document/learn workflow.
-- Added shared memory and sub-recipe delegation instructions for consistent
-  Serena, Vestige, Qdrant, and child-session behavior.
-- Added `design-to-code` and `scorecard` recipes, and wired `scorecard` into
-  code-review as an explicit scoring mode.
-- Added `espocrm-api`, `discourse-admin`, and `ember-discourse` skills,
-  bringing the installed skill bundle to 49 skills.
-- Updated installer, aliases, profiles, recipes, and workflow documentation for
-  the new architecture.
+- Fixed sub-recipe recipes so they render enabled extensions from each
+  developer's local Goose config instead of being limited to Goose's
+  auto-injected `summon` extension.
+- Preserved machine-specific extension compatibility for `goose-wp`,
+  `goose-plan`, `goose-implement`, and other recipes that declare
+  `sub_recipes`.
 
 ---
 
@@ -213,12 +202,12 @@ goose configure
 # Toggle Extensions → enable the extensions from config-template.yaml
 ```
 
-Recipes no longer whitelist extension blocks. Your Goose config should enable
-the shared tool baseline so recipes can use installed/configured extensions
-without each recipe redeclaring them. At minimum keep `developer`, `summon`, `tom`, `tavily`,
-`context7`, `sequential-thinking`, `serena`, `qdrant-memory`, and `vestige`
-enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
-other workflow-specific MCP extensions when a recipe explicitly declares them.
+Recipes that declare `sub_recipes` need an explicit rendered `extensions:`
+block because Goose auto-injects `summon`, and any explicit extension block
+limits the session to only listed extensions. The installer reads enabled
+extensions from `~/.config/goose/config.yaml` and renders those into the
+installed recipe files, so each developer keeps their own machine's extension
+set. After changing enabled Goose extensions, rerun `node scripts/install.ts`.
 MCP tools are called directly through Goose; do not route normal MCP usage
 through a TypeScript execution wrapper.
 
@@ -324,8 +313,9 @@ Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or jus
 ### P1/P2 — Core Recipes
 
 All core recipe templates use profile-rendered `HIGH`, `MID`, or `LOW`
-provider/model variables. Recipes rely on the installed Goose extension
-baseline instead of whitelisting extension blocks in each recipe.
+provider/model variables. Recipes with `sub_recipes` render enabled extensions
+from the local Goose config at install time so Goose does not render them with
+only the auto-injected `summon` extension.
 
 | Recipe | Description | Tier |
 |--------|-------------|-------|

@@ -4,6 +4,33 @@
 
 No unreleased changes.
 
+## v2.0.1 - 2026-06-09
+
+### Fixed
+
+- Fixed recipes that declare `sub_recipes` so they render enabled extensions
+  from each developer's local `~/.config/goose/config.yaml` at install time.
+  This avoids Goose's auto-injected `summon` extension becoming the only
+  available extension while preserving per-machine extension compatibility.
+- Fixed `goose-wp` and other sub-recipe parent sessions losing Developer,
+  Serena, Vestige, Qdrant, Tavily, Context7, and other configured tools when
+  launched through `goose run --recipe`.
+
+### Changed
+
+- Updated `scripts/install.ts` to derive recipe extension blocks from enabled
+  local Goose config entries rather than a repo-maintained static baseline.
+- Updated docs to describe the Goose `sub_recipes` extension behavior and the
+  install-time compatibility approach.
+- Bumped affected sub-recipe parent templates to `2.0.1`.
+
+### Validation
+
+- Rendered and validated all recipe templates with `node scripts/install.ts
+  --validate`.
+- Confirmed rendered `wp-developer.yaml` matches the enabled extension set from
+  local Goose config with no missing or extra enabled extensions.
+
 ## v2.0.0 - 2026-06-09
 
 ### Breaking Changes

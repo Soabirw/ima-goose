@@ -102,7 +102,10 @@ The following recipes are intended as commands inside an existing session:
 - `/serena-bootstrap` reloads standard Serena project memories.
 - `/serena-memorize <note>` updates standardized Serena project memory.
 
-They do not pin provider/model and do not whitelist extensions.
+They do not pin provider/model. Recipes that declare `sub_recipes` render
+enabled extensions from the local Goose config at install time because Goose
+auto-injects `summon`, and an explicit `extensions:` block limits the session
+to the listed extensions.
 
 ## Sub-Recipes
 

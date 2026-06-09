@@ -1,6 +1,8 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Design To Code"
 description: "Dedicated design-to-WordPress workflow. Turns screenshots, mockups, Jira context, or an existing design implementation prompt into an implementation prompt and optionally executes through WordPress sub-recipes."
+
+<%~ it.enabledExtensions() %>
 
 # Design analysis and orchestration need the high-capability profile.
 settings:

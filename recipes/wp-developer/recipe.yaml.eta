@@ -1,6 +1,8 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "WordPress Developer"
 description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, then delegates tests and review when appropriate."
+
+<%~ it.enabledExtensions() %>
 
 # MID profile for implementation. Provider and model are generated from the
 # selected install profile so this recipe does not rely on global Goose config.
