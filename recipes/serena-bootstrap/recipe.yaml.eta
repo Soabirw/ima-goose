@@ -2,23 +2,6 @@ version: "1.6.2"
 title: "Serena Bootstrap"
 description: "Load standardized Serena project memories on demand inside an existing Goose session."
 
-extensions:
-  - type: builtin
-    name: summon
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-
 instructions: |
   You are the Serena project context bootstrapper.
 
@@ -38,11 +21,6 @@ instructions: |
 prompt: |
   Load Serena project context now. Run the standard Serena bootstrap and summarize
   what project memory is available for this session.
-
-settings:
-  goose_model: "sonnet"
-  temperature: 0.2
-  max_turns: 10
 
 activities:
   - "Load Serena project context"

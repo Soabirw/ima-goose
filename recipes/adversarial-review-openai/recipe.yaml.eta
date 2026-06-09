@@ -8,31 +8,6 @@ settings:
   temperature: 0.1
   max_turns: 18
 
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon }
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: platform
-    name: tom
-
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
   You are the GPT-5.5 adversarial reviewer. A coordinator has given you a
@@ -86,7 +61,7 @@ parameters:
     description: "Self-contained adversarial review brief from the coordinator."
 
 prompt: |
-  {% if brief %}{{ brief }}{% else %}Open GPT-5.5 adversary mode. First run Serena bootstrap. Then ask the user for one self-contained adversarial review brief. After bootstrap, do not inspect files or use task-specific tools before the user provides it.{% endif %}
+  {% if brief %}{{ brief }}{% else %}Open GPT-5.5 adversary mode. Ask the user for one self-contained adversarial review brief. Do not inspect files or use task-specific tools before the user provides it.{% endif %}
 
 activities:
   - "Attack this implementation brief as GPT-5.5"

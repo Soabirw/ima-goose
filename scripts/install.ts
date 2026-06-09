@@ -1,6 +1,6 @@
 // ima-goose developer setup
 // Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate]
-// Profiles: claude-acp (default), anthropic, openai, hybrid
+// Profiles: openai (default), hybrid, anthropic, claude-acp
 // Requires: Node 24+ (native TypeScript support)
 
 import { execFileSync, execSync } from "node:child_process";
@@ -26,7 +26,6 @@ type Profile = {
   name: string;
   tiers: Record<string, string>;
   providers: Record<string, string>;
-  overrides: Record<string, string>;
 };
 
 type RecipeTemplate = {
@@ -39,7 +38,7 @@ function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
   const parsed = {
     dest: path.join(os.homedir(), ".config", "goose", "recipes"),
-    profile: "claude-acp",
+    profile: "openai",
     validate: false,
   };
 
@@ -66,35 +65,30 @@ function parseArgs(): CliArgs {
 
 // Minimal YAML parser for our constrained profile schema:
 //   tiers:
-//     opus: <id>
-//     sonnet: <id>
-//     haiku: <id>
+//     high: <id>
+//     mid: <id>
+//     low: <id>
 //   providers:
-//     opus: <provider>
-//     sonnet: <provider>
-//     haiku: <provider>
-//   overrides:
-//     <recipe-name>: <id>
-//     ...   (or "{}" for empty)
+//     high: <provider>
+//     mid: <provider>
+//     low: <provider>
 function parseProfileYaml(content: string): {
   tiers: Record<string, string>;
   providers: Record<string, string>;
-  overrides: Record<string, string>;
 } {
   const result = {
     tiers: {} as Record<string, string>,
     providers: {} as Record<string, string>,
-    overrides: {} as Record<string, string>,
   };
-  let section: "tiers" | "providers" | "overrides" | null = null;
+  let section: "tiers" | "providers" | null = null;
 
   for (const rawLine of content.split("\n")) {
     const line = rawLine.replace(/#.*$/, "").replace(/\s+$/, "");
     if (!line.trim()) continue;
 
-    const sectionMatch = line.match(/^(tiers|providers|overrides):\s*(\{\s*\})?\s*$/);
+    const sectionMatch = line.match(/^(tiers|providers):\s*$/);
     if (sectionMatch) {
-      section = sectionMatch[1] as "tiers" | "providers" | "overrides";
+      section = sectionMatch[1] as "tiers" | "providers";
       continue;
     }
 
@@ -107,6 +101,19 @@ function parseProfileYaml(content: string): {
   }
 
   return result;
+}
+
+function requireProfileKeys(profile: Profile): void {
+  const required = ["high", "mid", "low"];
+  const missingTiers = required.filter((key) => !profile.tiers[key]);
+  const missingProviders = required.filter((key) => !profile.providers[key]);
+
+  if (missingTiers.length > 0 || missingProviders.length > 0) {
+    console.error(`\n[ERROR] Profile '${profile.name}' must define tiers/providers for: high, mid, low`);
+    if (missingTiers.length > 0) console.error(`        Missing tiers: ${missingTiers.join(", ")}`);
+    if (missingProviders.length > 0) console.error(`        Missing providers: ${missingProviders.join(", ")}`);
+    process.exit(1);
+  }
 }
 
 function loadProfile(name: string): Profile {
@@ -123,7 +130,9 @@ function loadProfile(name: string): Profile {
     process.exit(1);
   }
   const parsed = parseProfileYaml(fs.readFileSync(profilePath, "utf8"));
-  return { name, ...parsed };
+  const loaded = { name, ...parsed };
+  requireProfileKeys(loaded);
+  return loaded;
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
@@ -143,10 +152,6 @@ const providerSummary = Object.entries(profile.providers)
   .join(", ");
 if (providerSummary) {
   console.log(`  Providers: ${providerSummary}`);
-}
-const overrideCount = Object.keys(profile.overrides).length;
-if (overrideCount > 0) {
-  console.log(`  Overrides: ${overrideCount} (${Object.keys(profile.overrides).join(", ")})`);
 }
 
 // ── Check Goose ───────────────────────────────────────────────────────────────
@@ -341,28 +346,21 @@ function yaml(value: unknown, indent = 0): string {
 function renderTemplate(template: RecipeTemplate): string {
   const eta = new Eta();
   const templateContent = fs.readFileSync(template.sourcePath, "utf8");
-  const highModel = profile.tiers.high ?? profile.tiers.opus;
-  const midModel = profile.tiers.mid ?? profile.tiers.sonnet;
-  const lowModel = profile.tiers.low ?? profile.tiers.haiku;
-  const highProvider = profile.providers.high ?? profile.providers.opus;
-  const midProvider = profile.providers.mid ?? profile.providers.sonnet;
-  const lowProvider = profile.providers.low ?? profile.providers.haiku;
   const settings = {
     profile: profile.name,
     tiers: profile.tiers,
     providers: profile.providers,
-    overrides: profile.overrides,
   };
 
   return eta.renderString(templateContent, {
     profile,
     settings,
-    PROFILE_MODEL_HIGH: highModel,
-    PROFILE_MODEL_MID: midModel,
-    PROFILE_MODEL_LOW: lowModel,
-    PROFILE_PROVIDER_HIGH: highProvider,
-    PROFILE_PROVIDER_MID: midProvider,
-    PROFILE_PROVIDER_LOW: lowProvider,
+    PROFILE_MODEL_HIGH: profile.tiers.high,
+    PROFILE_MODEL_MID: profile.tiers.mid,
+    PROFILE_MODEL_LOW: profile.tiers.low,
+    PROFILE_PROVIDER_HIGH: profile.providers.high,
+    PROFILE_PROVIDER_MID: profile.providers.mid,
+    PROFILE_PROVIDER_LOW: profile.providers.low,
     include: (requestedPath: string, indent = 0): string => {
       const included = fs.readFileSync(resolveIncludePath(requestedPath), "utf8");
       const rendered = indent > 0 ? indentMultiline(included, indent) : included.replace(/\s+$/, "");
@@ -403,47 +401,6 @@ function rewriteSubRecipePaths(content: string, template: RecipeTemplate, output
   );
 }
 
-function applyModelProfile(content: string, recipeName: string): string {
-  const modelMatch = content.match(/^\s*goose_model:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m);
-  const sourceTier = modelMatch?.[1]?.trim();
-  const hasExplicitProvider = /^\s*goose_provider:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m.test(content);
-  const tierProvider = !hasExplicitProvider && sourceTier ? profile.providers[sourceTier] : undefined;
-  let result = content;
-
-  if (tierProvider) {
-    const providerRe = /^(\s*)goose_provider:\s*["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m;
-    if (providerRe.test(result)) {
-      result = result.replace(providerRe, `$1goose_provider: "${tierProvider}"$3`);
-    } else {
-      result = result.replace(
-        /^(\s*)goose_model:\s*["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m,
-        `$1goose_provider: "${tierProvider}"\n$1goose_model: "$2"$3`,
-      );
-    }
-  }
-
-  // Recipes with a source-level provider are intentionally pinned. Do not
-  // rewrite their model tier; adversarial child recipes rely on this.
-  if (hasExplicitProvider) {
-    return result;
-  }
-
-  const override = profile.overrides[recipeName];
-  if (override) {
-    return result.replace(
-      /^(\s*goose_model:\s*)["']?([^"'\n#]+?)["']?(\s*(?:#.*)?)$/m,
-      `$1"${override}"$3`,
-    );
-  }
-
-  for (const [tier, modelId] of Object.entries(profile.tiers)) {
-    if (tier === modelId) continue;
-    const re = new RegExp(`^(\\s*goose_model:\\s*)["']?${tier}["']?(\\s*(?:#.*)?)$`, "m");
-    result = result.replace(re, `$1"${modelId}"$2`);
-  }
-  return result;
-}
-
 function validateRecipe(recipePath: string): void {
   execFileSync("goose", ["recipe", "validate", recipePath], { stdio: "pipe" });
 }
@@ -472,11 +429,9 @@ function installRecipes(): void {
     }
     outputs.add(template.outputName);
 
-    const recipeName = template.outputName.replace(/\.yaml$/, "");
     const dest = path.join(recipesDest, template.outputName);
     let content = renderTemplate(template);
     content = rewriteSubRecipePaths(content, template, outputBySource);
-    content = applyModelProfile(content, recipeName);
     content = `${generatedWarning}${content.replace(/^\s+/, "").replace(/\s*$/, "\n")}`;
     fs.writeFileSync(dest, content);
 
@@ -591,10 +546,10 @@ function printNextSteps(): void {
   console.log('       echo \'[ -f "$HOME/.goose-aliases" ] && source "$HOME/.goose-aliases"\' >> ~/.bashrc');
   console.log("  4. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  5. Switch model profile any time:");
-  console.log("       node scripts/install.ts --profile openai     # GPT via codex-acp");
-  console.log("       node scripts/install.ts --profile hybrid     # GPT-5.5/high for opus, Claude for sonnet/haiku");
+  console.log("       node scripts/install.ts --profile openai     # Default — GPT via codex-acp");
+  console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
-  console.log("       node scripts/install.ts --profile claude-acp # Default — Claude shortnames");
+  console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");
   console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
   console.log('     Inside a session, run /architect for architecture guidance.');
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');

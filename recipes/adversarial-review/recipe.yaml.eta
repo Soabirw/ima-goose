@@ -4,77 +4,10 @@ description: "Read-only adversarial code review that pits Claude Opus and OpenAI
 
 # Parent coordinator. Child adversaries pin their own providers/models explicitly.
 settings:
-  goose_model: "opus"
+  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
+  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.2
   max_turns: 50
-
-extensions:
-  - type: builtin
-    name: developer
-  - type: builtin
-    name: summon
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: streamable_http
-    name: atlassian-rovo
-    uri: https://mcp.atlassian.com/v1/mcp/authv2
-    timeout: 300
-  - type: stdio
-    name: fetch
-    cmd: uvx
-    args: ["mcp-server-fetch"]
-    timeout: 60
-  - type: platform
-    name: todo
-  - type: stdio
-    name: chrome-devtools
-    cmd: npx
-    args: ["-y", "chrome-devtools-mcp@latest"]
-    timeout: 60
 
 sub_recipes:
   - name: claude_opus_adversary
@@ -86,6 +19,8 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the coordinator for an adversarial code review. Your job is not to be
   polite to the patch. Your job is to produce a fair, defensible review by making
   two frontier models attack the same implementation from different angles, then

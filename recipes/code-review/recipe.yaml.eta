@@ -1,6 +1,6 @@
 version: "1.6.2"
 title: "Code Review"
-description: "FP-aware, security-first code review. Three modes: full review, prompt-only generation, or execute a pre-built review prompt. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
+description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
 # Deep review wants the profile's strongest reasoning model.
 settings:
@@ -8,12 +8,14 @@ settings:
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
   temperature: 0.3
 
-# Sonnet-tier read-only verifier for the Advisor pass (Pass 3).
+# HIGH-tier read-only verifier for the Advisor pass (Pass 3).
 # Each verify call is a fresh isolated session with a self-contained brief —
 # the cognitive isolation is the point. Multiple verify calls fan out in parallel.
 sub_recipes:
   - name: verify
     path: ../review-verify/recipe.yaml.eta
+  - name: scorecard
+    path: ../scorecard/recipe.yaml.eta
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
@@ -77,8 +79,14 @@ instructions: |
   Workflow: skip assembly, treat the supplied spec as authoritative, run the phases
   against it.
 
+  **Mode 4 — Scorecard** (the opener asks to "score", "scorecard", "grade",
+  "project health", "PR health", or compare quality against repository standards):
+  Workflow: delegate to the `scorecard` sub-recipe with the named target and
+  requested output scope. Do not run the normal finding workflow unless the
+  user also requests a review finding pass.
+
   If none of the above match (vague opener, no target), greet briefly, name the
-  three modes, and ask which one the user wants. Do not start fetching anything.
+  four modes, and ask which one the user wants. Do not start fetching anything.
 
   ## Review Prompt Template (for Mode 2 output AND Mode 1 internal Review Plan)
 

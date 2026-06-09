@@ -112,6 +112,10 @@ in dependency order:
 5. Fix findings up to `max_review_fix_cycles`.
 6. `document_learn` with `update_scope: story`.
 
+If the user asks for a project, PR, or codebase grade, call `scorecard`
+through the code-review workflow after the final diff and validator results are
+available. Do not make scorecard scoring a required pass for every story.
+
 After every story completes, run `document_learn` once with
 `update_scope: feature`.
 

@@ -78,18 +78,16 @@ goose-plan() {
   fi
 }
 
-# ── Phase 2b: Orchestrate (task-master) ───────────────────────────────────────
-# Drop into task-master orchestration — the previous home of `goose-plan`.
-# Use when you have a saved plan and want Epic→Story→Task decomposition + Jira
-# creation + sub-recipe delegation under one roof.
+# ── Phase 2b: Task Planning ───────────────────────────────────────────────────
+# Use when you have a saved plan and want Epic→Story→Task decomposition.
 # Usage: goose-orchestrate
 #        goose-orchestrate FNR-123
 goose-orchestrate() {
   local key="${1:-}"
   if [ -n "$key" ]; then
-    goose run --recipe task-master --params "task_or_jira_key=${key}" --name "orchestrate-$(date +%Y%m%d)" --interactive
+    goose run --recipe task-planner --params "architecture_spec=${key}" --name "task-plan-$(date +%Y%m%d)" --interactive
   else
-    goose run --recipe task-master --name "orchestrate-$(date +%Y%m%d)" --interactive
+    goose run --recipe task-planner --name "task-plan-$(date +%Y%m%d)" --interactive
   fi
 }
 
@@ -106,9 +104,9 @@ goose-story-prompt() {
 goose-implement() {
   local key="${1:-}"
   if [ -n "$key" ]; then
-    goose run --recipe task-master --params "task_or_jira_key=${key}" --name "story-${key}-impl" --interactive
+    goose run --recipe wp-developer --params "plan_source=${key}" --name "story-${key}-impl" --interactive
   else
-    goose run --recipe task-master --name "story-$(date +%Y%m%d-%H%M)-impl" --interactive
+    goose run --recipe wp-developer --name "story-$(date +%Y%m%d-%H%M)-impl" --interactive
   fi
 }
 
@@ -157,9 +155,10 @@ goose-adversarial-review() {
 # with a different profile. See docs/MODEL-TIERS.md for the tier mapping.
 #
 # Profiles:
-#   claude-acp  — Default. Keeps friendly shortnames (opus/sonnet/haiku).
-#   anthropic   — Direct Anthropic API. Rewrites to full claude-* model IDs.
-#   openai      — codex-acp via ChatGPT Pro/Max. opus→gpt-5.5, sonnet→gpt-5.3-codex, haiku→gpt-5.4-mini.
+#   openai      — Default. codex-acp via ChatGPT Pro/Max. HIGH/MID/LOW → GPT-5.5 efforts.
+#   hybrid      — HIGH via codex-acp, MID/LOW via claude-acp.
+#   anthropic   — Direct Anthropic API. HIGH/MID/LOW → full claude-* model IDs.
+#   claude-acp  — Claude friendly shortnames, if working locally.
 #
 # Switching profiles only rewrites recipes. You also need to update
 # ~/.config/goose/config.yaml GOOSE_PROVIDER and auth env vars for the new provider.
@@ -174,7 +173,7 @@ goose-profile() {
   local profile="${1:-}"
   local script="$HOME/IMA/dev/ima-goose/scripts/install.ts"
   if [ -z "$profile" ]; then
-    echo "Available profiles: claude-acp (default), anthropic, openai, hybrid"
+    echo "Available profiles: openai (default), hybrid, anthropic, claude-acp"
     echo "Deployed recipes (first 5):"
     grep -h "^  goose_model:" "$HOME/.config/goose/recipes/"*.yaml 2>/dev/null | sort -u | head -5
     return 0
@@ -206,12 +205,36 @@ goose-ui() {
   goose run --recipe ui-ux-designer --name "ui-ux-$(date +%Y%m%d-%H%M)" --interactive
 }
 
+goose-design-to-code() {
+  local source="${1:-}"
+  if [ -n "$source" ]; then
+    goose run --recipe design-to-code \
+      --params "source=${source}" \
+      --name "design-to-code-$(date +%Y%m%d-%H%M)" \
+      --interactive
+  else
+    goose run --recipe design-to-code --name "design-to-code-$(date +%Y%m%d-%H%M)" --interactive
+  fi
+}
+
 goose-explore() {
   goose run --recipe explore --name "explore-$(date +%Y%m%d-%H%M)" --interactive
 }
 
 goose-tests() {
   goose run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive
+}
+
+goose-scorecard() {
+  local target="${1:-}"
+  if [ -n "$target" ]; then
+    goose run --recipe scorecard \
+      --params "target=${target}" \
+      --name "scorecard-$(date +%Y%m%d-%H%M)" \
+      --interactive
+  else
+    goose run --recipe scorecard --name "scorecard-$(date +%Y%m%d-%H%M)" --interactive
+  fi
 }
 
 # Usage: goose-ship-it stg [project-path]
@@ -231,8 +254,7 @@ goose-ship-it() {
   goose run --recipe goose-ship-it \
     --params "target_env=${env}" \
     --params "project_path=${project_path}" \
-    --name "ship-it-${env}-$(date +%Y%m%d-%H%M)" \
-    --interactive
+    --name "ship-it-${env}-$(date +%Y%m%d-%H%M)"
 }
 
 # Usage: goose-patristic
@@ -273,12 +295,12 @@ WORKFLOW (run in order per feature):
   goose-cycle [source]          Preferred full cycle: brainstorm → plan → story loop → document/learn
   goose-brainstorm [seed]       Phase 1 — interactive brainstorm, saves to Serena/file
   goose-plan [seed]             Phase 2 — interactive technical plan, saves to Serena/file
-  goose-orchestrate [FNR-###]   Phase 2b — task-master: Epic→Story→Task + Jira + delegation
+  goose-orchestrate [source]    Phase 2b — task-planner: Epic→Story→Task
   goose-story-prompt FNR-123    Phase 3a — Jira story → implementation prompt (legacy)
-  goose-implement [FNR-123]     Phase 3b — implementation prompt → code + PR
+  goose-implement [source]      Phase 3b — plan/story → WordPress implementation
   goose-review [FNR-123]        Phase 4 — PR review, comment, Jira update
   goose-adversarial-review [target]
-                                Phase 4b — Claude Opus + GPT-5.5 adversarial review
+                                Phase 4b — experimental Anthropic + GPT-5.5 adversarial review
 
 SESSION MANAGEMENT:
 
@@ -290,8 +312,10 @@ DIRECT RECIPES:
   goose-wp                      WordPress development (ad hoc)
   goose-js                      JavaScript/TypeScript development (Svelte, Node, APIs, CLIs, TUIs)
   goose-ui                      UI/UX review with Chrome DevTools + Bootstrap/IMA CSS guidance
+  goose-design-to-code [source] Design/screenshot → implementation prompt or code pipeline
   goose-explore                 Read-only codebase exploration
   goose-tests                   Write or debug tests
+  goose-scorecard [target]      Project, PR, or codebase quality scorecard
   goose-ship-it stg|prod        Prepare IMA ship-it release branches/tags
   goose-ima-research [question] IMA medical research with ima-research + primary-source verification
   goose-patristic [question]    Patristic research with Qdrant theology + primary-source verification
@@ -300,9 +324,9 @@ UPDATING RECIPES:
 
   node ~/IMA/dev/ima-goose/scripts/install.ts   Re-sync after pulling updates
   goose-profile                                 Show available model profiles
-  goose-profile openai                          Switch recipes to GPT-5.x via codex-acp
-  goose-profile hybrid                          Switch Opus to GPT-5.5, lower tiers to Claude ACP
-  goose-profile claude-acp                      Switch recipes back to Claude (default)
+  goose-profile openai                          Switch recipes to default GPT-5.5 profile
+  goose-profile hybrid                          Switch HIGH to GPT-5.5, MID/LOW to Claude ACP
+  goose-profile claude-acp                      Switch recipes to Claude ACP shortnames
 
 DOCS:
 

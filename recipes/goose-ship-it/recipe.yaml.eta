@@ -1,24 +1,12 @@
-version: "1.6.0"
+version: "1.6.2"
 title: "IMA Ship-It Release Prep"
 description: "Prepare IMA ship-it releases for staging or production using the IMA gitflow rules."
 
 settings:
-  goose_model: "sonnet"
+  goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
+  goose_model: "<%= it.PROFILE_MODEL_MID %>"
   temperature: 0.2
   max_turns: 30
-
-extensions:
-  - type: builtin
-    name: developer
-  - type: builtin
-    name: summon
-  - type: platform
-    name: todo
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
 
 instructions: |
   You are the IMA release-prep operator for projects that use `ima-ship-it`.

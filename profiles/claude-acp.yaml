@@ -1,16 +1,12 @@
-# claude-acp provider profile (default)
-# Uses Claude friendly shortnames — provider resolves them itself.
-# Identity mapping; installer makes no changes to recipes under this profile.
+# claude-acp provider profile
+# Uses Claude friendly shortnames. Kept for users with working Claude ACP access.
 
 tiers:
-  opus: opus
-  sonnet: sonnet
-  haiku: haiku
+  high: opus
+  mid: sonnet
+  low: haiku
 
 providers:
-  opus: claude-acp
-  sonnet: claude-acp
-  haiku: claude-acp
-
-# No per-recipe overrides needed under claude-acp.
-overrides: {}
+  high: claude-acp
+  mid: claude-acp
+  low: claude-acp

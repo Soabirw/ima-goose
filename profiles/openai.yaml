@@ -1,18 +1,12 @@
-# OpenAI via codex-acp profile
-# Uses ChatGPT Pro/Max subscription auth (codex-acp provider).
-# See docs/MODEL-TIERS.md for the full rationale.
+# OpenAI via codex-acp profile (default)
+# Uses ChatGPT Pro/Max subscription auth.
 
 tiers:
-  opus: gpt-5.5/high # Flagship reasoning — orchestration, code review, planning
-  sonnet: gpt-5.5/medium # Everyday coding — implementation and verification
-  haiku: gpt-5.5/low # Fast sub-agent — exploration and lookups
+  high: gpt-5.5/high # Deep reasoning — planning, review, research, orchestration
+  mid: gpt-5.5/medium # Everyday implementation and release workflows
+  low: gpt-5.5/low # Fast read-only exploration and lookups
 
 providers:
-  opus: codex-acp
-  sonnet: codex-acp
-  haiku: codex-acp
-
-# Per-recipe overrides applied AFTER tier mapping.
-# OpenAI tiering is expressed as gpt-5.5 reasoning effort, so no model demotions
-# are needed for heavy-fan-out recipes.
-overrides: {}
+  high: codex-acp
+  mid: codex-acp
+  low: codex-acp

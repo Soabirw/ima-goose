@@ -3,35 +3,10 @@ title: "Claude Opus Adversary"
 description: "Claude Opus read-only adversarial reviewer. Attacks one self-contained review brief and returns evidence-backed objections only."
 
 settings:
-  goose_provider: "claude-acp"
-  goose_model: "opus"
+  goose_provider: "anthropic"
+  goose_model: "claude-opus-4-7"
   temperature: 0.1
   max_turns: 18
-
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon }
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: platform
-    name: tom
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
@@ -84,7 +59,7 @@ parameters:
     description: "Self-contained adversarial review brief from the coordinator."
 
 prompt: |
-  {% if brief %}{{ brief }}{% else %}Open Claude Opus adversary mode. First run Serena bootstrap. Then ask the user for one self-contained adversarial review brief. After bootstrap, do not inspect files or use task-specific tools before the user provides it.{% endif %}
+  {% if brief %}{{ brief }}{% else %}Open Claude Opus adversary mode. Ask the user for one self-contained adversarial review brief. Do not inspect files or use task-specific tools before the user provides it.{% endif %}
 
 activities:
   - "Attack this implementation brief as Claude Opus"

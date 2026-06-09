@@ -1,558 +1,145 @@
 # ima-claude to ima-goose Migration Guide
 
-Transitioning from Claude Code (ima-claude plugin) to Goose (ima-goose recipe repo). This covers what changed, what maps where, and how to do the things you already know how to do.
+This guide reflects the current Goose workflow after deprecating the old
+`task-master` / `task-runner` pattern and moving to provider-neutral
+`HIGH` / `MID` / `LOW` recipe profiles.
 
----
+## Big Picture
 
-## The Big Picture
-
-| | Claude Code | Goose |
+| Concern | Claude Code / ima-claude | Goose / ima-goose |
 |---|---|---|
-| **Unit of work** | Skill (injected into running session) | Recipe (standalone agent config, launched independently) |
-| **Config format** | SKILL.md + frontmatter | recipe.yaml (YAML) |
-| **Project context** | CLAUDE.md | Standard Serena project memories (`core`, `conventions`, `tech_stack`, `suggested_commands`, `task_completion`) |
-| **Guardrails** | Python hook scripts (hooks.json) | Skill files + recipe instructions + Serena project memories; model-enforced |
-| **Agent delegation** | `Agent(subagent_type: "ima-claude:implementer")` | `sub_recipes:` (declarative YAML) + subagents (natural-language) |
-| **Session memory** | Vestige + Qdrant + Serena MCP | Serena project memories + chatrecall/session history; optional Vestige/Qdrant MCP extensions |
-| **Model selection** | Per-agent (haiku/sonnet/opus) | Per-recipe `settings.goose_model` (tier shortname; installer rewrites per `--profile`) |
-| **Installation** | `/plugin install ima-claude` | `node scripts/install.ts` renders recipes and installs skills |
-| **Invocation** | `/ima-claude:skill-name` or auto-discovery | `goose run --recipe recipe-name`; `/skills` lists available skills |
-| **Persistent instructions** | CLAUDE.md + hooks | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) for every-turn persona; Serena memories for project context |
+| Domain knowledge | Skills | Skills installed to `~/.agents/skills/` and loaded by Summon |
+| Dedicated workflows | Skills plus agent spawning | Recipes |
+| In-session helpers | Skills | Slash-command recipes such as `/architect` and `/prompt-starter` |
+| Project context | `CLAUDE.md`, `.goosehints`, memories | Serena standard memories plus optional Vestige/Qdrant |
+| Model selection | Agent model names | Recipe tiers rendered from `profiles/*.yaml` |
+| Delegation | Claude agent spawning | Goose `sub_recipes:` with self-contained briefs |
 
-**The correct framing:** The migration preserved both layers from ima-claude. Skills stay skills — 46 are now installed in `~/.agents/skills/` and auto-discovered by Summon. Recipes are thin workflow bootstrappers that orchestrate via sub-recipes. The old "skills became recipes" framing was wrong; only orchestration skills (task-master, task-planner, task-runner) became recipes. Everything else stayed a skill.
+The current framing is:
 
-**Key paradigm shift:** In Claude Code, you open a session and invoke skills within it. In Goose, each recipe launches a fresh, purpose-built agent. You pick the recipe before starting, not during. But within a recipe session, Summon auto-loads the relevant skills from `~/.agents/skills/` as the conversation calls for them.
+- Skills stay skills.
+- Full workflows are recipes.
+- Lightweight in-session helpers are slash commands.
+- Sub-recipes are explicit child sessions, not inherited context.
 
----
+## Setup
 
-## Setup (One-Time)
-
-### 1. Install Goose
+Install the default provider path:
 
 ```bash
-# macOS
-brew install block/goose/goose
-
-# Linux
-curl -fsSL https://github.com/block/goose/releases/latest/download/download_cli.sh | bash
-
-# Verify
-goose --version
+npm install -g @zed-industries/codex-acp
 ```
 
-### 2. Configure Provider
+Configure Goose:
 
-**Direct Anthropic:**
-```bash
-goose configure
-# → Configure Providers → Anthropic
-# → Enter API key
-```
-
-**Codex ACP (OpenAI via ChatGPT Pro/Max):**
 ```yaml
 GOOSE_PROVIDER: "codex-acp"
 GOOSE_MODEL: "gpt-5.5/medium"
-```
-Then run `node scripts/install.ts --profile openai` to rewrite recipe tier pins to GPT model IDs.
-
-**Hybrid Codex ACP + Claude ACP:**
-Install both ACP binaries, keep either as your global fallback provider, then run
-`node scripts/install.ts --profile hybrid` to write Opus recipes as
-`codex-acp` / `gpt-5.5/high` and lower-tier recipes as `claude-acp`.
-
-**OpenRouter (multi-provider routing):**
-Edit `~/.config/goose/config.yaml`:
-```yaml
-GOOSE_PROVIDER: "openrouter"
-GOOSE_MODEL: "sonnet"  # claude-acp friendly name; for OpenRouter use "anthropic/claude-sonnet-4-6"
+GOOSE_PLANNER_PROVIDER: "codex-acp"
+GOOSE_PLANNER_MODEL: "gpt-5.5/high"
 ```
 
-**RunPod (self-hosted):**
-```yaml
-GOOSE_PROVIDER: "openai"
-OPENAI_HOST: "https://api.runpod.ai/v2/<endpoint-id>"
-OPENAI_API_KEY: "<your-runpod-key>"
-GOOSE_MODEL: "your-deployed-model"
-```
-
-**Switching profiles:** recipes pin tier shortnames (`opus` / `sonnet` / `haiku`); the installer rewrites them at deploy time. See `docs/MODEL-TIERS.md` for the full mapping. Available profiles: `claude-acp` (default), `anthropic`, `openai`, `hybrid`.
-
-### 3. Install Rendered Recipes
-
-This repo stores source templates under `recipes/**/*.yaml.eta`; Goose runs the
-rendered `.yaml` files installed by the script.
+Render recipes and install skills:
 
 ```bash
 node scripts/install.ts --validate
 ```
 
-### 4. Enable Extensions
+`openai` is the default installer profile. It renders:
+
+- HIGH -> `codex-acp` / `gpt-5.5/high`
+- MID -> `codex-acp` / `gpt-5.5/medium`
+- LOW -> `codex-acp` / `gpt-5.5/low`
+
+Other profiles are available:
 
 ```bash
-goose configure
-# Toggle ON the extensions from config-template.yaml
+node scripts/install.ts --profile hybrid
+node scripts/install.ts --profile anthropic
+node scripts/install.ts --profile claude-acp
 ```
 
-`developer` gives file/shell access. `summon` auto-discovers skills from
-`~/.agents/skills/`. Recipe files now declare their required MCP baseline
-directly, but default sessions should still match `config-template.yaml` so
-ad-hoc work has the same tool environment. The `orchestrator` extension is
-session management (list/interrupt sessions) — not a delegation engine;
-delegation goes through `sub_recipes:`.
+See `docs/MODEL-TIERS.md`.
 
-### 5. Install Skills
+## Workflow Translation
 
-```bash
-node scripts/install.ts
-```
-
-Copies all 46 skills from `skills/` to `~/.agents/skills/`. Requires Node 24+.
-
-### 6. Add MCP Extensions and API Keys (Optional)
-
-For Tavily, Context7, and Atlassian Rovo MCP, add MCP extensions to
-`~/.config/goose/config.yaml`:
-```yaml
-extensions:
-  tavily:
-    type: stdio
-    cmd: "npx"
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys: ["TAVILY_API_KEY"]
-    timeout: 300
-
-  context7:
-    type: stdio
-    cmd: "npx"
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 300
-
-  atlassian-rovo:
-    enabled: true
-    type: streamable_http
-    name: atlassian-rovo
-    description: Atlassian Rovo MCP
-    uri: https://mcp.atlassian.com/v1/mcp/authv2
-    timeout: 300
-```
-
-Jira-aware recipes include `atlassian-rovo` for interactive Goose work. The
-`mcp-atlassian` skill also includes a REST API helper for deterministic scripts
-and fallback access. Configure `ATLASSIAN_BEARER_TOKEN`,
-`ATLASSIAN_CLOUD_ID`, and `ATLASSIAN_DOMAIN`, or use `ATLASSIAN_EMAIL` plus
-`ATLASSIAN_API_TOKEN` as a Basic auth fallback.
-
----
-
-## Daily Workflow Translation
-
-### Starting Work
-
-**Claude Code:**
-```
-claude                          # Opens interactive session
-# Skills auto-discover from context
-# Or invoke: /ima-claude:implement
-```
-
-**Goose:**
-```bash
-goose run --recipe implement    # Launch implement recipe
-goose run --recipe wp-developer # Launch WP recipe
-goose run --recipe explore      # Quick codebase scan
-```
-
-Each recipe is a standalone session. Pick the right recipe for the job upfront. Within the session, Summon loads skills automatically based on the task.
-
-### Listing Available Skills
-
-```
-/skills
-```
-
-Lists all skills Summon has discovered from `~/.agents/skills/`. Load explicitly: `"Load the php-fp-wordpress skill with summon"`.
-
-### Previewing Before Running
-
-```bash
-goose run --recipe implement --explain
-```
-
-Shows what the recipe will do (instructions, extensions, settings, sub-recipes) without executing.
-
-### Interactive Mode
-
-```bash
-goose run --recipe implement --interactive
-```
-
-Prompts for parameter values before starting. Useful for recipes with parameters (e.g., wp-developer asks for `environment: ddev | local-wp | other`).
-
----
-
-## Layer Map — Where ima-claude Things Live Now
-
-### Orchestration Skills → Recipes
-
-Three ima-claude orchestration skills became recipes because their semantics are workflow orchestration, not domain knowledge:
-
-| ima-claude | Goose Recipe | Notes |
-|---|---|---|
-| `task-master` | `task-master` recipe | Pins Opus; uses `sub_recipes:` for delegation |
-| `task-planner` | `task-planner` recipe | Pins Opus; terminal (no sub-recipes) |
-| `task-runner` | `task-runner` recipe | Pins Sonnet; delegates write_tests + code_review |
-
-### Domain Skills → Skills (still skills)
-
-Most ima-claude skills stayed as skills. They're now installed in `~/.agents/skills/` and auto-discovered by Summon:
-
-| Claude Code | Goose | Layer |
-|---|---|---|
-| `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp` | Same names in `~/.agents/skills/` | FP knowledge |
-| `js-fp-api`, `js-fp-react`, `js-fp-vue`, `js-fp-wordpress`, `php-fp-wordpress`, `rails` | Same names | Framework FP |
-| `ima-bootstrap`, `ima-forms-expert`, `jquery`, `livecanvas` | Same names | WP/IMA framework |
-| `ima-brand`, `ima-copywriting`, `ima-editorial-scorecard`, `ima-editorial-workflow`, `ima-email-creator` | Same names | Editorial / brand |
-| `ima-git`, `architect`, `gh-cli` | Same names | Workflow / tooling |
-| `unit-testing`, `phpunit-wp`, `playwright` | Same names | Testing |
-| `rg`, `wp-ddev`, `wp-local` | Same names | CLI tools |
-| `discourse`, `espocrm`, `php-authnet` | Same names | Domain |
-| `mcp-tavily`, `mcp-context7`, `mcp-serena`, `mcp-taskwarrior`, etc. | Same names (10 MCP guides) | MCP guides |
-
-### Workflow Recipes (matching ima-claude agents)
-
-| Claude Code Agent / Skill | Goose Recipe | Notes |
-|---|---|---|
-| implementer agent | `implement` | Pins Sonnet; sub_recipes: write_tests, code_review |
-| reviewer agent | `code-review` | Pins Opus; read-only enforced in instructions |
-| wp-developer agent | `wp-developer` | Pins Sonnet; loads WP skills via Summon |
-| explorer agent | `explore` | Pins Haiku; read-only fast exploration |
-| tester agent | `test-writer` | Pins Sonnet; loads testing skills via Summon |
-| `prompt-starter` skill | `prompt-starter` recipe | Pins Opus; Jira fetch via mcp-atlassian |
-| `architect` skill | Now also a skill in `~/.agents/skills/architect/` | Domain knowledge AND available as recipe |
-
-### What Changed in `shared/`
-
-The `shared/` directory is intentionally slim. Domain knowledge (FP patterns,
-brand, framework rules) moved to skills. `shared/` now holds build-time include
-snippets plus a few recipe-internal runtime references:
-- `shared/instructions/serena-bootstrap.md` — build-time include injected into
-  rendered Serena-enabled recipes
-- `shared/security-guardrails.md` — consolidated security checks (referenced by coding recipes)
-- `shared/persona.md` — Practitioner persona (also in `moim/ima-practitioner.md`)
-- `shared/tool-guides/tea.md` — Gitea CLI reference
-- `shared/tool-guides/atlassian.md` — Jira/Confluence patterns
-
-`tea` / Gitea operational knowledge now also lives in the `tea-gitea` skill so
-Summon can load it on demand for internal PRs, review comments, approvals, and
-direct Gitea API work. The shared guide remains as recipe-internal reference
-material.
-
-The old `shared/fp-principles.md`, `shared/ima-brand-book.md`, `shared/code-standards/*.md` content now lives in the corresponding skills (`functional-programmer`, `ima-brand`, `js-fp`, `php-fp`, etc.) and is loaded on-demand by Summon instead of pre-loaded in every session.
-
-### Skills Not Yet Ported (Genuinely Not Portable)
-
-| Skill | Why Not Ported |
+| Old ima-claude pattern | Current ima-goose pattern |
 |---|---|
-| `save-session`, `resume-session` | Goose has `--resume` / `--name` built in |
-| `skill-creator`, `skill-analyzer` | Claude Code meta-tools with no Goose equivalent |
-| `compound-bridge` | Claude Code-specific orchestration pattern |
-| `mcp-memory` | Already deprecated in ima-claude |
-| `quickstart` | Claude Code-specific cheatsheet; replaced by this guide + README |
+| `/ima-claude:prompt-starter` | `/prompt-starter` inside the current session |
+| `/ima-claude:architect` | `/architect` inside the current session |
+| `task-master` auto-breaks and executes | `brainstorm` -> `plan` -> `task-planner`, then explicit implementation session |
+| `task-runner` executes tasks | `implement`, `wp-developer`, or `js-developer` |
+| Explorer agent on cheap model | `explore` sub-recipe on LOW |
+| Reviewer plus critical re-checks | `code-review` plus `review-verify` on HIGH |
+| Codebase/PR scorecard skill | `scorecard` recipe, or `code-review` scorecard mode |
+| Screenshot/design implementation skill | `design-to-code` dedicated HIGH-tier recipe |
 
----
+## Current Primary Flow
 
-## Workflow Translations
-
-### Task Orchestration
-
-**Claude Code (task-master):**
-```
-/ima-claude:task-master
-# → Decomposes into Epic > Story > Task
-# → Selects model per task (haiku/sonnet/opus)
-# → Delegates to named agents (implementer, tester, reviewer)
-# → Agents return ESCALATION: for out-of-scope forks
-# → Opus orchestrator arbitrates
-```
-
-**Goose:**
 ```bash
-goose run --recipe task-master
-# → Pins Opus 4.7 for orchestration decisions
-# → Decomposes into 5-15 atomic tasks
-# → Invokes sub-recipes via tool calls (declarative sub_recipes: YAML)
-# → Each sub-recipe runs in its own context with its own pinned model
-# → Independent tasks: parallel tool calls; dependent tasks: serial
-# → Failure: retry once with adjusted brief, then surface to user
+goose run --recipe brainstorm --interactive
+goose run --recipe plan --interactive
+goose run --recipe task-planner --interactive
+goose run --recipe wp-developer --interactive
+goose run --recipe test-writer --interactive
+goose run --recipe code-review --interactive
+goose run --recipe scorecard --interactive
+goose run --recipe document-learn --interactive
 ```
 
-Sub-recipes declared in `task-master/recipe.yaml`: `implement`, `wp_implement`, `write_tests`, `code_review`, `explore`, `plan_task`. Goose auto-generates one tool per sub-recipe; task-master invokes by tool call with a self-contained brief.
+Or use the umbrella:
 
-### Code Review
-
-**Claude Code:**
-```
-# Auto: push PR, reviewer agent runs
-# Manual: /ima-claude:code-review or delegate to reviewer agent
-```
-
-**Goose:**
 ```bash
-goose run --recipe code-review
-# Pins Opus 4.7 — security + logic flaws need the top model
-# Read-only — produces a report, never modifies files
-# Checks: FP compliance, security, style, complexity
+goose run --recipe software-development-cycle --interactive
 ```
 
-### Session Management
+## Slash Commands
 
-**Claude Code:**
-```
-/ima-claude:save-session     # → Serena MCP memory
-/ima-claude:resume-session   # → Reload from Serena
-```
+The following recipes are intended as commands inside an existing session:
 
-**Goose:**
-```bash
-# Name a session
-goose run --recipe implement --name "fnr-456-auth-refactor"
+- `/architect` loads the architecture/persona lens.
+- `/prompt-starter` creates a prompt for a dedicated recipe session.
+- `/serena-bootstrap` reloads standard Serena project memories.
+- `/serena-memorize <note>` updates standardized Serena project memory.
 
-# Resume later
-goose run --resume --name "fnr-456-auth-refactor"
+They do not pin provider/model and do not whitelist extensions.
 
-# List sessions
-goose session list
-```
+## Sub-Recipes
 
-### Prompt Building
+Active sub-recipe parents:
 
-**Claude Code (prompt-starter):**
-```
-/ima-claude:prompt-starter
-# Template selection → Jira pre-fill → editor spawn
-# Returns refined prompt, does NOT execute
-```
-
-**Goose:**
-```bash
-goose run --recipe prompt-starter
-# Pins Opus 4.7 for research and template fill
-# Fetches Jira story if key provided (mcp-atlassian skill)
-# Same concept: rough idea → structured prompt → refined output
-```
-
-### Memory
-
-**Claude Code:**
-| Store | Tool | Retention |
-|---|---|---|
-| Decisions, preferences | Vestige smart_ingest | Fades if unused (FSRS) |
-| Docs, standards | Qdrant qdrant-store | Permanent |
-| Session state | Serena write_memory | Project-scoped |
-| Reminders | Vestige intention | Surfaces next session |
-
-**Goose:**
-| Store | How | Notes |
-|---|---|---|
-| Session history | chatrecall extension | Automatic, per-session |
-| Cross-session memory | Configure Vestige/Qdrant as MCP extensions | Same servers, Goose config format |
-| Per-turn persona | MOIM (`GOOSE_MOIM_MESSAGE_FILE`) | Re-injected every turn, survives /compact |
-
-For most workflows, session naming + resume covers what you need. If you want Vestige/Qdrant persistence, add them as MCP extensions in `~/.config/goose/config.yaml`.
-
-### Personality Modes
-
-**Claude Code:**
-```
-"Enable efficient mode"   # Precise, ~30-40% token savings
-"Enable terse mode"       # Blunt fragments, ~50-65% savings
-```
-
-**Goose:**
-Personality is in recipe `instructions` and the MOIM anchor. The Practitioner persona (25-year veteran, FP-first, "we" not "I") is in every recipe. Enable MOIM for the anchor to survive long sessions and `/compact`. For alternate personalities, create recipe variants or use `--system` to override.
-
----
-
-## Guardrails: Where Did the Hooks Go?
-
-Claude Code used Python hook scripts that ran automatically before/after tool calls. Goose has no hook system. Rules are now model-enforced — they live in skill files and recipe instructions.
-
-### Now in Skill Files (loaded on-demand by Summon)
-
-Domain-specific guardrails moved to the skill where they belong:
-
-| Former Hook | Now In | What It Does |
-|---|---|---|
-| `wp_security_check.py` | `php-fp-wordpress` skill | 5 PHP security checks (nonces, $wpdb->prepare, sanitize, escape, strict_types) |
-| `sql_injection_check.py` | `php-fp` skill | "SQL: parameterized queries only" rule |
-| `fp_utility_check.py` | `functional-programmer` skill | "NEVER create custom pipe/compose/curry" rule |
-| `bootstrap_utility_check.py` | `ima-bootstrap` skill | "Use Bootstrap utilities, not custom CSS" rule |
-| `jquery_in_wordpress.py` | `jquery` skill | jQuery IIFE wrapper pattern |
-
-When Summon loads `php-fp-wordpress` for a WordPress task, all the WP security rules come with it. The skill is the single source of truth for that domain's standards.
-
-### Baked Into Recipe Instructions
-
-Cross-cutting rules that apply to every task stay in recipe instructions:
-
-| Rule | Where |
+| Parent | Children |
 |---|---|
-| No custom pipe/compose/curry | All coding recipe instructions + functional-programmer skill |
-| Parameterized SQL only | All coding recipe instructions |
+| `software-development-cycle` | brainstorm, plan, task-planner, explore, implement, wp-developer, test-writer, code-review, document-learn |
+| `brainstorm` / `plan` | explore |
+| `implement` / `wp-developer` / `js-developer` | test-writer, code-review |
+| `code-review` | review-verify, scorecard |
+| `design-to-code` | explore, wp-developer, test-writer, code-review |
+| `adversarial-review` | adversarial-review-claude, adversarial-review-openai |
 
-### Baked Into Serena Project Memories
+Every child brief must be self-contained. Do not depend on hidden parent
+conversation state.
 
-Per-project rules that apply to Serena-enabled sessions in the repo:
+## Memory Migration
 
-| Former Hook | Serena Memory |
-|---|---|
-| `enforce_rg_over_grep.py` | `suggested_commands` / `conventions` |
-| `docs_organization.py` | `conventions` |
+Use Serena standard memories for stable project context:
 
-### Dropped (Claude Code-Specific)
+- `core`
+- `conventions`
+- `tech_stack`
+- `suggested_commands`
+- `task_completion`
+- `memory_maintenance`
 
-`memory_bootstrap.py`, `memory_store_reminder.py`, `vestige_before_external.py`, `block_sed_edits.py`, `prompt_coach.py`, `task_master_*.py`, `sequential_thinking_check.py`, `bootstrap.sh`, `atlassian_prereqs.py`, `serena_project_check.py`
+Use `/serena-bootstrap` to reload them in a current session. Use
+`/serena-memorize <note>` for stable project context updates.
 
-**What this means for you:** The security and FP guardrails are just as strict — they're in the skill files and recipe instructions the model reads. But there is no automated pre-commit gate. If the model ignores an instruction, there's no hook to catch it. Review outputs carefully, especially for security-sensitive changes.
+Vestige remains the living task/decision memory. Qdrant remains the durable
+reference corpus for standards, PRDs, research, and architecture material.
 
----
+## Ported Skills
 
-## Serena Memories Replace Context Injection
-
-Every project can keep `.goosehints`, `CLAUDE.md`, or `AGENTS.md` at the root,
-but do not depend on any one harness injecting those files automatically.
-Serena-enabled recipes load standardized project memories instead. That Serena
-bootstrap should happen as the first tool action at session start before
-greeting, Taskwarrior, Jira, Vestige, file discovery, or asking for local
-paths/config that project memory may already know.
-
-**What goes in Serena project memories:**
-- Project-specific dev standards
-- Tool preferences (rg over grep, DDEV vs Local WP)
-- Architecture notes
-- Security requirements
-- Framework constraints
-- Org-standard task workflow rules, including how Vestige carries a task from
-  planning through implementation, review, resolution, and closeout
-
-Use the `mcp-serena` skill migration workflow to convert `.goosehints`,
-`CLAUDE.md`, or `AGENTS.md` into `core`, `conventions`, `tech_stack`,
-`suggested_commands`, `task_completion`, and `memory_maintenance`.
-
-For IMA-style projects, include org-standard seeds:
-
-```bash
-python3 skills/mcp-serena/scripts/migrate-context-to-serena.py --root . --include-org-standards
-```
-
-Inside an interactive Goose session, `/serena-bootstrap` reloads the standard
-Serena project memories without starting task-specific work.
-
-Use `/serena-memorize <note>` to add stable project facts or workflow rules to
-the right standardized Serena memory without hand-writing a full migration
-prompt.
-
----
-
-## Extension = MCP Server
-
-Goose "extensions" are MCP servers. Same concept as Claude Code's MCP tools, different config format.
-
-| Claude Code | Goose |
-|---|---|
-| `claude mcp add tavily npx tavily-mcp@latest` | Add `tavily` extension to config.yaml |
-| `/ima-claude:mcp-tavily` to invoke | Extension tools available automatically |
-| Scoped per-skill via `skills` frontmatter | Scoped per-recipe via `extensions` field |
-
-Extensions are configured globally in `~/.config/goose/config.yaml` or per-recipe in recipe.yaml.
-
----
-
-## Model Differences
-
-Each recipe pins its own model. The global config is the fallback for unspecified sessions.
-
-| Role | Recipe | Pinned Model |
-|---|---|---|
-| Orchestration / decisions | task-master, architect, prompt-starter, task-planner, code-review | claude-opus-4-7 |
-| Implementation / coding | implement, wp-developer, test-writer, task-runner | claude-sonnet-4-6 |
-| Read-only exploration | explore | claude-haiku-4-5-20251001 |
-
-Recipes pin claude-acp friendly names (`sonnet` / `opus` / `haiku` / `default`). For OpenRouter swap to `anthropic/claude-sonnet-4-6` etc.; for direct Anthropic use `claude-sonnet-4-6`. Override at run time with `--model`.
-
----
-
-## Quick Reference Card
-
-```
-# Run a recipe
-goose run --recipe implement
-
-# Preview what a recipe does
-goose run --recipe implement --explain
-
-# Interactive mode (prompts for parameters)
-goose run --recipe implement --interactive
-
-# Name a session for later
-goose run --recipe implement --name "my-feature"
-
-# Resume a named session
-goose run --resume --name "my-feature"
-
-# Run the installed rendered recipe
-goose run --recipe implement
-
-# List available skills (within a session)
-/skills
-
-# Configure Goose
-goose configure
-
-# List sessions
-goose session list
-```
-
-### Choosing a Recipe
-
-| I want to… | Recipe |
-|---|---|
-| Build a feature or fix a bug | `implement` |
-| Build/modify WordPress plugin or theme | `wp-developer` |
-| Orchestrate a full feature across tasks | `task-master` |
-| Review code for quality and security | `code-review` |
-| Quickly understand a codebase | `explore` |
-| Write or fix tests | `test-writer` |
-| Plan a complex feature | `task-planner` |
-| Turn rough idea into structured prompt | `prompt-starter` |
-
----
-
-## FAQ
-
-**Q: Can I still use Claude Code?**
-Yes. ima-claude and ima-goose are independent. The skill files are cross-compatible — the same SKILL.md format works in both. Use whichever fits — Claude Code for interactive work with the full plugin ecosystem, Goose for recipe-driven workflows with pinned models per task.
-
-**Q: Do I need to learn YAML to use recipes?**
-No. Recipes are pre-built — just `goose run --recipe <name>`. YAML matters only if you want to create or modify recipes.
-
-**Q: Where did all 63 ima-claude skills go?**
-46 are now skills in `~/.agents/skills/`, auto-discovered by Summon. The 3 orchestration skills (task-master, task-planner, task-runner) became recipes. ~20 were Claude Code meta-tools, deprecated skills, or already-redundant with Goose built-ins — see "Skills Not Yet Ported" above.
-
-**Q: What about the advisor pattern (ESCALATION)?**
-The concept survives. Sub-recipes surface failures to task-master; task-master retries once with adjusted brief, then escalates to the user. The exact ESCALATION: text protocol from ima-claude is not required — the sub-recipe summary carries the failure reason.
-
-**Q: Can I use multiple recipes in one session?**
-Not directly. Each `goose run --recipe` is a standalone session. Use `task-master` to orchestrate multiple recipes automatically, or chain them manually.
-
-**Q: What replaces Vestige/Qdrant/Serena?**
-Serena remains the project-scoped context layer. Standard Serena memories carry
-project rules across Goose, Claude Code, Codex, and other harnesses. You can
-also configure Vestige/Qdrant as MCP extensions in Goose for broader semantic
-memory. Vestige carries the evolving task lifecycle thread keyed by Taskwarrior
-IDs, Jira keys, or project task IDs; chatrecall covers session history and MOIM
-covers the persistent persona anchor.
-
-**Q: What is the orchestrator extension for?**
-Session management — listing, viewing, and interrupting sessions. It is NOT the delegation engine. Delegation is `sub_recipes:` (declarative YAML) and natural-language subagents.
+The Goose skill bundle includes the selected late migration skills from
+`ima-claude`: `espocrm-api`, `discourse-admin`, and `ember-discourse`.
+`quasar-fp`, `docs-organize`, and `jira-checkpoint` remain intentionally
+unmigrated for now.

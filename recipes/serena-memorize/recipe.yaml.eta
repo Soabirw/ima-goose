@@ -2,23 +2,6 @@ version: "1.6.2"
 title: "Serena Memorize"
 description: "Add or update standardized Serena project memories from a concise user note."
 
-extensions:
-  - type: builtin
-    name: summon
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-
 instructions: |
   You update standardized Serena project memories from a short user note.
 
@@ -65,11 +48,6 @@ prompt: |
 
   {{ note }}
   {% else %}Open Serena memorize mode. Run Serena bootstrap, then ask the user for the project-context note to add to standardized Serena memories. Do not update memories until the user provides the note.{% endif %}
-
-settings:
-  goose_model: "sonnet"
-  temperature: 0.2
-  max_turns: 12
 
 activities:
   - "Add a project-context note to Serena memories"

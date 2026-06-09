@@ -31,7 +31,7 @@ Current release: **v1.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
   standardized Serena project memories from concise project-context notes.
 - Added `/architect` and `/prompt-starter` as command-style recipes for
   current-session architecture guidance and prompt building.
-- Updated install and migration docs for the 46-skill bundle.
+- Updated install and migration docs for the 49-skill bundle.
 - Changed recipe versions are bumped to `1.6.2` only for recipes whose
   behavior changed in this release.
 
@@ -60,17 +60,17 @@ Skills, MOIM, and shell aliases all read from the working tree. If you clone to 
 Goose needs the ACP binary on PATH to route through your Claude Code (or Codex) subscription. Install at least the one you'll use as your default — installing both is fine if you want to switch providers later:
 
 ```bash
-# Claude ACP (team default — routes through your Claude Code subscription)
-npm install -g @agentclientprotocol/claude-agent-acp
-
-# Codex ACP (alternative — routes through your Codex subscription)
+# Codex ACP (team default — routes through your Codex subscription)
 npm install -g @zed-industries/codex-acp
+
+# Claude ACP (optional, only for hybrid/claude-acp profiles)
+npm install -g @agentclientprotocol/claude-agent-acp
 ```
 
 Verify on PATH:
 
 ```bash
-which claude-agent-acp        # /usr/local/bin/claude-agent-acp (or your npm global prefix)
+which codex-acp        # /usr/local/bin/codex-acp (or your npm global prefix)
 ```
 
 Without these binaries, the next step's provider config silently fails to connect — Goose only knows the provider *name* (`claude-acp`); the binary is what actually proxies requests to your subscription.
@@ -80,13 +80,13 @@ Without these binaries, the next step's provider config silently fails to connec
 Add to `~/.config/goose/config.yaml`:
 
 ```yaml
-GOOSE_PROVIDER: "claude-acp"
-GOOSE_MODEL: "sonnet"
-GOOSE_PLANNER_PROVIDER: "claude-acp"
-GOOSE_PLANNER_MODEL: "default"           # maps to opus
+GOOSE_PROVIDER: "codex-acp"
+GOOSE_MODEL: "gpt-5.5/medium"
+GOOSE_PLANNER_PROVIDER: "codex-acp"
+GOOSE_PLANNER_MODEL: "gpt-5.5/high"
 ```
 
-Use `"codex-acp"` instead of `"claude-acp"` if you'd rather route through Codex. Alternative providers (Anthropic direct, OpenRouter, RunPod) are in the [Setup](#setup) section below.
+Use the `hybrid`, `anthropic`, or `claude-acp` installer profiles only when those providers are configured locally. Alternative providers are in the [Setup](#setup) section below.
 
 ### 4. Install skills globally — REQUIRED
 
@@ -95,7 +95,7 @@ node scripts/install.ts
 ```
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
-`~/.config/goose/recipes/*.yaml`, then copies all 46 skills from `skills/*/` to
+`~/.config/goose/recipes/*.yaml`, then copies all 49 skills from `skills/*/` to
 `~/.agents/skills/` where Summon auto-discovers them. **Without this step,
 recipes load but their skill references go nowhere** — Summon has nothing to
 find and the recipes silently lose their deep domain knowledge. Requires
@@ -126,11 +126,11 @@ Re-source your shell. Now every Goose session — IMA recipes or not — gets th
 
 ```bash
 goose-help                    # prints all the workflow commands
-goose-explore                 # launches the explore recipe at Haiku
-goose-ui                      # launches the UI/UX designer recipe at Sonnet
+goose-explore                 # launches the LOW-tier explore recipe
+goose-ui                      # launches the HIGH-tier UI/UX designer recipe
 ```
 
-Inside the interactive session, type `/skills` — you should see ~46 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+Inside the interactive session, type `/skills` — you should see ~49 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
 
 ### Troubleshooting
 
@@ -154,10 +154,10 @@ The hybrid model uses six distinct layers. Understanding which layer does what p
 | **MOIM** (`GOOSE_MOIM_MESSAGE_FILE`) | Env var → injected every turn | Always-on, all sessions | 5-10 line persona anchor that survives `/compact` |
 | **Recipe instructions** | YAML `instructions:` | Loaded once per session | Persona pointer + workflow + sub-recipe orchestration |
 | **Skills** (`~/.agents/skills/<name>/SKILL.md`) | Summon extension, auto-discovered | Frontmatter always loaded, body on-demand | Deep domain knowledge — FP patterns, framework rules, brand |
-| **Sub-recipes** (`sub_recipes:` YAML) | Tool per child, parent invokes by call | Spawn on tool call; fresh session, own pinned model | Deterministic delegation with parameters |
+| **Sub-recipes** (`sub_recipes:` YAML) | Tool per child, parent invokes by call | Spawn on tool call; fresh session, own rendered provider/model | Deterministic delegation with parameters |
 | **Subagents** (natural-language) | "Use the X recipe to…" in instructions | Spawned ad-hoc, own context | Parallel ad-hoc work without a YAML contract |
 | **Serena project memories** (`core`, `conventions`, etc.) | Serena MCP memory | Loaded by Serena-enabled recipes | Cross-harness project context migrated from `.goosehints`, `CLAUDE.md`, or `AGENTS.md` |
-| **`settings.goose_model`** | YAML field per recipe | Per-recipe pin | Opus orchestrate, Sonnet implement, Haiku explore |
+| **Profile-rendered models** | `PROFILE_MODEL_HIGH/MID/LOW` in recipe templates | Per-recipe tier rendered by installer | HIGH plan/review, MID implement, LOW explore |
 
 **Key point:** The orchestrator extension is *session management* (list/view/interrupt sessions) — it is NOT the delegation engine. Delegation is sub-recipes and subagents.
 
@@ -169,25 +169,23 @@ The hybrid model uses six distinct layers. Understanding which layer does what p
 
 ### 1. Configure Goose Provider
 
-The team's current default routes Goose through your Claude Code subscription via the ACP provider — no separate API costs.
+The team's current default routes Goose through Codex ACP.
 
-**Claude ACP (team default):**
+**Codex ACP / OpenAI profile (default):**
 ```yaml
 # ~/.config/goose/config.yaml
-GOOSE_PROVIDER: "claude-acp"
-GOOSE_MODEL: "sonnet"
-GOOSE_PLANNER_PROVIDER: "claude-acp"
-GOOSE_PLANNER_MODEL: "default"   # maps to opus
+GOOSE_PROVIDER: "codex-acp"
+GOOSE_MODEL: "gpt-5.5/medium"
+GOOSE_PLANNER_PROVIDER: "codex-acp"
+GOOSE_PLANNER_MODEL: "gpt-5.5/high"
 ```
-
-Friendly model names: `sonnet`, `opus`, `haiku`, `default` (= opus). Recipes pin their own model via `settings.goose_model`; the global is the fallback.
 
 **Alternatives** (if you're not on Claude Code subscription):
 
 ```yaml
-# Codex ACP (OpenAI via ChatGPT Pro/Max subscription)
-GOOSE_PROVIDER: "codex-acp"
-GOOSE_MODEL: "gpt-5.5/medium"
+# Claude ACP, if working locally
+GOOSE_PROVIDER: "claude-acp"
+GOOSE_MODEL: "sonnet"
 
 # Direct Anthropic
 GOOSE_PROVIDER: "anthropic"
@@ -204,13 +202,13 @@ OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
 ```
 
-Recipes pin a tier (`opus` / `sonnet` / `haiku`) and the installer rewrites those to provider-specific model IDs at deploy time. Switch profiles any time:
+Recipes declare `HIGH`, `MID`, or `LOW` by using profile variables in source templates. The installer renders concrete provider/model values at deploy time. Switch profiles any time:
 
 ```bash
-node scripts/install.ts --profile openai      # opus→gpt-5.5/high, sonnet→gpt-5.5/medium, haiku→gpt-5.5/low
-node scripts/install.ts --profile hybrid      # opus→codex-acp/gpt-5.5/high, sonnet+haiku→claude-acp
+node scripts/install.ts --profile openai      # default: HIGH/MID/LOW → GPT-5.5 efforts
+node scripts/install.ts --profile hybrid      # HIGH→codex-acp, MID/LOW→claude-acp
 node scripts/install.ts --profile anthropic   # full claude-* model IDs
-node scripts/install.ts --profile claude-acp  # default — friendly shortnames
+node scripts/install.ts --profile claude-acp  # Claude friendly shortnames
 ```
 
 See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides.
@@ -231,9 +229,9 @@ goose configure
 # Toggle Extensions → enable the extensions from config-template.yaml
 ```
 
-Recipes declare their own required extension set, but your default sessions
-should still match `config-template.yaml` so ad-hoc Goose work has the same
-tooling available. At minimum keep `developer`, `summon`, `tom`, `tavily`,
+Recipes no longer whitelist extension blocks. Your Goose config should enable
+the shared tool baseline so recipes can use installed/configured extensions
+without each recipe redeclaring them. At minimum keep `developer`, `summon`, `tom`, `tavily`,
 `context7`, `sequential-thinking`, `serena`, `qdrant-memory`, and `vestige`
 enabled; use `atlassian-rovo`, `fetch`, `chrome-devtools`, `todo`, and
 other workflow-specific MCP extensions when a recipe explicitly declares them.
@@ -247,7 +245,7 @@ node scripts/install.ts
 ```
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
-`~/.config/goose/recipes/*.yaml`, then copies all 46 skills from `skills/` to
+`~/.config/goose/recipes/*.yaml`, then copies all 49 skills from `skills/` to
 `~/.agents/skills/`. Requires Node 24+.
 
 ### 5. (Optional) Enable MOIM Persona Anchor
@@ -311,7 +309,7 @@ standard Serena memory:
 /serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
 ```
 
-### Installed Skills (46 total)
+### Installed Skills (49 total)
 
 **FP languages (5):** `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp`
 
@@ -331,7 +329,7 @@ standard Serena memory:
 
 **Goose docs (1):** `goose-doc-guide`
 
-**Other domain (4):** `discourse`, `espocrm`, `php-authnet`, `rg`
+**Other domain (7):** `discourse`, `discourse-admin`, `ember-discourse`, `espocrm`, `espocrm-api`, `php-authnet`, `rg`
 
 Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or just work naturally — Summon matches by description.
 
@@ -341,33 +339,32 @@ Load a skill explicitly: `"Load the php-fp-wordpress skill with summon"`. Or jus
 
 ### P1/P2 — Core Recipes
 
-All core recipes follow the hybrid pattern: each pins `settings.goose_model`,
-declares the critical IMA MCP baseline directly, references skills by name in
-instructions, and uses `sub_recipes:` for declarative delegation where natural.
-Recipes add workflow-specific extensions such as `atlassian-rovo`, `fetch`,
-`todo`, and `chrome-devtools` only where the recipe can use them. MCP calls are
-direct Goose tool calls; recipes should not force JavaScript/TypeScript wrapper
-execution for ordinary MCP workflows.
+All core recipe templates use profile-rendered `HIGH`, `MID`, or `LOW`
+provider/model variables. Recipes rely on the installed Goose extension
+baseline instead of whitelisting extension blocks in each recipe.
 
-| Recipe | Description | Model |
+| Recipe | Description | Tier |
 |--------|-------------|-------|
-| `brainstorm` | Interactive ideation session — research memories/code/web, iterate Q&A, save to Serena/file | Opus 4.7 |
-| `plan` | Interactive technical planning session — research codebase + docs, iterate Q&A on implementation, save to Serena/file | Opus 4.7 |
-| `implement` | General-purpose FP-aware coding | Sonnet 4.6 |
-| `code-review` | Read-only FP + security review | Opus 4.7 |
-| `adversarial-review` | Read-only dual-model adversarial review with Claude Opus + GPT-5.5 | Opus 4.7 coordinator |
-| `goose-ship-it` | IMA release-prep workflow for staging branches and production tags | Sonnet 4.6 |
-| `wp-developer` | WordPress with security + Bootstrap + FP | Sonnet 4.6 |
-| `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | Sonnet 4.6 |
-| `explore` | Fast read-only codebase exploration | Haiku 4.5 |
-| `test-writer` | TDD, test creation, debugging failures | Sonnet 4.6 |
+| `brainstorm` | Interactive ideation session — research memories/code/web, iterate Q&A, save to Serena/file | HIGH |
+| `plan` | Interactive technical planning session — research codebase + docs, iterate Q&A on implementation, save to Serena/file | HIGH |
+| `implement` | General-purpose FP-aware coding | MID |
+| `code-review` | Read-only FP + security review | HIGH |
+| `scorecard` | Project, PR, or codebase quality scorecard | HIGH |
+| `review-verify` | High-capability verification of critical review findings | HIGH |
+| `adversarial-review` | Experimental dual-model adversarial review with Anthropic + GPT-5.5 children | HIGH coordinator |
+| `goose-ship-it` | IMA release-prep workflow for staging branches and production tags | MID |
+| `wp-developer` | WordPress with security + Bootstrap + FP | MID |
+| `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | HIGH |
+| `design-to-code` | Translate approved designs/screenshots into implementation prompts or code pipeline | HIGH |
+| `explore` | Fast read-only codebase exploration, sub-recipe oriented | LOW |
+| `test-writer` | TDD, test creation, debugging failures | MID |
 | `/architect` | Current-session architecture lens and technology selection command | Current session |
-| `software-development-cycle` | Flattened umbrella for brainstorm, plan, story implementation, tests, review, document/learn | Opus 4.7 |
-| `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | Sonnet 4.6 |
-| `task-planner` | Decomposition — Epic → Story → Task hierarchy for human-in-the-loop planning | Opus 4.7 |
+| `software-development-cycle` | Flattened umbrella for brainstorm, plan, story implementation, tests, review, document/learn | HIGH |
+| `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | MID |
+| `task-planner` | Decomposition — Epic → Story → Task hierarchy for human-in-the-loop planning | HIGH |
 | `/prompt-starter` | Current-session prompt builder for dedicated recipe sessions | Current session |
-| `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | Opus 4.7 |
-| `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | Opus 4.7 |
+| `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | HIGH |
+| `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | HIGH |
 
 ### Sub-Recipe Wiring
 
@@ -375,9 +372,11 @@ execution for ordinary MCP workflows.
 
 `implement` and `wp-developer` delegate to: `write_tests`, `code_review`.
 
-`adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `claude-acp`/`opus` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rewrites.
+`code-review` delegates to: `verify` (review-verify) and `scorecard` when the user requests project/PR scoring.
 
-Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+`adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `anthropic`/`claude-opus-4-7` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rendering.
+
+Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
 Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, `/serena-memorize`.
 
@@ -385,58 +384,33 @@ Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, 
 
 **Software development cycle.** `software-development-cycle` is the top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout.
 
-### P3 — Specialized (Stubs — Planned)
+### P3 — Specialized
 
 | Recipe | Description |
 |--------|-------------|
-| `project-planner` | Epic > Story > Task decomposition |
+| `task-planner` | Epic > Story > Task decomposition |
+| `design-to-code` | Screenshot/design artifact to implementation prompt or code pipeline |
+| `scorecard` | Project, PR, or codebase quality scoring |
+
+### P3/P4 — Planned
+
+| Recipe | Description |
+|--------|-------------|
 | `espocrm` | EspoCRM API integration |
-| `design-to-code` | Screenshot to WordPress code |
-| `scorecard` | Project quality scorecard |
-
-### P4 — Domain-Specific (Stubs — Planned)
-
-| Recipe | Description |
-|--------|-------------|
 | `quasar-developer` | Quasar Framework + Vue FP |
 | `livecanvas` | LiveCanvas + Bootstrap + Tangible |
 | `payment-processing` | Authorize.Net PHP SDK |
 | `jira-workflow` | Jira awareness checkpoints |
 | `email-creator` | Branded email HTML |
 
-P3/P4 stubs are harmless empty dirs signaling future scope. Convert when the workflow surfaces.
+Planned recipe dirs are harmless empty dirs signaling future scope. Convert when the workflow surfaces.
 
 ---
 
-## Model Pinning
+## Model Profiles
 
-Each recipe pins its own model via `settings.goose_model`. No global tier table needed — the recipe carries the right model for the job.
-
-| Recipe | Model | Rationale |
-|--------|-------|-----------|
-| `brainstorm` | `opus` | Research + clarifying-question quality |
-| `plan` | `opus` | Trade-off reasoning + technical synthesis |
-| `software-development-cycle` | `opus` | Full-cycle orchestration / phase gates |
-| `task-planner` | `opus` | Decomposition |
-| `code-review` | `opus` | Security + logic flaws |
-| `adversarial-review` | `opus` | Dual-model adversarial review coordination |
-| `ui-ux-designer` | `opus` | Browser UI review and CSS guidance |
-| `adversarial-review-claude` | `claude-acp` / `opus` | Explicit Claude Opus adversary |
-| `adversarial-review-openai` | `codex-acp` / `gpt-5.5/high` | Explicit GPT-5.5 high adversary |
-| `goose-ship-it` | `sonnet` | Release prep |
-| `implement` | `sonnet` | Coding |
-| `wp-developer` | `sonnet` | Coding |
-| `test-writer` | `sonnet` | Test coding |
-| `document-learn` | `sonnet` | Documentation and memory closeout |
-| `explore` | `haiku` | Cheap read-only |
-
-The `settings.goose_model` field in source recipe templates uses tier
-shortnames (`opus` / `sonnet` / `haiku`). The installer renders templates into
-Goose-compatible `.yaml` files and rewrites these to provider-specific model IDs
-at deploy time based on `--profile`; profiles may also set per-tier
-`settings.goose_provider` values. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md)
-for the full mapping including per-recipe overrides and the hybrid
-GPT-5.5/Claude profile.
+Recipes use `HIGH`, `MID`, and `LOW` tiers rendered from `profiles/*.yaml`.
+`openai` is the default profile. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
 
 ---
 

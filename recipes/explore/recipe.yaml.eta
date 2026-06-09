@@ -2,67 +2,15 @@ version: "1.6.2"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 
-# Read-only exploration — Haiku is cheap and sufficient for search/summarization.
+# Read-only exploration sub-recipe. Keep this LOW: it is called for targeted
+# context packets, not broad autonomous reasoning.
 settings:
-  goose_model: "haiku"
+  goose_provider: "<%= it.PROFILE_PROVIDER_LOW %>"
+  goose_model: "<%= it.PROFILE_MODEL_LOW %>"
   temperature: 0.5
   max_turns: 15
 
-extensions:
-  - { type: builtin, name: developer }
-  - { type: builtin, name: summon }     # auto-discovers skills
-
-  - type: stdio
-    name: serena
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-  - type: stdio
-    name: vestige
-    cmd: vestige-mcp
-    args: []
-    timeout: 60
-  - type: stdio
-    name: qdrant-memory
-    cmd: qdrant-mcp
-    args: []
-    env_keys:
-      - QDRANT_URL
-      - COLLECTION_NAME
-    timeout: 60
-  - type: stdio
-    name: tavily
-    cmd: npx
-    args: ["-y", "tavily-mcp@latest"]
-    env_keys:
-      - TAVILY_API_KEY
-    timeout: 60
-  - type: stdio
-    name: sequential-thinking
-    cmd: npx
-    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    timeout: 300
-  - type: stdio
-    name: context7
-    cmd: npx
-    args: ["-y", "@upstash/context7-mcp@latest"]
-    timeout: 60
-  - type: platform
-    name: tom
-  - type: stdio
-    name: fetch
-    cmd: uvx
-    args: ["mcp-server-fetch"]
-    timeout: 60
-# Terminal recipe — produces findings and returns. No sub_recipes.
+# Sub-recipe only — produces findings and returns. No sub_recipes.
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
@@ -75,6 +23,8 @@ instructions: |
   ## HARD RULE
   Read-only. Do NOT Edit, Write, or run any shell command that modifies state.
   No file writes. No git commits. No package installs. Only read and report.
+  You are normally called as a sub-recipe with a narrow exploration brief; stay
+  inside that brief and return a compact findings packet to the parent recipe.
 
   ## Skills to reach for
   Summon auto-loads relevant skills. Explicitly load when the task surfaces:
