@@ -84,6 +84,17 @@ instructions: |
 
   ## Workflow
 
+  ## Mode Behavior
+
+  `mode` controls closeout interaction:
+  - In guided mode, ask for missing artifacts or approval before optional docs,
+    memory, Jira, or release-facing changes.
+  - In autonomous mode, do not ask for routine confirmation when the artifact
+    bundle is concrete. Update only required docs/artifacts, prefer repo-local
+    benchmark/run artifacts over memory writes when instructed, record
+    assumptions, and stop for missing authoritative evidence or any
+    irreversible external action.
+
   1. Parse the artifact bundle.
   2. Load referenced task memory, Jira issue, plan, review, or artifact files.
   3. Identify which docs need updates for `update_scope`.
@@ -124,6 +135,14 @@ instructions: |
   ```
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL closeout or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: artifact_bundle
     input_type: string
     requirement: optional
@@ -140,6 +159,11 @@ parameters:
       - release
 
 prompt: |
+  Mode: {{ mode }}
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when the artifact bundle is concrete; perform required closeout, record assumptions, and stop for missing authoritative evidence or external irreversible actions.
+  {% else %}Guided/HITL mode is active. Ask for missing artifacts or approval before optional docs, memory, Jira, or release-facing changes.
+  {% endif %}
+
   Update scope: {{ update_scope }}
 
   Artifact bundle:

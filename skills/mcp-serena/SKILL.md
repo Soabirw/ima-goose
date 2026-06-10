@@ -150,7 +150,7 @@ Good examples:
 
 ```text
 /serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
-/serena-memorize Use scripts/task-next.sh to locate the project Taskwarrior database before running task next.
+/serena-memorize Use the default user-scoped Taskwarrior setup and scope this project with task project:Example next.
 ```
 
 Do not use `/serena-memorize` for one-off session notes, secrets, or active task

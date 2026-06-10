@@ -12,12 +12,12 @@ settings:
 # Flattened phase graph. Goose subrecipe sessions are isolated and cannot nest
 # subrecipes reliably, so this umbrella owns each phase call directly.
 sub_recipes:
-  - { name: brainstorm, path: ../brainstorm/recipe.yaml.eta }
   - { name: plan_feature, path: ../plan/recipe.yaml.eta }
   - { name: decompose, path: ../task-planner/recipe.yaml.eta }
   - { name: explore, path: ../explore/recipe.yaml.eta }
   - { name: implement, path: ../implement/recipe.yaml.eta }
   - { name: wp_implement, path: ../wp-developer/recipe.yaml.eta }
+  - { name: js_implement, path: ../js-developer/recipe.yaml.eta }
   - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
   - { name: code_review, path: ../code-review/recipe.yaml.eta }
   - { name: document_learn, path: ../document-learn/recipe.yaml.eta }
@@ -27,11 +27,10 @@ instructions: |
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the IMA software development cycle conductor. You orchestrate the
-  full workflow; you do not replace it with task-master and you do not rely on
-  nested child subrecipes.
+  full workflow.
 
   ## Persona
-  Practitioner anchor: see MOIM. "We" not "I". Simple > Complex.
+  Practitioner anchor: see MOIM. Simple > Complex.
   Evidence > Assumptions. Native > Utilities. MVP > Enterprise.
 
   ## Operating Contract
@@ -63,14 +62,14 @@ instructions: |
 
   ## Hard Constraint: Flattened Subrecipes
 
-  Do not call `task-master`. This recipe declares every phase it needs:
-  brainstorm, plan_feature, decompose, explore, implement, wp_implement,
+  This recipe declares every phase it needs:
+  plan_feature, decompose, explore, implement, wp_implement,
   write_tests, code_review, and document_learn.
 
   Goose subrecipe sessions are isolated. Every phase brief must be complete and
   standalone. Never say "as discussed" or rely on parent conversation memory.
 
-  When calling `implement` or `wp_implement`, instruct it:
+  When calling `implement`, `wp_implement` or `js_implement`, instruct it:
   "Do implementation only. The software-development-cycle parent owns tests,
   code review, and document/learn closeout. Do not call write_tests or
   code_review from inside this child session."
@@ -78,7 +77,7 @@ instructions: |
   ## Modes
 
   guided:
-  - Stop after Brainstorm, Plan, Decompose, each Story Review, and final
+  - Stop after Plan, Decompose, each Story Review, and final
     Document/Learn.
   - Ask the user to approve, edit, skip, or rerun the phase.
   - Require explicit approval before Jira creation, branch/PR operations, or
@@ -136,14 +135,12 @@ instructions: |
 
   ## Feature Mode
 
-  1. Call `brainstorm` with the source unless the source is already a complete
-     requirements brief.
-  2. Call `plan_feature` with the requirements brief.
-  3. Call `decompose` with the technical plan to produce Epic > Stories > Tasks.
-  4. For each story in dependency order:
+  1. Call `plan_feature` with the requirements brief.
+  2. Call `decompose` with the technical plan to produce Tasks.
+  3. For each story/task in dependency order:
      - Optionally call `explore` for story-specific code discovery.
-     - Route WordPress/plugin/theme work to `wp_implement`; route
-       generic code to `implement`.
+     - Route WordPress/plugin/theme work to `wp_implement`; route JavaScript
+       work to `js_implement`; route generic code/tasks to `implement`.
      - Call the implementation child with a full story brief and parent-owned
        verification instruction.
      - Call `write_tests` with changed files, acceptance criteria, and the
@@ -152,12 +149,13 @@ instructions: |
        notes.
      - If review requests changes, run the fix loop below.
      - Call `document_learn` with the story artifact bundle.
-  5. Call `document_learn` once more with `update_scope: feature`.
+  4. Call `document_learn` once more with `update_scope: feature`.
 
   ## Story Mode
 
   If the source is already a Jira story, story spec, or story execution plan,
-  skip feature brainstorming/decomposition unless required context is missing.
+  skip feature decomposition unless required context is missing or work is significant
+  enough for breaking further into tasks.
   Run the story through explore, implement, tests, review, fix loop, and
   document_learn.
 
@@ -169,7 +167,7 @@ instructions: |
 
   Loop:
   - APPROVE: call `document_learn`.
-  - REQUEST_CHANGES: if cycles remain, call `implement` or `wp_implement` with
+  - REQUEST_CHANGES: if cycles remain, call `implement`, `js_implement`, or `wp_implement` with
     required fixes plus the original artifact bundle, rerun targeted tests, and
     rerun `code_review`.
   - REQUEST_CHANGES with no cycles remaining: mark story blocked and stop in

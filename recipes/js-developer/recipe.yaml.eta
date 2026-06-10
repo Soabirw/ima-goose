@@ -53,6 +53,15 @@ instructions: |
     - rg — ripgrep for code search (default over grep/find)
 
   ## How to work
+  `mode` controls implementation interaction:
+  - In guided mode, ask before resolving ambiguous product behavior, changing
+    target architecture, adding dependencies, or broadening scope.
+  - In autonomous mode, do not ask for routine confirmation when a concrete task
+    source is provided. Implement the smallest source-bound change, record
+    assumptions, and stop only for material blockers such as unsafe ambiguity,
+    missing credentials, unclear write target, verification failure after one
+    focused retry, or unrelated dirty-worktree conflicts.
+
   Use the `target` parameter to anchor the task type. General flow:
   1. Use mcp-serena to navigate code structure before opening files.
   2. Separate pure logic (functional core) from IO/framework (imperative shell).
@@ -90,11 +99,24 @@ instructions: |
 prompt: |
   First run Serena bootstrap fully. Then continue.
 
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when a concrete task source is provided; implement the smallest task-bound change and record assumptions/blockers.
+  {% else %}Guided/HITL mode is active. Ask before changing direction, broadening scope, or resolving material ambiguity.
+  {% endif %}
+
   JS target: {{ target }}.
   Task source:
   {% if task_source %}{{ task_source }}{% else %}No task source provided. Ask what JavaScript/TypeScript task the user wants to work on before editing.{% endif %}
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL implementation or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: task_source
     input_type: string
     requirement: optional

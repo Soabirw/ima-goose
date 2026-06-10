@@ -9,6 +9,14 @@ settings:
   temperature: 0.3
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL testing workflow or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: test_source
     input_type: string
     requirement: optional
@@ -50,6 +58,16 @@ instructions: |
     - mcp-vestige, mcp-qdrant — load durable project conventions, prior decisions, and testing standards
 
   ## How to work
+  `mode` controls testing interaction:
+  - In guided mode, ask before changing test strategy when the source artifact
+    is ambiguous or when tests reveal production behavior that may need product
+    judgment.
+  - In autonomous mode, do not ask for routine confirmation. Use the supplied
+    source, current diff, existing test conventions, and documented benchmark
+    instructions. Record assumptions and stop only for material blockers, such
+    as missing source context, unsafe production-code changes, or verification
+    failures that cannot be resolved within one focused retry.
+
   1. Load the test source first. Summarize the behavior under test and call out anything unclear before editing.
   2. Detect project type → route to correct framework:
      - PHP/WordPress → phpunit-wp skill
@@ -93,6 +111,11 @@ instructions: |
   - Commit changes, update Jira, or edit persistent memories unless explicitly asked.
 
 prompt: |
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation; write focused tests from the supplied source and record assumptions/blockers.
+  {% else %}Guided/HITL mode is active. Ask when missing information affects test strategy or production behavior.
+  {% endif %}
+
   First run Serena bootstrap. Then load this test source and write or repair the appropriate tests:
 
   {{ test_source }}

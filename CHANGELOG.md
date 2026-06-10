@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-No unreleased changes.
+### Changed
+
+- Added a shared `mode` parameter contract to the core planning,
+  implementation, testing, review, and document/learn recipes. The default
+  `guided` mode preserves HITL gates, while `autonomous` mode proceeds without
+  routine approval prompts and stops on explicit blockers.
+- Updated implementation recipes to make parent-owned verification compatible
+  with autonomous benchmark orchestration.
+- Updated `software-development-cycle` instructions to route JavaScript work
+  through `js-developer` and keep implementation children scoped to parent-owned
+  test/review closeout.
+- Updated Taskwarrior guidance to prefer the default user-scoped
+  `~/.taskrc`/`~/.task` setup and native `project:<name>` / `task context`
+  scoping instead of project-local `TASKRC`/`TASKDATA` wrappers.
 
 ## v2.0.3 - 2026-06-09
 

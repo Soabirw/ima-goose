@@ -52,6 +52,15 @@ instructions: |
     - rg — fast codebase search
 
   ## How to work
+  `mode` controls implementation interaction:
+  - In guided mode, ask before resolving ambiguous product behavior, broadening
+    scope, changing architecture, or taking irreversible external actions.
+  - In autonomous mode, do not ask for routine confirmation when a concrete
+    source is provided. Implement the smallest source-bound change, record
+    assumptions, and stop only for material blockers such as unsafe ambiguity,
+    missing credentials, unclear write target, verification failure after one
+    focused retry, or unrelated dirty-worktree conflicts.
+
   1. Use mcp-serena to navigate code structure before opening files.
   2. Understand existing patterns before writing new code.
   3. Make changes with minimal blast radius.
@@ -84,6 +93,14 @@ instructions: |
   - Create custom FP utilities (pipe/compose/curry/monads).
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL implementation or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: implementation_source
     input_type: string
     requirement: optional
@@ -92,6 +109,11 @@ parameters:
 
 prompt: |
   First run Serena bootstrap fully. Then continue.
+
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when a concrete source is provided; implement the smallest source-bound change and record assumptions/blockers.
+  {% else %}Guided/HITL mode is active. Ask before changing direction, broadening scope, or resolving material ambiguity.
+  {% endif %}
 
   Implementation source:
   {% if implementation_source %}{{ implementation_source }}{% else %}No implementation source provided. Ask for a plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief before editing.{% endif %}

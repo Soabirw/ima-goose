@@ -16,6 +16,12 @@ task --version
 task diagnostics
 ```
 
+Eric's default setup is user-scoped: `~/.taskrc` points at `~/.task`.
+Prefer that default environment. For project-specific work, use native
+Taskwarrior scoping (`project:<name>` filters and `task context`) instead of
+inventing project-local `TASKRC`/`TASKDATA` wrappers. Only use alternate
+`TASKRC`/`TASKDATA` when a project explicitly documents an exception.
+
 If `task diagnostics` says `Cannot proceed without rc file`, Taskwarrior is installed but not initialized for the default user environment. In non-Serena sessions, ask whether to create/configure `~/.taskrc`, or use an isolated temp setup for testing:
 
 ```bash
@@ -25,13 +31,13 @@ mkdir -p "$tmp/data"
 TASKRC="$tmp/taskrc" TASKDATA="$tmp/data" task add "Test task"
 ```
 
-In Serena-enabled sessions, do not ask for `TASKRC`/`TASKDATA` immediately when
-the default environment has no rc file. First complete Serena
+In Serena-enabled sessions, do not ask for alternate `TASKRC`/`TASKDATA`
+immediately when the default environment has no rc file. First complete Serena
 `initial_instructions` and read standard memories, especially
-`suggested_commands`, `conventions`, and `core`. Look there for project-local
-Taskwarrior setup, wrapper commands, aliases, environment variables, task IDs,
-or notes such as where the real task database lives. Only ask the user for
-config after checking project memory and reporting what was missing.
+`suggested_commands`, `conventions`, and `core`. Prefer initializing the normal
+user-scoped rc if it is missing. Only use project-local Taskwarrior setup,
+wrapper commands, aliases, or environment variables when those memories
+explicitly document an exception.
 
 For command experiments, always use temporary `TASKRC` and `TASKDATA` like the example above so you do not pollute the user's real task list.
 

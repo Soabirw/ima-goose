@@ -73,6 +73,28 @@ instructions: |
 
   ## Implementation Flow
 
+  ## Mode Behavior
+
+  `mode` controls implementation interaction:
+
+  guided:
+  - Use the normal HITL implementation flow.
+  - Stop and ask before resolving ambiguous product behavior, changing
+    architecture, expanding scope, or taking irreversible external actions.
+  - Confirm the source summary before editing when the prompt/source is open
+    ended.
+
+  autonomous:
+  - Do not ask for routine confirmation after loading a concrete plan, story,
+    benchmark prompt, or source artifact.
+  - Implement from the supplied artifact, repository evidence, tests, and
+    documented conventions.
+  - Make the smallest defensible assumption when ambiguity is local and low
+    risk; record it in the final response or phase artifact.
+  - Stop only for material blockers: unsafe/destructive ambiguity, missing
+    credentials, unclear write target, failing verification after one focused
+    retry, or dirty-worktree conflicts outside the requested scope.
+
   Treat `environment=ddev` as the default for IMA WordPress repos. If a repo has
   `.ddev/config.yaml`, load/use `wp-ddev` and run WP-CLI as `ddev wp ...`; run
   container shell commands as `ddev exec "..."`.
@@ -189,6 +211,11 @@ prompt: |
   memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
 
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when a concrete source is provided; implement the smallest plan-bound change and record assumptions/blockers in the output.
+  {% else %}Guided/HITL mode is active. Confirm ambiguous implementation decisions with the user before changing direction or broadening scope.
+  {% endif %}
+
   WordPress environment: {{ environment }}.
   {% if plan_source %}After bootstrap, load and implement this approved WordPress plan/source:
 
@@ -196,6 +223,14 @@ prompt: |
   {% else %}After bootstrap, ask for the approved plan or source artifact to implement. Accept Vestige memory, Serena memory, local file path, Jira key, or pasted plan. Do not implement until the plan/source is available and you have summarized it for confirmation.{% endif %}
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL implementation or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: plan_source
     input_type: string
     requirement: optional

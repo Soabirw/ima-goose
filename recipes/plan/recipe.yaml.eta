@@ -119,6 +119,25 @@ instructions: |
 
   ## Flow
 
+  ## Mode Behavior
+
+  `mode` controls the amount of user interaction:
+
+  guided:
+  - Use the normal HITL planning loop.
+  - Ask clarifying questions when the plan would otherwise depend on an
+    unstated product, architecture, rollout, or verification decision.
+  - Wait for the user's answer before finalizing or saving the plan.
+
+  autonomous:
+  - Do not ask for interactive approval or routine clarification.
+  - Proceed from the supplied source, benchmark/task instructions, repository
+    evidence, and documented conventions.
+  - State assumptions explicitly in the plan and mark unresolved decisions as
+    open questions or blockers.
+  - Stop only when the missing information would make the plan materially
+    unsafe, non-reproducible, destructive, or impossible to scope.
+
   ### 1. Open
 
   Greet in one or two lines. Ask what the user wants to plan and where the
@@ -148,10 +167,11 @@ instructions: |
 
   Pick only what's relevant:
   - Taskwarrior task request → after Serena bootstrap, load the mcp-taskwarrior
-    skill and inspect Taskwarrior. If the default `task` environment has no
-    rc file, use loaded Serena memories, especially `suggested_commands` and
-    `conventions`, to look for `TASKRC`, `TASKDATA`, project-local task
-    aliases, wrapper commands, or task IDs before asking the user for config.
+    skill and inspect the default user-scoped Taskwarrior setup. Scope project
+    work with native `project:<name>` filters or `task context`. If the default
+    `task` environment has no rc file, prefer initializing the normal user rc;
+    only use alternate `TASKRC`/`TASKDATA`, aliases, or wrapper commands when
+    loaded Serena memories explicitly document a project exception.
   - Jira key or defect ticket → fetch the Jira issue first. Read summary,
     description, acceptance criteria, linked issues, attachments if available,
     newest relevant comments, status, and reporter-provided repro details. Use
@@ -261,6 +281,14 @@ instructions: |
       `Use this plan as the source: <saved-reference>. Ask clarifying questions before implementing the plan.`
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL planning or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: spec
     input_type: string
     requirement: optional
@@ -271,6 +299,11 @@ prompt: |
   First run Serena bootstrap fully: call Serena `initial_instructions`, list
   memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
+
+  Mode: {{ mode }}
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for interactive approval or routine clarification. Use the supplied source, repository evidence, and documented conventions; record assumptions and blockers in the plan.
+  {% else %}Guided/HITL mode is active. Use the normal planning conversation and wait for user answers where decisions are needed.
+  {% endif %}
 
   {% if spec %}Planning-only mode is active for this entire session. Do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts. Treat the following as planning input after Serena bootstrap and produce a reviewable plan before any handoff:
 

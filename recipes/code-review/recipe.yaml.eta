@@ -62,6 +62,26 @@ instructions: |
 
   ## Mode Detection (do this FIRST, before any action)
 
+  ## Interaction Mode
+
+  `mode` controls review interaction:
+
+  guided:
+  - Use the normal HITL review workflow.
+  - Wait one turn after assembling a Review Plan when Mode 1 requires redirect.
+  - Ask before posting PR/Jira comments or taking any external irreversible
+    action.
+
+  autonomous:
+  - Do not pause for the Review Plan redirect when the target is concrete.
+  - Run the review from the supplied target, diff, artifacts, and repository
+    evidence.
+  - Never post external comments silently. Draft comments only unless a caller's
+    prompt explicitly authorizes posting and provides the required target.
+  - Stop only for blockers that make the review invalid: missing target,
+    inaccessible diff/artifacts, ambiguous destructive/external action, or
+    unavailable required evidence.
+
   Inspect the opening message. Pick exactly one mode:
 
   **Mode 1 — Full Review** (default when a PR URL or issue key is given, OR when the
@@ -281,6 +301,14 @@ instructions: |
   - Do not assert on test coverage without having run the tests
 
 parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to use HITL review gates or proceed autonomously until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
   - key: target
     input_type: string
     requirement: optional
@@ -289,6 +317,11 @@ parameters:
 
 prompt: |
   First run Serena bootstrap fully. Then continue.
+
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not pause for routine review-plan approval when the target is concrete. Run the review, draft external comments only, and record blockers instead of asking for steering.
+  {% else %}Guided/HITL mode is active. Use the normal review gates and ask before external posting or ambiguous scope changes.
+  {% endif %}
 
   {% if target %}Review this target after Serena bootstrap:
 
