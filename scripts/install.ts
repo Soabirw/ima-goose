@@ -23,10 +23,19 @@ type CliArgs = {
   validate: boolean;
 };
 
-type Profile = {
-  name: string;
+type ProfileSettingValue = string | number | boolean | null;
+type ProfileSettings = Record<string, Record<string, ProfileSettingValue>>;
+type ProfileEnv = Record<string, Record<string, string>>;
+
+type ParsedProfileYaml = {
   tiers: Record<string, string>;
   providers: Record<string, string>;
+  settings: ProfileSettings;
+  env: ProfileEnv;
+};
+
+type Profile = ParsedProfileYaml & {
+  name: string;
 };
 
 type RecipeTemplate = {
@@ -75,55 +84,131 @@ function parseArgs(): CliArgs {
 
 // ── Profile loading ───────────────────────────────────────────────────────────
 
-// Minimal YAML parser for our constrained profile schema:
-//   tiers:
-//     high: <id>
-//     mid: <id>
-//     low: <id>
-//   providers:
-//     high: <provider>
-//     mid: <provider>
-//     low: <provider>
-function parseProfileYaml(content: string): {
-  tiers: Record<string, string>;
-  providers: Record<string, string>;
-} {
-  const result = {
-    tiers: {} as Record<string, string>,
-    providers: {} as Record<string, string>,
-  };
-  let section: "tiers" | "providers" | null = null;
-
-  for (const rawLine of content.split("\n")) {
-    const line = rawLine.replace(/#.*$/, "").replace(/\s+$/, "");
-    if (!line.trim()) continue;
-
-    const sectionMatch = line.match(/^(tiers|providers):\s*$/);
-    if (sectionMatch) {
-      section = sectionMatch[1] as "tiers" | "providers";
-      continue;
+// Minimal YAML parser for our constrained profile schema. Supports legacy
+// tiers/providers and the newer settings/env per-tier sections.
+function stripInlineComment(line: string): string {
+  let quote: string | null = null;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if ((char === '"' || char === "'") && line[i - 1] !== "\\") {
+      quote = quote === char ? null : quote ?? char;
     }
+    if (char === "#" && quote === null) {
+      return line.slice(0, i);
+    }
+  }
+  return line;
+}
 
-    const kvMatch = line.match(/^\s+([a-zA-Z0-9_.-]+):\s*(.+)$/);
-    if (kvMatch && section) {
-      const [, key, rawValue] = kvMatch;
-      const value = rawValue.trim().replace(/^["']|["']$/g, "");
-      result[section][key] = value;
+function parseProfileScalar(rawValue: string): ProfileSettingValue {
+  const value = rawValue.trim();
+  if (
+    (value.startsWith('\"') && value.endsWith('\"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+  if (/^(true|false)$/i.test(value)) return value.toLowerCase() === "true";
+  if (/^(null|~)$/i.test(value)) return null;
+  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
+  return value;
+}
+
+function normalizeProfileYaml(profile: ParsedProfileYaml): ParsedProfileYaml {
+  const tierKeys = new Set([
+    ...Object.keys(profile.tiers),
+    ...Object.keys(profile.providers),
+    ...Object.keys(profile.settings),
+  ]);
+
+  for (const key of tierKeys) {
+    const settings = profile.settings[key] ?? {};
+    if (profile.providers[key] && settings.goose_provider === undefined) {
+      settings.goose_provider = profile.providers[key];
+    }
+    if (profile.tiers[key] && settings.goose_model === undefined) {
+      settings.goose_model = profile.tiers[key];
+    }
+    if (settings.goose_provider !== undefined && !profile.providers[key]) {
+      profile.providers[key] = String(settings.goose_provider);
+    }
+    if (settings.goose_model !== undefined && !profile.tiers[key]) {
+      profile.tiers[key] = String(settings.goose_model);
+    }
+    if (Object.keys(settings).length > 0) {
+      profile.settings[key] = settings;
     }
   }
 
-  return result;
+  return profile;
+}
+
+function parseProfileYaml(content: string): ParsedProfileYaml {
+  const result: ParsedProfileYaml = {
+    tiers: {},
+    providers: {},
+    settings: {},
+    env: {},
+  };
+  let section: "tiers" | "providers" | "settings" | "env" | null = null;
+  let nestedTier: string | null = null;
+
+  for (const rawLine of content.split("\n")) {
+    const line = stripInlineComment(rawLine).replace(/\s+$/, "");
+    if (!line.trim()) continue;
+
+    const sectionMatch = line.match(/^(tiers|providers|settings|env):\s*$/);
+    if (sectionMatch) {
+      section = sectionMatch[1] as "tiers" | "providers" | "settings" | "env";
+      nestedTier = null;
+      continue;
+    }
+
+    if (section === "tiers" || section === "providers") {
+      const kvMatch = line.match(/^\s{2}([a-zA-Z0-9_.-]+):\s*(.+)$/);
+      if (kvMatch) {
+        const [, key, rawValue] = kvMatch;
+        result[section][key] = String(parseProfileScalar(rawValue));
+      }
+      continue;
+    }
+
+    if (section === "settings" || section === "env") {
+      const tierMatch = line.match(/^\s{2}([a-zA-Z0-9_.-]+):\s*$/);
+      if (tierMatch) {
+        nestedTier = tierMatch[1];
+        result[section][nestedTier] = result[section][nestedTier] ?? {};
+        continue;
+      }
+
+      const kvMatch = line.match(/^\s{4}([a-zA-Z0-9_.-]+):\s*(.+)$/);
+      if (kvMatch && nestedTier) {
+        const [, key, rawValue] = kvMatch;
+        const parsed = parseProfileScalar(rawValue);
+        if (section === "env") {
+          result.env[nestedTier][key] = parsed === null ? "" : String(parsed);
+        } else {
+          result.settings[nestedTier][key] = parsed;
+        }
+      }
+    }
+  }
+
+  return normalizeProfileYaml(result);
 }
 
 function requireProfileKeys(profile: Profile): void {
   const required = ["high", "mid", "low"];
-  const missingTiers = required.filter((key) => !profile.tiers[key]);
-  const missingProviders = required.filter((key) => !profile.providers[key]);
+  const missingSettings = required.filter((key) => {
+    const settings = profile.settings[key];
+    return !settings?.goose_provider || !settings?.goose_model;
+  });
 
-  if (missingTiers.length > 0 || missingProviders.length > 0) {
-    console.error(`\n[ERROR] Profile '${profile.name}' must define tiers/providers for: high, mid, low`);
-    if (missingTiers.length > 0) console.error(`        Missing tiers: ${missingTiers.join(", ")}`);
-    if (missingProviders.length > 0) console.error(`        Missing providers: ${missingProviders.join(", ")}`);
+  if (missingSettings.length > 0) {
+    console.error("\n[ERROR] Profile '" + profile.name + "' must define recipe settings for: high, mid, low");
+    console.error("        Each tier needs goose_provider and goose_model.");
+    console.error("        Use either legacy tiers/providers or the settings.<tier> profile format.");
+    console.error("        Missing settings: " + missingSettings.join(", "));
     process.exit(1);
   }
 }
@@ -154,16 +239,16 @@ const profile = loadProfile(cliArgs.profile);
 
 console.log("\nima-goose developer setup");
 console.log("=".repeat(40));
-console.log(`Profile: ${profile.name}`);
-const tierSummary = Object.entries(profile.tiers)
-  .map(([k, v]) => (k === v ? k : `${k}→${v}`))
+console.log("Profile: " + profile.name);
+const settingsSummary = Object.entries(profile.settings)
+  .map(([tier, values]) => tier + "→" + values.goose_provider + "/" + values.goose_model)
   .join(", ");
-console.log(`  Tiers:    ${tierSummary}`);
-const providerSummary = Object.entries(profile.providers)
-  .map(([k, v]) => `${k}→${v}`)
+console.log("  Recipe settings: " + settingsSummary);
+const envSummary = Object.entries(profile.env)
+  .flatMap(([tier, values]) => Object.entries(values).map(([key, value]) => tier + "→" + key + "=" + value))
   .join(", ");
-if (providerSummary) {
-  console.log(`  Providers: ${providerSummary}`);
+if (envSummary) {
+  console.log("  Runtime env:     " + envSummary);
 }
 
 // ── Check Goose ───────────────────────────────────────────────────────────────
@@ -455,6 +540,8 @@ function renderTemplate(template: RecipeTemplate): string {
     profile: profile.name,
     tiers: profile.tiers,
     providers: profile.providers,
+    recipeSettings: profile.settings,
+    env: profile.env,
   };
 
   return eta.renderString(templateContent, {
@@ -466,11 +553,12 @@ function renderTemplate(template: RecipeTemplate): string {
     PROFILE_PROVIDER_HIGH: profile.providers.high,
     PROFILE_PROVIDER_MID: profile.providers.mid,
     PROFILE_PROVIDER_LOW: profile.providers.low,
+    profileSettings: (tier: string, indent = 2): string => yaml(profile.settings[tier] ?? {}, indent) + "\n",
     enabledExtensions: renderEnabledGooseExtensions,
     include: (requestedPath: string, indent = 0): string => {
       const included = fs.readFileSync(resolveIncludePath(requestedPath), "utf8");
       const rendered = indent > 0 ? indentMultiline(included, indent) : included.replace(/\s+$/, "");
-      return `${rendered}\n\n`;
+      return rendered + "\n\n";
     },
     indent: indentMultiline,
     json: (value: unknown) => JSON.stringify(value, null, 2),
@@ -688,17 +776,19 @@ function printNextSteps(): void {
   console.log("Next steps:");
   console.log("  1. Use config-template.yaml as a reference; do not overwrite an existing Goose config.");
   console.log("  2. Set TAVILY_API_KEY in your shell profile (~/.bashrc or ~/.zshrc)");
-  console.log("  3. Copy .goose-aliases.example to ~/.goose-aliases and source it:");
+  console.log("  3. Copy or merge .goose-aliases.example to ~/.goose-aliases and source it:");
   console.log('       cp .goose-aliases.example ~/.goose-aliases');
   console.log('       echo \'[ -f "$HOME/.goose-aliases" ] && source "$HOME/.goose-aliases"\' >> ~/.bashrc');
-  console.log("  4. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
-  console.log("  5. Switch model profile any time:");
+  console.log("  4. Re-copy or merge ~/.goose-aliases whenever profile thinking effort/runtime env changes.");
+  console.log("     chatgpt_codex uses alias-scoped GOOSE_THINKING_EFFORT rather than recipe model suffixes.");
+  console.log("  5. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
+  console.log("  6. Switch model profile any time:");
   console.log("       node scripts/install.ts --profile openai     # Default — GPT via codex-acp");
   console.log("       node scripts/install.ts --profile chatgpt_codex # Native ChatGPT Codex provider");
   console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");
-  console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
+  console.log('  7. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
   console.log('     Inside a session, run /architect for architecture guidance.');
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
   console.log('     Run /preflight to verify Goose/MCP configuration.');

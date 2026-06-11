@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -6,8 +6,7 @@ description: "FP-aware, security-first code review. Modes: full review, prompt-o
 
 # Deep review wants the profile's strongest reasoning model.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 
 # HIGH-tier read-only verifier for the Advisor pass (Pass 3).
 # Each verify call is a fresh isolated session with a self-contained brief —

@@ -2,20 +2,18 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.1.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.1.0
+## What's New In v2.2.0
 
-- Added `/preflight`, a read-only Goose/MCP configuration canary with a
-  subrecipe spawning probe and optional full endpoint checks.
-- Added `goose-preflight` and central MCP Goose TypeScript SDK signature
-  documentation so agents can call supported MCP wrappers without guessing.
-- Clarified Serena bootstrap support and SDK signatures, including the correct
-  `memory_name` parameter and `{ result: string }` response shape.
-- Added the native `chatgpt_codex` installer profile and removed recipe-level
-  temperature settings for broader provider compatibility.
-- Updated autonomous/guided workflow instructions, Taskwarrior scoping, setup
-  docs, and the skill count for the 50-skill bundle.
+- Added provider-aware profile rendering so recipes emit the whole per-tier
+  Goose `settings:` block from `profiles/*.yaml`.
+- Added profile runtime-env metadata for providers like `chatgpt_codex` that
+  set thinking effort with `GOOSE_THINKING_EFFORT` instead of model suffixes.
+- Added tiered CLI and Goose Desktop alias wrappers for high, medium, and low
+  thinking effort.
+- Added installer and alias reminders to re-copy or merge `.goose-aliases.example`
+  whenever profile thinking effort/runtime env changes.
 
 ---
 
@@ -194,7 +192,7 @@ OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
 ```
 
-Recipes declare `HIGH`, `MID`, or `LOW` by using profile variables in source templates. The installer renders concrete provider/model values at deploy time. Switch profiles any time:
+Recipes declare `HIGH`, `MID`, or `LOW` by rendering the whole per-tier profile settings block. The installer writes only provider-supported recipe settings at deploy time. `chatgpt_codex` thinking effort is set by shell aliases with `GOOSE_THINKING_EFFORT`, not by recipe model suffix. Switch profiles any time:
 
 ```bash
 node scripts/install.ts --profile openai        # default: HIGH/MID/LOW → GPT-5.5 efforts
@@ -204,7 +202,7 @@ node scripts/install.ts --profile anthropic   # full claude-* model IDs
 node scripts/install.ts --profile claude-acp  # Claude friendly shortnames
 ```
 
-See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides.
+See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides. After changing profile thinking effort/runtime env, copy or merge `.goose-aliases.example` to `~/.goose-aliases` so command wrappers stay in sync.
 
 ### 2. Install Rendered Recipes
 
@@ -426,7 +424,7 @@ Planned recipe dirs are harmless empty dirs signaling future scope. Convert when
 ## Model Profiles
 
 Recipes use `HIGH`, `MID`, and `LOW` tiers rendered from `profiles/*.yaml`.
-`openai` is the default profile; `chatgpt_codex` is available for Goose's native ChatGPT Codex provider. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
+`openai` is the default profile; `chatgpt_codex` is available for Goose's native ChatGPT Codex provider. For `chatgpt_codex`, aliases scope `GOOSE_THINKING_EFFORT` per command. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
 
 ---
 

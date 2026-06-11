@@ -1,11 +1,10 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Test Writer"
 description: "TDD and test creation specialist. Detects project type and routes to the correct framework."
 
 # Test coding usually wants the profile's balanced implementation model.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
-  goose_model: "<%= it.PROFILE_MODEL_MID %>"
+<%~ it.profileSettings("mid") %>
 
 parameters:
   - key: mode

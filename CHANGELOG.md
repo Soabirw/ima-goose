@@ -2,6 +2,44 @@
 
 ## Unreleased
 
+## v2.2.0 - 2026-06-11
+
+### Added
+
+- Added per-tier profile runtime-env metadata for provider behavior that cannot
+  be expressed safely in recipe YAML, including `chatgpt_codex`
+  `GOOSE_THINKING_EFFORT` values.
+- Added high, medium, and low Goose CLI wrappers plus matching Goose Desktop
+  wrappers in `.goose-aliases.example`.
+
+### Changed
+
+- Updated profile rendering to support whole per-tier recipe settings, so
+  providers can include supported keys and omit unsupported keys such as
+  `temperature`.
+- Updated all profile-tiered recipe templates to render settings through
+  `profileSettings(tier)` instead of hardcoding provider/model template
+  variables.
+- Updated `chatgpt_codex` profile behavior to keep base `gpt-5.5` recipe models
+  and scope thinking effort through aliases/runtime env.
+- Added installer and alias reminders to re-copy or merge `.goose-aliases.example`
+  when profile thinking effort/runtime env changes.
+
+### Fixed
+
+- Prevented providers that reject recipe-level settings, such as unsupported
+  `temperature` keys or model-suffix thinking effort, from receiving those
+  settings through rendered recipes.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check`.
+- Syntax-checked `.goose-aliases.example` with `bash -n`.
+- Rendered and validated all 28 recipe templates with `node scripts/install.ts
+  --validate` for all supported profiles: `openai`, `chatgpt_codex`,
+  `hybrid`, `anthropic`, and `claude-acp`.
+- Ran `git diff --check`.
+
 ## v2.1.0 - 2026-06-11
 
 ### Added

@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Review Verify"
 description: "HIGH-tier read-only second opinion on a single code-review finding. Narrowly scoped — looks at one file:line range, returns CONFIRMED | WITHDRAWN | PARTIAL."
 
@@ -6,8 +6,7 @@ description: "HIGH-tier read-only second opinion on a single code-review finding
 # capable than the original reviewer.
 # Read-only by hard rule. No file writes, no commands that mutate state.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
   max_turns: 6
 
 # Terminal — returns a verdict to the parent code-review session. No sub_recipes.

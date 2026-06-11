@@ -1,6 +1,6 @@
 # Native ChatGPT Codex provider profile
-# Uses Goose chatgpt_codex provider auth. The provider uses the base GPT-5.5
-# model ID; configure reasoning effort in Goose config when needed.
+# Uses Goose chatgpt_codex provider auth. Recipes must use the base GPT-5.5
+# model ID; command aliases set GOOSE_THINKING_EFFORT at runtime.
 
 tiers:
   high: gpt-5.5
@@ -11,3 +11,11 @@ providers:
   high: chatgpt_codex
   mid: chatgpt_codex
   low: chatgpt_codex
+
+env:
+  high:
+    GOOSE_THINKING_EFFORT: high
+  mid:
+    GOOSE_THINKING_EFFORT: medium
+  low:
+    GOOSE_THINKING_EFFORT: low

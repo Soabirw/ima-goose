@@ -1,11 +1,10 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Patristic Researcher"
 description: "Research assistant for the New Testament epistles, Apostolic Fathers, Ante-Nicene Fathers, and Nicene/Post-Nicene Fathers through Augustine, using the local Qdrant theology corpus plus primary-source verification."
 
 # Patristic source synthesis uses the profile's strongest reasoning model.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>

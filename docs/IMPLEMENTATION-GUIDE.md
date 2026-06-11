@@ -17,6 +17,8 @@ The default profile is `openai`, which renders recipes through `codex-acp`:
 
 Use `--profile chatgpt_codex`, `--profile hybrid`, `--profile anthropic`,
 or `--profile claude-acp` only when those providers are configured locally.
+For `chatgpt_codex`, copy or merge `.goose-aliases.example` after profile
+changes because aliases set command-scoped `GOOSE_THINKING_EFFORT`.
 
 ## Primary Workflow
 

@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 title: "Brainstorm"
 description: "Interactive ideation session — shape an idea, problem, or Jira-fuzzy item into something well-defined. Researches memories on demand, iterates Q&A with the user, saves the brainstorm to memory or a file. Stand-alone."
 
@@ -7,8 +7,7 @@ description: "Interactive ideation session — shape an idea, problem, or Jira-f
 # Provider and model are generated from the selected install profile.
 # max_turns unset (goose default 1000).
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 
 # Saved brainstorm is the handoff; user routes it forward. Explore is available
 # only for targeted, read-only context gathering during brainstorm.

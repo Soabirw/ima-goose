@@ -1,11 +1,10 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Scorecard"
 description: "Evidence-based codebase or pull request scorecard. Scores standards, security, tests, documentation, and maintainability with validator-backed letter grades."
 
 # Scorecards are judgment-heavy and can affect review/release decisions.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>

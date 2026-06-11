@@ -1,12 +1,11 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 
 # Read-only exploration sub-recipe. Keep this LOW: it is called for targeted
 # context packets, not broad autonomous reasoning.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_LOW %>"
-  goose_model: "<%= it.PROFILE_MODEL_LOW %>"
+<%~ it.profileSettings("low") %>
   max_turns: 15
 
 # Sub-recipe only — produces findings and returns. No sub_recipes.

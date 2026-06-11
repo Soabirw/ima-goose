@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 
@@ -6,8 +6,7 @@ description: "General-purpose FP-aware coding agent. Feature development, bug fi
 
 # General implementation uses the profile's balanced implementation model.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
-  goose_model: "<%= it.PROFILE_MODEL_MID %>"
+<%~ it.profileSettings("mid") %>
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:

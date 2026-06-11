@@ -8,13 +8,16 @@ Recipes use provider-neutral model tiers:
 | `MID` | Implementation and operational workflows | implement, wp-developer, js-developer, test-writer, document-learn, goose-ship-it |
 | `LOW` | Cheap targeted lookup | explore |
 
-Source recipes render provider and model from profile variables:
+Source recipes render their whole Goose `settings:` block from profile tier settings:
 
 ```yaml
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 ```
+
+The profile renderer can include provider-specific recipe settings only where they
+are supported, and omit settings such as `temperature` for providers that reject
+them.
 
 The old `opus` / `sonnet` / `haiku` source-tier vocabulary is deprecated.
 Profiles must define `high`, `mid`, and `low`; the installer no longer falls
@@ -40,9 +43,12 @@ back to the old names.
 | `MID` | `chatgpt_codex` | `gpt-5.5` |
 | `LOW` | `chatgpt_codex` | `gpt-5.5` |
 
-Use when Goose is configured with the native `chatgpt_codex` provider. The
-profile keeps the base model ID because reasoning effort is configured through
-Goose provider settings such as `GOOSE_THINKING_EFFORT`.
+Use when Goose is configured with the native `chatgpt_codex` provider. Recipes
+keep the base model ID because reasoning effort is runtime environment, not a
+recipe model suffix. The profile declares per-tier `GOOSE_THINKING_EFFORT`
+values for shell aliases: HIGH→`high`, MID→`medium`, LOW→`low`. Copy or merge
+`.goose-aliases.example` to `~/.goose-aliases` after changing those profile env
+values.
 
 ### Hybrid
 

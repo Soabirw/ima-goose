@@ -60,7 +60,9 @@ node scripts/install.ts --profile anthropic
 node scripts/install.ts --profile claude-acp
 ```
 
-See `docs/MODEL-TIERS.md`.
+See `docs/MODEL-TIERS.md`. If you use `chatgpt_codex`, copy or merge
+`.goose-aliases.example` to `~/.goose-aliases` after profile changes so alias
+scoped `GOOSE_THINKING_EFFORT` stays current.
 
 ## Workflow Translation
 

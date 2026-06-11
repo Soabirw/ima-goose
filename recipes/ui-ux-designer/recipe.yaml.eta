@@ -1,11 +1,10 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "UI/UX Designer"
 description: "Browser-based UI/UX review agent. Uses Chrome DevTools to inspect live interfaces, test responsive behavior, diagnose layout and accessibility issues, and give pragmatic CSS guidance with strong Bootstrap/IMA brand fluency."
 
 # UI review needs visual judgment plus implementation-level CSS advice.
 settings:
-  goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
-  goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
+<%~ it.profileSettings("high") %>
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
