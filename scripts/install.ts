@@ -1,6 +1,6 @@
 // ima-goose developer setup
 // Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate] [--register-slash-commands]
-// Profiles: openai (default), hybrid, anthropic, claude-acp
+// Profiles: openai (default), chatgpt_codex, hybrid, anthropic, claude-acp
 // Requires: Node 24+ (native TypeScript support)
 
 import { execFileSync, execSync } from "node:child_process";
@@ -562,6 +562,10 @@ const slashCommands = [
     recipe: "prompt-starter.yaml",
   },
   {
+    command: "preflight",
+    recipe: "preflight-check.yaml",
+  },
+  {
     command: "serena-bootstrap",
     recipe: "serena-bootstrap.yaml",
   },
@@ -690,12 +694,14 @@ function printNextSteps(): void {
   console.log("  4. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  5. Switch model profile any time:");
   console.log("       node scripts/install.ts --profile openai     # Default — GPT via codex-acp");
+  console.log("       node scripts/install.ts --profile chatgpt_codex # Native ChatGPT Codex provider");
   console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");
   console.log('  6. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
   console.log('     Inside a session, run /architect for architecture guidance.');
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
+  console.log('     Run /preflight to verify Goose/MCP configuration.');
   console.log('     Run /serena-bootstrap to reload project memory.');
   console.log('     Use /serena-memorize <note> to update standard Serena memories.');
   console.log("");

@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Task Planner"
 description: "Decompose architecture specs, brainstorm summaries, planning memories, or Jira epics into an Epic → Story → Task hierarchy with dependency graph and sub-recipe routing. Interactive by design."
 
@@ -7,7 +7,6 @@ description: "Decompose architecture specs, brainstorm summaries, planning memor
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
-  temperature: 0.5
 
 # Terminal. Produces a reviewed Epic → Story → Task decomposition; the user
 # routes the approved output to implementation, Jira, or another workflow.

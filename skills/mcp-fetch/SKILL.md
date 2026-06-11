@@ -16,6 +16,23 @@ Prefer Tavily for broad web research, current search, or crawling. Prefer Fetch 
 - Extract source text for a small citation or implementation reference.
 - Convert HTML into easier-to-read Markdown/text before analysis.
 
+## Goose TypeScript SDK
+
+Use the `Fetch` namespace when the Goose typed SDK is available. The wrapper returns `Promise<any>`.
+
+| Direct/native tool | Goose SDK wrapper | Required input | Optional input |
+|---|---|---|---|
+| `mcp__fetch__fetch` | `Fetch.fetch` | `url: string` | `max_length?: number`, `start_index?: number`, `raw?: boolean` |
+
+```ts
+const page = await Fetch.fetch({
+  url: "https://example.com",
+  max_length: 4000,
+});
+```
+
+Use `start_index` to continue from truncated output. Set `raw: true` only when the actual HTML is needed.
+
 ## Goose Extension
 
 ```yaml

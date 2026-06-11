@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 
@@ -7,7 +7,6 @@ description: "Fast, read-only codebase exploration. File discovery, architecture
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_LOW %>"
   goose_model: "<%= it.PROFILE_MODEL_LOW %>"
-  temperature: 0.5
   max_turns: 15
 
 # Sub-recipe only — produces findings and returns. No sub_recipes.

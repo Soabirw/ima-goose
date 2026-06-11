@@ -9,45 +9,71 @@ Use Context7 for official library docs instead of web searching or guessing APIs
 
 ## Tools
 
-| Tool | Purpose |
-|------|---------|
-| `mcp__context7__resolve-library-id` | Resolve a library name to a Context7-compatible ID |
-| `mcp__context7__query-docs` | Query documentation using a resolved library ID |
+| Direct/native tool | Goose SDK wrapper | Purpose |
+|------|------|---------|
+| `mcp__context7__resolve-library-id` | `Context7.resolveLibraryId` | Resolve a library name to a Context7-compatible ID |
+| `mcp__context7__query-docs` | `Context7.queryDocs` | Query documentation using a resolved library ID |
+
+## Goose TypeScript SDK
+
+Use the `Context7` namespace when the Goose typed SDK is available. Both calls return `Promise<any>`.
+
+```ts
+const resolved = await Context7.resolveLibraryId({
+  libraryName: "Quasar",
+  query: "QDialog component props and events",
+});
+
+const docs = await Context7.queryDocs({
+  libraryId: "/quasarframework/quasar",
+  query: "QDialog props and emitted events",
+});
+```
+
+| Function | Required input | Optional input | Return |
+|---|---|---|---|
+| `Context7.resolveLibraryId` | `libraryName: string`, `query: string` | — | `Promise<any>` with matching library IDs and metadata |
+| `Context7.queryDocs` | `libraryId: string`, `query: string` | — | `Promise<any>` with documentation answer/snippets |
+
+Important: the Goose SDK wrapper does **not** expose a `tokens` parameter. Do not include unsupported fields.
 
 ## Two-Step Pattern
 
 **Step 1: Resolve the library ID**
-```
-mcp__context7__resolve-library-id
-  libraryName: "quasar"
+
+```ts
+await Context7.resolveLibraryId({
+  libraryName: "quasar",
+  query: "QDialog props and events",
+});
 ```
 
 Returns a `libraryId` like `/quasarframework/quasar`.
 
 **Step 2: Query docs with that ID**
-```
-mcp__context7__query-docs
-  libraryId: "/quasarframework/quasar"
-  query: "QDialog props and events"
-  tokens: 5000
+
+```ts
+await Context7.queryDocs({
+  libraryId: "/quasarframework/quasar",
+  query: "QDialog props and events",
+});
 ```
 
 | Parameter | Required | Notes |
 |-----------|----------|-------|
-| `libraryName` | Yes (step 1) | Library name or npm package |
-| `libraryId` | Yes (step 2) | Output from step 1 |
-| `query` | Yes (step 2) | What to look up |
-| `tokens` | No (step 2) | Default ~5000; increase for more depth |
+| `libraryName` | Yes (step 1) | Official library/package name |
+| `query` | Yes (both steps) | What you need help with |
+| `libraryId` | Yes (step 2) | Output from step 1 or user-provided `/org/project[/version]` ID |
 
 ## Examples
 
 | Request | Step 1 | Step 2 Query |
 |---------|--------|--------------|
-| "QDialog in Quasar" | `resolve("quasar")` | `query(id, "QDialog props events")` |
-| "React useEffect cleanup" | `resolve("react")` | `query(id, "useEffect cleanup return")` |
-| "Prisma findMany where" | `resolve("prisma")` | `query(id, "findMany where clause syntax")` |
-| "Express middleware order" | `resolve("express")` | `query(id, "middleware error handling order")` |
-| "Zod schema validation" | `resolve("zod")` | `query(id, "schema validation string number")` |
+| "QDialog in Quasar" | `libraryName: "quasar"` | `"QDialog props events"` |
+| "React useEffect cleanup" | `libraryName: "react"` | `"useEffect cleanup return"` |
+| "Prisma findMany where" | `libraryName: "prisma"` | `"findMany where clause syntax"` |
+| "Express middleware order" | `libraryName: "express"` | `"middleware error handling order"` |
+| "Zod schema validation" | `libraryName: "zod"` | `"schema validation string number"` |
 
 ## Decision Logic
 

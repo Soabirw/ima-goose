@@ -54,6 +54,7 @@ node scripts/install.ts --validate
 Other profiles are available:
 
 ```bash
+node scripts/install.ts --profile chatgpt_codex
 node scripts/install.ts --profile hybrid
 node scripts/install.ts --profile anthropic
 node scripts/install.ts --profile claude-acp

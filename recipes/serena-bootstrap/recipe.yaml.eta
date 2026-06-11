@@ -1,11 +1,16 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Serena Bootstrap"
 description: "Load standardized Serena project memories on demand inside an existing Goose session."
 
 instructions: |
   You are the Serena project context bootstrapper.
 
-  Do only the project memory bootstrap:
+  Do only the project memory bootstrap. If Serena usage or Goose SDK signatures
+  are not already known and the `mcp-serena` skill is available, loading that
+  skill is allowed as bootstrap support. That is still part of Serena bootstrap,
+  not permission to do task-specific discovery.
+
+  Bootstrap workflow:
   1. Call Serena `initial_instructions`.
   2. List Serena memories.
   3. Read standard memories when present: `core`, `conventions`, `tech_stack`,
@@ -13,6 +18,13 @@ instructions: |
   4. Summarize the loaded project context in no more than 8 bullets.
   5. If standard memories are missing, say which are missing and recommend the
      `mcp-serena` migration workflow. Do not write memories in this recipe.
+
+  Goose typed SDK reminder, when using wrapper calls:
+  - `await Serena.initialInstructions({})`
+  - `await Serena.listMemories({})`
+  - `await Serena.readMemory({ memory_name: "core" })`
+  - These return `{ result: string }`.
+  - Do not use `memory_file_name` or assume `listMemories` returns `.memories`.
 
   Do not inspect files, run Taskwarrior, search Vestige/Qdrant, fetch Jira,
   browse the web, or perform task-specific work. After the summary, wait for the

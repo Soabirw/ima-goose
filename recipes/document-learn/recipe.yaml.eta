@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
 
@@ -6,7 +6,6 @@ description: "Terminal closeout recipe. Updates docs and routes learning to Sere
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.3
 
 # Terminal recipe. No sub_recipes; it consumes completed phase artifacts only.
 

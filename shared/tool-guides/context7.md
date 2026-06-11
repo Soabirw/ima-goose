@@ -14,6 +14,24 @@ extensions:
     timeout: 300
 ```
 
+## Goose TypeScript SDK
+
+When the typed SDK is available, use:
+
+```ts
+await Context7.resolveLibraryId({
+  libraryName: "Bootstrap",
+  query: "modal options and events",
+});
+
+await Context7.queryDocs({
+  libraryId: "/websites/getbootstrap",
+  query: "modal options and events",
+});
+```
+
+Both calls return `Promise<any>`. The SDK wrapper requires `query` on both calls and does not expose a `tokens` parameter.
+
 ## When to Use
 
 | Need | Use |

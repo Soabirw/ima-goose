@@ -11,22 +11,48 @@ Skip for: simple tasks, obvious answers, single-step operations.
 
 ## Tool
 
-| Tool | Purpose |
-|------|---------|
-| `mcp__sequential-thinking__sequentialThinking` | Execute one thought in a reasoning chain |
+| Direct/native tool | Goose SDK wrapper | Purpose |
+|------|------|---------|
+| `mcp__sequential-thinking__sequentialThinking` | `SequentialThinking.sequentialthinking` | Execute one thought in a reasoning chain |
 
-## Parameters
+## Goose TypeScript SDK
 
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `thought` | Yes | Current thinking step |
-| `nextThoughtNeeded` | Yes | `true` to continue, `false` when done |
-| `thoughtNumber` | Yes | Current step (1, 2, 3...) |
-| `totalThoughts` | Yes | Estimated total — adjust freely |
-| `isRevision` | No | `true` if revising a previous thought |
-| `revisesThought` | No | Which thought number being revised |
-| `branchFromThought` | No | Branch point thought number |
-| `branchId` | No | Branch identifier |
+Use the `SequentialThinking` namespace when the Goose typed SDK is available. The wrapper name is all lowercase: `sequentialthinking`.
+
+```ts
+const step = await SequentialThinking.sequentialthinking({
+  thought: "The bug could be frontend validation, request routing, backend validation, or persistence.",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5,
+});
+```
+
+Input shape:
+
+| Parameter | Required | Type / notes |
+|-----------|----------|--------------|
+| `thought` | Yes | `string` current thinking step |
+| `nextThoughtNeeded` | Yes | `boolean` |
+| `thoughtNumber` | Yes | `number` current step |
+| `totalThoughts` | Yes | `number` estimate; adjust freely |
+| `isRevision` | No | `boolean` |
+| `revisesThought` | No | `number` |
+| `branchFromThought` | No | `number` |
+| `branchId` | No | `string` |
+| `needsMoreThoughts` | No | `boolean` |
+
+Return shape:
+
+```ts
+type SequentialThinkingResult = {
+  thoughtNumber: number;
+  totalThoughts: number;
+  nextThoughtNeeded: boolean;
+  branches: string[];
+  thoughtHistoryLength: number;
+};
+```
 
 ## Usage Patterns
 

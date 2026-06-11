@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "WordPress Developer"
 description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, then delegates tests and review when appropriate."
 
@@ -9,7 +9,6 @@ description: "Plan-bound WordPress implementation recipe. Reads an approved plan
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.3
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:

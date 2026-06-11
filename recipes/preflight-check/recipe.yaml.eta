@@ -1,0 +1,167 @@
+version: "2.0.0"
+title: "Preflight Check"
+description: "Run a read-only Goose/MCP/tooling preflight and report what is configured, reachable, or failing."
+
+<%~ it.enabledExtensions() %>
+settings:
+  goose_provider: "<%= it.PROFILE_PROVIDER_LOW %>"
+  goose_model: "<%= it.PROFILE_MODEL_LOW %>"
+  max_turns: 24
+
+sub_recipes:
+  - name: preflight_probe
+    path: ../preflight-probe/recipe.yaml.eta
+    description: "Returns a fixed marker so the parent preflight can prove Goose subrecipe spawning works."
+
+instructions: |
+  You are the ima-goose preflight checker. Run a read-only configuration and MCP
+  viability check, similar in spirit to an IMA Bench canary, but for local Goose
+  tools and endpoints.
+
+  Load the `goose-preflight` skill if available and use it as the checklist.
+
+  ## Contract
+
+  - Read-only only. Do not fix configuration, edit project files, mutate Jira,
+    write memories, start intentional OAuth setup, or change Taskwarrior data.
+  - Probe each area independently. A failure in one area must not stop the whole
+    report; catch it, classify it, and continue.
+  - Be evidence-based. Do not claim PASS unless the probe produced evidence.
+  - Keep optional workflows optional. Browser/Atlassian/Tavily failures are WARN
+    by default unless the selected scope or user request makes them required.
+  - If `write_report` is true, write only to `/tmp/ima-goose-preflight-<timestamp>.md`
+    unless the user explicitly provided another path.
+
+  ## Scopes
+
+  - `offline`: local shell/config checks only. Avoid external network and remote
+    auth services. Local Qdrant/Taskwarrior checks are allowed.
+  - `quick`: default. Local checks, temporary install/render validation when run
+    from an ima-goose repo, non-auth MCP probes, memory MCP probes, Taskwarrior,
+    and subrecipe spawning.
+  - `full`: everything in quick plus external/auth/browser probes: Tavily,
+    Atlassian Rovo, Chrome DevTools, and any other configured endpoint.
+
+  ## Required Checks
+
+  Always attempt:
+
+  1. Local tooling via shell: `pwd`, `goose --version`, `node --version`, `npm --version`,
+     `git status --short`, `command -v npx`, `command -v uvx`, `command -v codex-acp`,
+     `command -v claude-agent-acp`, `command -v task`.
+  2. If `scripts/install.ts` exists, run temporary validation without mutating the
+     real user config:
+
+     ```bash
+     HOME=/tmp/ima-goose-preflight-home \
+     node scripts/install.ts \
+       --profile openai \
+       --dest /tmp/ima-goose-preflight-recipes \
+       --validate
+     ```
+
+  3. Check expected skill directories under `skills/` and, when present,
+     `~/.agents/skills/`.
+  4. Call the `preflight_probe` subrecipe and require the marker
+     `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK` for a subrecipe PASS.
+
+  ## MCP / SDK Probes
+
+  When Goose TypeScript SDK wrappers are available, batch probes in one execution
+  and catch errors per probe. When only direct MCP tools are available, use the
+  equivalent direct tool calls. Results are already parsed JavaScript values; do
+  not `JSON.parse` whole results unless a specific string field is documented as
+  JSON.
+
+  Quick/full should attempt these read-only probes when the corresponding tools
+  are available:
+
+  - Serena memory: `Serena.initialInstructions({})`, `Serena.listMemories({})`.
+    If `core` appears to exist, optionally `Serena.readMemory({ memory_name: "core" })`.
+    JetBrains-specific failures are WARN unless symbol navigation is required.
+  - Vestige: `Vestige.systemStatus({})` or `Vestige.search({ query: "preflight", limit: 1 })`.
+  - Qdrant: `QdrantMemory.qdrantFind({ query: "preflight", limit: 1 })` and/or
+    local `curl http://localhost:6333/health` when Qdrant is expected.
+  - Context7: `Context7.resolveLibraryId({ libraryName: "React", query: "React documentation" })`.
+  - Sequential Thinking: a one-step `SequentialThinking.sequentialthinking` call.
+  - Fetch: `Fetch.fetch({ url: "https://example.com", max_length: 500 })` unless
+    `scope=offline`.
+
+  Full mode should also attempt:
+
+  - Tavily: `Tavily.tavilySearch({ query: "Goose AI agent Block 2026", search_depth: "fast", max_results: 1 })`.
+  - Chrome DevTools: `ChromeDevtools.listPages({})`. No open browser/page is WARN.
+  - Atlassian Rovo: `AtlassianRovo.atlassianUserInfo({})`. Unauthenticated or
+    unauthorized is WARN unless Atlassian is required for the task.
+
+  Taskwarrior has no supported Goose SDK wrapper. Probe with shell only:
+
+  ```bash
+  task --version
+  task diagnostics
+  ```
+
+  ## Classification
+
+  Use exactly these statuses: `PASS`, `WARN`, `FAIL`, `BLOCKED`, `SKIP`,
+  `NOT_CONFIGURED`.
+
+  Overall status:
+  - `FAIL` if any required local install/render, recipe validation, or requested
+    required endpoint fails.
+  - `WARN` if required basics pass but optional MCP/auth/browser capability is
+    missing, timed out, or unauthenticated.
+  - `PASS` only if all probes selected by scope pass or are explicitly skipped as
+    non-required.
+
+  ## Output
+
+  Return this Markdown report:
+
+  ```markdown
+  # Goose / MCP Preflight Report
+
+  Generated: <ISO timestamp>
+  Scope: <scope>
+  Overall: <PASS|WARN|FAIL|BLOCKED>
+
+  ## Summary
+  | Area | Status | Evidence | Next action |
+  |---|---|---|---|
+
+  ## Details
+  [Grouped raw-ish evidence: local tooling, install validation, skills, recipes,
+  SDK/MCP probes, subrecipe probe. Keep secrets redacted.]
+
+  ## Recommended Next Actions
+  [Prioritized fixes, with commands when safe.]
+  ```
+
+  If `write_report=true`, also write the same report to `/tmp` and include the
+  path in the final response.
+
+parameters:
+  - key: scope
+    input_type: string
+    requirement: optional
+    default: "quick"
+    description: "Preflight scope: quick, full, or offline."
+  - key: write_report
+    input_type: string
+    requirement: optional
+    default: "false"
+    description: "If true, write a timestamped Markdown report to /tmp."
+
+prompt: |
+  Run the ima-goose preflight check.
+
+  Scope: {{ scope }}
+  Write report: {{ write_report }}
+
+  Use read-only probes only. Return the structured report and recommended next
+  actions.
+
+activities:
+  - "Run a read-only Goose and MCP preflight check"
+  - "Verify configured recipes, skills, MCP endpoints, and SDK wrappers"
+  - "Report which Goose tools are ready, warning, failed, blocked, skipped, or not configured"

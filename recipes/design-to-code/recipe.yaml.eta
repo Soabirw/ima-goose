@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Design To Code"
 description: "Dedicated design-to-WordPress workflow. Turns screenshots, mockups, Jira context, or an existing design implementation prompt into an implementation prompt and optionally executes through WordPress sub-recipes."
 
@@ -8,7 +8,6 @@ description: "Dedicated design-to-WordPress workflow. Turns screenshots, mockups
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
-  temperature: 0.4
 
 sub_recipes:
   - name: explore

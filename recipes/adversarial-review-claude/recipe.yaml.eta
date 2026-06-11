@@ -1,11 +1,10 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Claude Opus Adversary"
 description: "Claude Opus read-only adversarial reviewer. Attacks one self-contained review brief and returns evidence-backed objections only."
 
 settings:
   goose_provider: "anthropic"
   goose_model: "claude-opus-4-7"
-  temperature: 0.1
   max_turns: 18
 
 instructions: |

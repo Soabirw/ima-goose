@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 
@@ -8,7 +8,6 @@ description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node 
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.3
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:

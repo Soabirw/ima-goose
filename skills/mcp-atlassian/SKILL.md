@@ -85,6 +85,82 @@ npx -y mcp-remote@latest https://mcp.atlassian.com/v1/mcp/authv2
 
 This fallback requires Node.js 18+.
 
+## Goose TypeScript SDK
+
+Use the `AtlassianRovo` namespace when the Goose typed SDK is available. The Rovo MCP tools return `Promise<any>`. Do not invent `Jira.*` or `Confluence.*` namespaces. Most product-specific calls require `cloudId`; use the site hostname if accepted, or call `AtlassianRovo.getAccessibleAtlassianResources({})` to discover cloud IDs.
+
+### Discovery, Rovo search, and hydration
+
+| Purpose | Goose SDK wrapper | Required input | Optional input |
+|---|---|---|---|
+| Current user | `AtlassianRovo.atlassianUserInfo` | `{}` | — |
+| Accessible sites | `AtlassianRovo.getAccessibleAtlassianResources` | `{}` | — |
+| Rovo search | `AtlassianRovo.search` | `query: string` | `cloudId?: string` (not normally needed) |
+| Fetch by ARI | `AtlassianRovo.fetch` | `id: string` | `cloudId?: string` (not normally needed) |
+
+### Jira
+
+| Purpose | Goose SDK wrapper | Required input | Useful optional input |
+|---|---|---|---|
+| Get issue | `AtlassianRovo.getJiraIssue` | `cloudId`, `issueIdOrKey` | `fields?: string[]`, `expand?: string`, `responseContentFormat?: "markdown" \| "adf"` |
+| Search JQL | `AtlassianRovo.searchJiraIssuesUsingJql` | `cloudId`, `jql` | `maxResults?: number`, `fields?: string[]`, `nextPageToken?: string` |
+| Create issue | `AtlassianRovo.createJiraIssue` | `cloudId`, `projectKey`, `issueTypeName`, `summary` | `description?`, `parent?`, `additional_fields?`, `transition?`, content formats |
+| Edit issue | `AtlassianRovo.editJiraIssue` | `cloudId`, `issueIdOrKey`, `fields` | content formats |
+| Add/update comment | `AtlassianRovo.addCommentToJiraIssue` | `cloudId`, `issueIdOrKey`, `commentBody` | `commentId?`, `commentVisibility?`, content formats |
+| Get transitions | `AtlassianRovo.getTransitionsForJiraIssue` | `cloudId`, `issueIdOrKey` | `transitionId?`, `includeUnavailableTransitions?` |
+| Transition issue | `AtlassianRovo.transitionJiraIssue` | `cloudId`, `issueIdOrKey`, `transition: { id: string }` | `fields?`, `update?`, `historyMetadata?` |
+| Lookup user | `AtlassianRovo.lookupJiraAccountId` | `cloudId`, `searchString` | — |
+| Add/update worklog | `AtlassianRovo.addWorklogToJiraIssue` | `cloudId`, `issueIdOrKey`, `timeSpent` | `worklogId?`, `commentBody?`, `started?`, `visibility?` |
+| Get link types | `AtlassianRovo.getIssueLinkTypes` | `cloudId` | — |
+| Create issue link | `AtlassianRovo.createIssueLink` | `cloudId`, `inwardIssue`, `outwardIssue`, `type` | `comment?`, `contentFormat?` |
+| Remote links | `AtlassianRovo.getJiraIssueRemoteIssueLinks` | `cloudId`, `issueIdOrKey` | `globalId?` |
+| Projects | `AtlassianRovo.getVisibleJiraProjects` | `cloudId` | `searchString?`, `action?`, pagination |
+| Issue types | `AtlassianRovo.getJiraProjectIssueTypesMetadata` | `cloudId`, `projectIdOrKey` | pagination |
+| Field metadata | `AtlassianRovo.getJiraIssueTypeMetaWithFields` | `cloudId`, `projectIdOrKey`, `issueTypeId` | pagination |
+
+### Confluence
+
+| Purpose | Goose SDK wrapper | Required input | Useful optional input |
+|---|---|---|---|
+| Get page/blog | `AtlassianRovo.getConfluencePage` | `cloudId`, `pageId` | `contentType?: "page" \| "blog"`, `contentFormat?: "html" \| "markdown" \| "adf"` |
+| Search CQL | `AtlassianRovo.searchConfluenceUsingCql` | `cloudId`, `cql` | `cqlcontext?`, `limit?`, `cursor?`, `expand?` |
+| Spaces | `AtlassianRovo.getConfluenceSpaces` | `cloudId` | `ids?`, `keys?`, `type?`, `status?`, `limit?` |
+| Pages in space | `AtlassianRovo.getPagesInConfluenceSpace` | `cloudId`, `spaceId` | `contentType?`, `limit?`, `cursor?`, `status?`, `title?`, `sort?` |
+| Footer comments | `AtlassianRovo.getConfluencePageFooterComments` | `cloudId`, `pageId` | content type/status/sort/format, `includeReplies?` |
+| Inline comments | `AtlassianRovo.getConfluencePageInlineComments` | `cloudId`, `pageId` | status/resolution/sort/format, `includeReplies?` |
+| Comment replies | `AtlassianRovo.getConfluenceCommentChildren` | `cloudId`, `commentId`, `commentType` | `limit?`, `cursor?`, `sort?`, `contentFormat?` |
+| Descendants | `AtlassianRovo.getConfluencePageDescendants` | `cloudId`, `pageId` | `limit?`, `depth?`, `cursor?` |
+| Create page/blog | `AtlassianRovo.createConfluencePage` | `cloudId`, `spaceId`, `body` | `title?`, `parentId?`, `contentFormat?`, `status?`, `isPrivate?` |
+| Update page/blog | `AtlassianRovo.updateConfluencePage` | `cloudId`, `pageId`, `body` | `title?`, `spaceId?`, `parentId?`, `versionMessage?`, `includeBody?` |
+| Footer comment | `AtlassianRovo.createConfluenceFooterComment` | `cloudId`, `body` | `pageId?`, `parentCommentId?`, `contentFormat?` |
+| Inline comment | `AtlassianRovo.createConfluenceInlineComment` | `cloudId`, `body` | `pageId?`, `parentCommentId?`, `inlineCommentProperties?`, `contentFormat?` |
+
+### Compass and Teamwork Graph
+
+| Purpose | Goose SDK wrapper | Required input | Useful optional input |
+|---|---|---|---|
+| List components | `AtlassianRovo.getCompassComponents` | `cloudId` | `query?`, `filters?`, `after?`, `maxResults?` |
+| Get component | `AtlassianRovo.getCompassComponent` | `cloudId`, `componentId` | include custom fields/links/dependencies flags |
+| Custom field definitions | `AtlassianRovo.getCompassCustomFieldDefinitions` | `cloudId` | — |
+| Create field definition | `AtlassianRovo.createCompassCustomFieldDefinition` | `cloudId`, `input: { name, type }` | `description?`, `isRequired?` |
+| Create component | `AtlassianRovo.createCompassComponent` | `cloudId`, `name`, `typeId` | `description?`, `ownerId?`, `labels?` |
+| Create component relationship | `AtlassianRovo.createCompassComponentRelationship` | `cloudId`, `fromComponentId`, `toComponentId`, `relationshipType` | — |
+| Graph context | `AtlassianRovo.getTeamworkGraphContext` | `cloudId`, `objectType`, `objectIdentifier` | `detailLevel?`, relationship/type/time filters, pagination |
+| Hydrate graph objects | `AtlassianRovo.getTeamworkGraphObject` | `cloudId`, `objects: string[]` | — |
+| Add graph context | `AtlassianRovo.addTeamworkGraphContext` | `cloudId`, `relationshipType`, `objectIdentifier`, `targetObjectIdentifier` | `title?` |
+
+Examples:
+
+```ts
+const me = await AtlassianRovo.atlassianUserInfo({});
+const issue = await AtlassianRovo.getJiraIssue({
+  cloudId: "flccc.atlassian.net",
+  issueIdOrKey: "FNR-123",
+  responseContentFormat: "markdown",
+});
+const search = await AtlassianRovo.search({ query: "FNR-123 acceptance criteria" });
+```
+
 ## Rovo MCP Verification
 
 After adding the extension, start a fresh Goose session and ask for a read-only

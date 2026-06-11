@@ -16,6 +16,10 @@ How to install skills, configure MCP extensions, and verify everything works.
 
 You need both: the MCP extension provides the tools, the skill teaches the model when and how to use them correctly.
 
+Use `/preflight` after installation to run a read-only canary across recipes, skills, MCP endpoints, and supported Goose TypeScript SDK wrappers. See [`PREFLIGHT-CHECK.md`](PREFLIGHT-CHECK.md).
+
+For Goose API/typed-SDK harnesses, supported MCP tools are documented in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md). The SDK wrappers use namespaces such as `Tavily`, `Context7`, `Serena`, and `Vestige`; use only documented wrappers.
+
 ---
 
 ## Skill Locations
@@ -71,7 +75,7 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all 49 `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 50 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
@@ -91,7 +95,7 @@ ls ~/.agents/skills/
 # ember-discourse, mcp-taskwarrior, and ima-email-creator
 
 ls ~/.agents/skills/ | wc -l
-# 49
+# 50
 ```
 
 ---
@@ -214,8 +218,22 @@ Serena memory tools work without JetBrains. Keep Serena enabled when you want
 standard project memories, even if `jet_brains_*` code-navigation tools are not
 available. If you disable Serena, recipes lose the cross-harness project memory
 bootstrap. Serena-enabled recipes should load standard memories as the first
-tool action at session start before greeting, Taskwarrior, Jira, Vestige, file
-discovery, or asking for local paths/config.
+workstream at session start before greeting, Taskwarrior, Jira, Vestige, Qdrant,
+file discovery, browser inspection, or asking for local paths/config. Loading
+the `mcp-serena` skill first is allowed only as bootstrap support when an agent
+needs Serena tool guidance or Goose SDK signatures; it is not task-specific
+research.
+
+When using Goose typed SDK wrappers, the canonical calls are:
+
+```ts
+await Serena.initialInstructions({});
+await Serena.listMemories({});
+await Serena.readMemory({ memory_name: "core" });
+```
+
+Those calls return `{ result: string }`. Do not use `memory_file_name`, and do
+not assume `listMemories` returns `.memories`.
 
 To migrate existing project context files into Serena memories, load the
 `mcp-serena` skill and run:
@@ -262,9 +280,11 @@ standard Serena memory:
 | `tom` | `GOOSE_MOIM_MESSAGE_TEXT` or `GOOSE_MOIM_MESSAGE_FILE` | Optional persistent instructions injected every turn |
 | `todo` | None | Built-in task checklist extension for complex workflows |
 
-MCP extensions expose tools directly to Goose. Normal MCP workflows should call
-those tools through Goose's tool interface, not through a JavaScript or
-TypeScript wrapper.
+MCP extensions expose tools directly to Goose. In API/typed-SDK harnesses,
+supported MCP tools are also available through TypeScript namespace wrappers.
+Use the signatures in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md)
+and the `skills/mcp-*` guides; do not invent wrappers that are not exposed by
+the SDK.
 
 ---
 
@@ -275,7 +295,7 @@ The same SKILL.md files work in:
 - **Goose** — loaded by Summon extension from `~/.agents/skills/`
 - **Claude Code** — loaded by the Summon extension or invoked directly with `/skill-name`
 
-The YAML frontmatter (`name`, `description`) is the same format in both systems. The tool names (`mcp__tavily__search`, `mcp__context7__resolve-library-id`, etc.) are identical because both systems use the same MCP servers. Write a skill once, use it in both agents.
+The YAML frontmatter (`name`, `description`) is the same format in both systems. Direct MCP tool names such as `mcp__tavily__search` and `mcp__context7__resolve-library-id` may be shared across MCP clients, while Goose API/typed-SDK harnesses expose supported tools as namespace wrappers such as `Tavily.tavilySearch` and `Context7.resolveLibraryId`. The MCP skills document both forms so agents can use the interface available in the current harness.
 
 ---
 
@@ -292,7 +312,14 @@ goose session
 /skills
 ```
 
-Goose should list all 49 installed skills from `~/.agents/skills/`.
+Goose should list all 50 installed skills from `~/.agents/skills/`.
+
+**Run preflight:**
+```
+/preflight
+```
+
+Use `/preflight full` when you want external/auth/browser probes as well.
 
 **Test Tavily:**
 ```
@@ -377,8 +404,8 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - Restart Goose and re-run the connection flow
 - If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
-**Only 9 skills showing (not 49):**
+**Only 9 skills showing (not 50):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it renders recipes
   and copies the full `skills/` directory
 - Verify the script completed without errors
-- Check `ls ~/.agents/skills/ | wc -l` — expect 49
+- Check `ls ~/.agents/skills/ | wc -l` — expect 50

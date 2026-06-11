@@ -22,6 +22,31 @@ Qdrant is the permanent library in the memory stack.
 
 Do not use Qdrant for temporary debugging notes, preferences, or session progress.
 
+## Goose TypeScript SDK
+
+Use the `QdrantMemory` namespace when the Goose typed SDK is available. Both wrappers return `{ result: string }`.
+
+| Direct/native tool | Goose SDK wrapper | Required input | Optional input | Return |
+|---|---|---|---|---|
+| Qdrant store tool | `QdrantMemory.qdrantStore` | `information: string` | `collection_name?: string \| null`, `metadata?: Record<string, any> \| null` | `{ result: string }` |
+| Qdrant find/search tool | `QdrantMemory.qdrantFind` | `query: string` | `collection_name?: string \| null`, `limit?: number` | `{ result: string }` |
+
+```ts
+await QdrantMemory.qdrantStore({
+  information: "Durable architecture note...",
+  collection_name: "ima-knowledge",
+  metadata: { source: "architecture", project: "example" },
+});
+
+const hits = await QdrantMemory.qdrantFind({
+  query: "architecture decision auth tokens",
+  limit: 5,
+});
+console.log(hits.result);
+```
+
+Use `.result` as text unless the specific server response is known to contain JSON.
+
 ## Per-Project Collection
 
 If a project has a `.qdrant` file, use its collection value for searches and stores. Otherwise, use the server default collection, normally `ima-knowledge`.

@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "IMA Researcher"
 description: "Evidence-driven medical research assistant for Independent Medical Alliance content, IMA protocols, repurposed therapeutics, informed consent, medical ethics, and patient-centered Honest Medicine™ literature synthesis using the future `ima-research` Qdrant collection plus current primary-source verification."
 
@@ -6,7 +6,6 @@ description: "Evidence-driven medical research assistant for Independent Medical
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
-  temperature: 0.25
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>

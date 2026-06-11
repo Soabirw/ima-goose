@@ -66,14 +66,96 @@ Use Serena project memories as the cross-harness replacement for project-local c
 | `mcp__serena__serena_info` | Get Serena server info |
 | `mcp__serena__open_dashboard` | Open Serena dashboard |
 
+## Goose TypeScript SDK
+
+Direct MCP/client examples use snake_case tool names such as
+`mcp__serena__initial_instructions`, `mcp__serena__list_memories`, and
+`mcp__serena__read_memory`. Goose's typed SDK wrapper exposes supported tools
+under the `Serena` namespace with camelCase method names. Use the wrapper shape
+that fits the current harness.
+
+Serena Goose SDK calls return `{ result: string }` for the supported tools below.
+Read `.result`; do not assume list calls return arrays or object properties unless
+the specific tool documents that inside the string payload.
+
+### Memory and onboarding
+
+| Direct/native tool | Goose SDK wrapper | Required input | Optional input |
+|---|---|---|---|
+| `mcp__serena__initial_instructions` | `Serena.initialInstructions` | `{}` | — |
+| `mcp__serena__list_memories` | `Serena.listMemories` | — | `topic?: string` |
+| `mcp__serena__read_memory` | `Serena.readMemory` | `memory_name: string` | — |
+| `mcp__serena__write_memory` | `Serena.writeMemory` | `memory_name: string`, `content: string` | `max_chars?: number` |
+| `mcp__serena__edit_memory` | `Serena.editMemory` | `memory_name`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
+| `mcp__serena__delete_memory` | `Serena.deleteMemory` | `memory_name: string` | — |
+| `mcp__serena__rename_memory` | `Serena.renameMemory` | `old_name: string`, `new_name: string` | — |
+| `mcp__serena__onboarding` | `Serena.onboarding` | `{}` | — |
+| `mcp__serena__serena_info` | `Serena.serenaInfo` | `topic: string` | — |
+| `mcp__serena__open_dashboard` | `Serena.openDashboard` | `{}` | — |
+
+Correct bootstrap pattern:
+
+```ts
+await Serena.initialInstructions({});
+const listed = await Serena.listMemories({});
+const core = await Serena.readMemory({ memory_name: "core" });
+console.log(listed.result, core.result);
+```
+
+Do not call `readMemory` with `memory_file_name`, and do not assume
+`listMemories` returns `.memories`.
+
+### Content editing
+
+| Direct/native tool | Goose SDK wrapper | Required input | Optional input |
+|---|---|---|---|
+| `mcp__serena__replace_content` | `Serena.replaceContent` | `relative_path`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
+| `mcp__serena__replace_symbol_body` | `Serena.replaceSymbolBody` | `relative_path`, `name_path`, `body` | — |
+| `mcp__serena__insert_after_symbol` | `Serena.insertAfterSymbol` | `relative_path`, `name_path`, `body` | — |
+| `mcp__serena__insert_before_symbol` | `Serena.insertBeforeSymbol` | `relative_path`, `name_path`, `body` | — |
+
+Use symbol/content editing only after targeted retrieval confirms the exact symbol
+or content to change.
+
+### JetBrains code intelligence and refactoring
+
+These require a JetBrains IDE with the Serena MCP plugin running.
+
+| Direct/native tool | Goose SDK wrapper | Required input | Useful optional input |
+|---|---|---|---|
+| `mcp__serena__jet_brains_get_symbols_overview` | `Serena.jetBrainsGetSymbolsOverview` | `relative_path` | `depth?`, `max_answer_chars?`, `include_file_documentation?` |
+| `mcp__serena__jet_brains_find_symbol` | `Serena.jetBrainsFindSymbol` | `name_path_pattern` | `relative_path?`, `depth?`, `include_body?`, `include_info?`, `search_deps?`, `max_matches?` |
+| `mcp__serena__jet_brains_find_referencing_symbols` | `Serena.jetBrainsFindReferencingSymbols` | `relative_path`, `name_path` | `max_answer_chars?` |
+| `mcp__serena__jet_brains_find_declaration` | `Serena.jetBrainsFindDeclaration` | `relative_path`, `regex` | `include_body?` |
+| `mcp__serena__jet_brains_find_implementations` | `Serena.jetBrainsFindImplementations` | `relative_path`, `name_path` | — |
+| `mcp__serena__jet_brains_type_hierarchy` | `Serena.jetBrainsTypeHierarchy` | `relative_path`, `name_path` | `hierarchy_type?`, `depth?`, `max_answer_chars?` |
+| `mcp__serena__jet_brains_rename` | `Serena.jetBrainsRename` | `relative_path`, `new_name` | `name_path?`, `rename_in_comments?`, `rename_in_text_occurrences?` |
+| `mcp__serena__jet_brains_move` | `Serena.jetBrainsMove` | `relative_path` | `name_path?`, `target_relative_path?`, `target_parent_name_path?` |
+| `mcp__serena__jet_brains_safe_delete` | `Serena.jetBrainsSafeDelete` | `relative_path` | `name_path?`, `delete_even_if_used?`, `propagate?` |
+| `mcp__serena__jet_brains_inline_symbol` | `Serena.jetBrainsInlineSymbol` | `relative_path`, `name_path` | `keep_definition?` |
+| `mcp__serena__jet_brains_debug` | `Serena.jetBrainsDebug` | `expression` | `repl_key?` |
+| `mcp__serena__jet_brains_run_inspections` | `Serena.jetBrainsRunInspections` | `relative_path` | `min_severity?`, `inspection_names?`, `start_line?`, `end_line?`, `max_answer_chars?` |
+| `mcp__serena__jet_brains_list_inspections` | `Serena.jetBrainsListInspections` | — | `language?`, `group_path_contains?`, `max_answer_chars?` |
+
 ## Project Memory Bootstrap
 
-At the start of project-specific work in any Serena-enabled harness:
+At the start of project-specific work in any Serena-enabled harness, Serena
+bootstrap is the first workstream. If this skill was loaded first to learn
+Serena mechanics or Goose wrapper signatures, that load is bootstrap support,
+not task-specific research. After loading the skill, immediately run the Serena
+project-memory calls below before greeting, interpreting the prompt, or using
+Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
+inspection, or local workflow discovery.
 
-1. At session start, call `mcp__serena__initial_instructions` as the first tool
-   action before greeting, interpreting the prompt, or using other tools.
-2. List memories with `mcp__serena__list_memories`.
+1. Call Serena initial instructions:
+   - Direct MCP: `mcp__serena__initial_instructions`
+   - Goose SDK: `await Serena.initialInstructions({})`
+2. List memories:
+   - Direct MCP: `mcp__serena__list_memories`
+   - Goose SDK: `await Serena.listMemories({})`
 3. Read the standard memories that exist and are relevant to the task:
+   - Direct MCP: `mcp__serena__read_memory` with `memory_name`
+   - Goose SDK: `await Serena.readMemory({ memory_name: "core" })`
    - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
    - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
    - Read `task_completion` before final verification, release work, or handoff.

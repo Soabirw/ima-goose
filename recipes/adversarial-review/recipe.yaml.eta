@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Adversarial Review"
 description: "Read-only adversarial code review that pits Claude Opus and OpenAI GPT-5.5 against the same review brief, then reconciles their strongest objections."
 
@@ -8,7 +8,6 @@ description: "Read-only adversarial code review that pits Claude Opus and OpenAI
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
-  temperature: 0.2
   max_turns: 50
 
 sub_recipes:

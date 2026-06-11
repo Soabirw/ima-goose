@@ -69,7 +69,8 @@ returning a copy-ready prompt.
 | MID | Implementation, tests, release prep, documentation |
 | LOW | Focused exploration |
 
-`openai` is the default profile. See `docs/MODEL-TIERS.md`.
+`openai` is the default profile. Use `chatgpt_codex` when Goose is
+configured with the native ChatGPT Codex provider. See `docs/MODEL-TIERS.md`.
 
 ## Sub-Recipe Rule
 

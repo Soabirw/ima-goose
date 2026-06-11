@@ -1,0 +1,32 @@
+version: "2.0.0"
+title: "Preflight Probe"
+description: "Child recipe used by preflight-check to prove Goose subrecipe spawning works."
+
+settings:
+  goose_provider: "<%= it.PROFILE_PROVIDER_LOW %>"
+  goose_model: "<%= it.PROFILE_MODEL_LOW %>"
+  max_turns: 4
+
+instructions: |
+  You are the child subrecipe for an ima-goose preflight canary.
+  Return only evidence for the parent preflight. Do not inspect files or edit
+  anything.
+
+parameters:
+  - key: probe_request
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Parent preflight request."
+
+prompt: |
+  Parent request:
+  {{ probe_request }}
+
+  Return this exact marker in your response:
+  IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK
+
+  Also state that this response came from the `preflight_probe` subrecipe.
+
+activities:
+  - "Return the IMA Goose preflight subrecipe marker"

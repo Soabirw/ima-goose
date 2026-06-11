@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 
@@ -8,7 +8,6 @@ description: "General-purpose FP-aware coding agent. Feature development, bug fi
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.3
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:

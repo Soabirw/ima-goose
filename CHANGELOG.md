@@ -2,8 +2,40 @@
 
 ## Unreleased
 
+## v2.1.0 - 2026-06-11
+
+### Added
+
+- Added `/preflight`, a read-only Goose/MCP/tooling canary recipe with quick,
+  full, and offline scopes, optional `/tmp` report writing, and a child
+  subrecipe marker probe for validating subrecipe spawning.
+- Added `goose-preflight`, a checklist skill for local tooling, recipe render,
+  installed skills, MCP endpoints, Goose TypeScript SDK wrappers, Taskwarrior,
+  browser, and Atlassian readiness checks.
+- Added `docs/PREFLIGHT-CHECK.md` and `/preflight` slash-command registration
+  through the installer and `config-template.yaml`.
+- Added `docs/MCP-GOOSE-SDK-SIGNATURES.md` plus Goose TypeScript SDK signature
+  sections to all `mcp-*` skills for the currently supported SDK namespaces:
+  `AtlassianRovo`, `ChromeDevtools`, `Context7`, `Fetch`, `QdrantMemory`,
+  `SequentialThinking`, `Serena`, `Tavily`, and `Vestige`.
+- Added a `chatgpt_codex` model profile for Goose's native ChatGPT Codex
+  provider.
+
 ### Changed
 
+- Updated Serena bootstrap instructions and the `mcp-serena` skill to allow
+  loading the skill as bootstrap support, while preserving the rule that
+  project-memory bootstrap happens before task-specific discovery.
+- Documented correct Serena Goose SDK calls, including
+  `Serena.initialInstructions({})`, `Serena.listMemories({})`,
+  `Serena.readMemory({ memory_name: "core" })`, and `{ result: string }`
+  response handling.
+- Updated Context7 and Tavily guides to match the supported Goose SDK wrapper
+  parameters and avoid unsupported fields.
+- Updated README and setup docs for the 50-skill bundle, preflight workflow,
+  MCP SDK reference, and native ChatGPT Codex profile.
+- Removed recipe-level `temperature` settings because not all providers and
+  models support them, and bumped affected recipe template versions.
 - Added a shared `mode` parameter contract to the core planning,
   implementation, testing, review, and document/learn recipes. The default
   `guided` mode preserves HITL gates, while `autonomous` mode proceeds without
@@ -11,11 +43,32 @@
 - Updated implementation recipes to make parent-owned verification compatible
   with autonomous benchmark orchestration.
 - Updated `software-development-cycle` instructions to route JavaScript work
-  through `js-developer` and keep implementation children scoped to parent-owned
-  test/review closeout.
+  through `js-developer` and keep implementation children scoped to
+  parent-owned test/review closeout.
 - Updated Taskwarrior guidance to prefer the default user-scoped
   `~/.taskrc`/`~/.task` setup and native `project:<name>` / `task context`
   scoping instead of project-local `TASKRC`/`TASKDATA` wrappers.
+
+### Fixed
+
+- Fixed MCP skill guidance that previously documented only native/direct tool
+  names by adding supported Goose TypeScript SDK namespaces, function names,
+  basic request shapes, and return-shape cautions.
+- Fixed Serena bootstrap SDK guidance that could lead agents to use the invalid
+  `memory_file_name` parameter or assume `listMemories` returns `.memories`.
+- Clarified that Taskwarrior has no supported Goose SDK wrapper in this toolset;
+  agents should use the `task` CLI rather than inventing `Taskwarrior.*` calls.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check`.
+- Rendered and validated all 28 recipe templates with `node scripts/install.ts
+  --validate` for all supported profiles: `openai`, `chatgpt_codex`,
+  `hybrid`, `anthropic`, and `claude-acp`.
+- Directly validated rendered `preflight-check.yaml` and
+  `preflight-probe.yaml` with `goose recipe validate`.
+- Confirmed the installer copies all 50 skills and renders 28 recipes.
+- Ran `git diff --check` and scanned for stale v2.0.3 / 49-skill references.
 
 ## v2.0.3 - 2026-06-09
 

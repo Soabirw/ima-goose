@@ -15,8 +15,8 @@ The default profile is `openai`, which renders recipes through `codex-acp`:
 - MID: `gpt-5.5/medium`
 - LOW: `gpt-5.5/low`
 
-Use `--profile hybrid`, `--profile anthropic`, or `--profile claude-acp` only
-when those providers are configured locally.
+Use `--profile chatgpt_codex`, `--profile hybrid`, `--profile anthropic`,
+or `--profile claude-acp` only when those providers are configured locally.
 
 ## Primary Workflow
 

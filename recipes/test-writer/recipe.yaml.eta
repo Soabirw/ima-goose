@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Test Writer"
 description: "TDD and test creation specialist. Detects project type and routes to the correct framework."
 
@@ -6,7 +6,6 @@ description: "TDD and test creation specialist. Detects project type and routes 
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.3
 
 parameters:
   - key: mode

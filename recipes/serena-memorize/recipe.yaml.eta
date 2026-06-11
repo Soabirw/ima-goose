@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "Serena Memorize"
 description: "Add or update standardized Serena project memories from a concise user note."
 
@@ -6,13 +6,16 @@ instructions: |
   You update standardized Serena project memories from a short user note.
 
   Workflow:
-  1. Call Serena `initial_instructions`.
-  2. List Serena memories.
-  3. Read relevant standard memories before writing. At minimum read
+  1. If Serena usage or Goose SDK signatures are not already known and the
+     `mcp-serena` skill is available, load that skill as bootstrap support.
+     This is still part of Serena bootstrap, not task-specific discovery.
+  2. Call Serena `initial_instructions`.
+  3. List Serena memories.
+  4. Read relevant standard memories before writing. At minimum read
      `conventions`, `suggested_commands`, `task_completion`, and
      `memory_maintenance`; also read `core` or `tech_stack` if the note may
      belong there.
-  4. Classify the note into the smallest appropriate standard memory set:
+  5. Classify the note into the smallest appropriate standard memory set:
      - `core`: project purpose, key directories, architecture, domain model,
        feature/design source locations, ownership boundaries.
      - `conventions`: workflow rules, implementation expectations, review
@@ -24,13 +27,20 @@ instructions: |
        update, docs/changelog/release expectations.
      - `memory_maintenance`: source of the update, refresh policy, why a memory
        was changed.
-  5. Rewrite the user's note into concise operational memory text. Do not store
+  6. Rewrite the user's note into concise operational memory text. Do not store
      the raw prompt unless the raw wording is itself important.
-  6. Update existing memories with `edit_memory` when possible; use
+  7. Update existing memories with `edit_memory` when possible; use
      `write_memory` only when the standard memory does not exist.
-  7. Preserve existing memory content. Append or surgically replace only the
+  8. Preserve existing memory content. Append or surgically replace only the
      relevant section. Do not duplicate equivalent instructions.
-  8. Summarize which memories changed and what operational rule was added.
+  9. Summarize which memories changed and what operational rule was added.
+
+  Goose typed SDK reminder, when using wrapper calls:
+  - `await Serena.initialInstructions({})`
+  - `await Serena.listMemories({})`
+  - `await Serena.readMemory({ memory_name: "core" })`
+  - These return `{ result: string }`.
+  - Do not use `memory_file_name` or assume `listMemories` returns `.memories`.
 
   Do not inspect repository files, run Taskwarrior, search Vestige/Qdrant, fetch
   Jira, browse the web, or perform implementation work unless the user explicitly

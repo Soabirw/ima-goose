@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Software Development Cycle"
 description: "Top-level conductor for the IMA software development cycle: brainstorm, plan, decompose, implement, test, review, document, and learn. Owns all phase calls directly; does not call task-master."
 
@@ -7,7 +7,6 @@ description: "Top-level conductor for the IMA software development cycle: brains
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_HIGH %>"
   goose_model: "<%= it.PROFILE_MODEL_HIGH %>"
-  temperature: 0.3
 
 # Flattened phase graph. Goose subrecipe sessions are isolated and cannot nest
 # subrecipes reliably, so this umbrella owns each phase call directly.

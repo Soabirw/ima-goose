@@ -1,11 +1,10 @@
-version: "2.0.0"
+version: "2.0.1"
 title: "MCP Migration"
 description: "Migrate MCP servers from Claude Code's ~/.claude.json into Goose's ~/.config/goose/config.yaml."
 
 settings:
   goose_provider: "<%= it.PROFILE_PROVIDER_MID %>"
   goose_model: "<%= it.PROFILE_MODEL_MID %>"
-  temperature: 0.2
   max_turns: 30
 
 instructions: |

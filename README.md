@@ -2,16 +2,20 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.0.3**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.1.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.0.3
+## What's New In v2.1.0
 
-- Added a recommended-use guide that separates product requirements work from
-  per-story delivery.
-- Reframed `goose-cycle` as experimental; HITL manual handoff is the
-  recommended default.
-- Added `goose-learn` as a dedicated document/learn alias and updated
-  `goose-help` around the two recommended HITL workflows.
+- Added `/preflight`, a read-only Goose/MCP configuration canary with a
+  subrecipe spawning probe and optional full endpoint checks.
+- Added `goose-preflight` and central MCP Goose TypeScript SDK signature
+  documentation so agents can call supported MCP wrappers without guessing.
+- Clarified Serena bootstrap support and SDK signatures, including the correct
+  `memory_name` parameter and `{ result: string }` response shape.
+- Added the native `chatgpt_codex` installer profile and removed recipe-level
+  temperature settings for broader provider compatibility.
+- Updated autonomous/guided workflow instructions, Taskwarrior scoping, setup
+  docs, and the skill count for the 50-skill bundle.
 
 ---
 
@@ -59,7 +63,7 @@ GOOSE_PLANNER_PROVIDER: "codex-acp"
 GOOSE_PLANNER_MODEL: "gpt-5.5/high"
 ```
 
-Use the `hybrid`, `anthropic`, or `claude-acp` installer profiles only when those providers are configured locally. Alternative providers are in the [Setup](#setup) section below.
+Use the `chatgpt_codex`, `hybrid`, `anthropic`, or `claude-acp` installer profiles only when those providers are configured locally. Alternative providers are in the [Setup](#setup) section below.
 
 ### 4. Install skills globally — REQUIRED
 
@@ -68,7 +72,7 @@ node scripts/install.ts
 ```
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
-`~/.config/goose/recipes/*.yaml`, then copies all 49 skills from `skills/*/` to
+`~/.config/goose/recipes/*.yaml`, then copies all 50 skills from `skills/*/` to
 `~/.agents/skills/` where Summon auto-discovers them. **Without this step,
 recipes load but their skill references go nowhere** — Summon has nothing to
 find and the recipes silently lose their deep domain knowledge. Requires
@@ -105,7 +109,7 @@ goose-explore                 # launches the LOW-tier explore recipe
 goose-ui                      # launches the HIGH-tier UI/UX designer recipe
 ```
 
-Inside the interactive session, type `/skills` — you should see ~49 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
+Inside the interactive session, type `/skills` — you should see ~50 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
 
 ### Troubleshooting
 
@@ -166,6 +170,11 @@ GOOSE_PLANNER_MODEL: "gpt-5.5/high"
 **Alternatives** (if you're not on Claude Code subscription):
 
 ```yaml
+# Native ChatGPT Codex provider
+GOOSE_PROVIDER: "chatgpt_codex"
+GOOSE_MODEL: "gpt-5.5"
+GOOSE_THINKING_EFFORT: "high"
+
 # Claude ACP, if working locally
 GOOSE_PROVIDER: "claude-acp"
 GOOSE_MODEL: "sonnet"
@@ -188,7 +197,8 @@ GOOSE_MODEL: "your-deployed-model"
 Recipes declare `HIGH`, `MID`, or `LOW` by using profile variables in source templates. The installer renders concrete provider/model values at deploy time. Switch profiles any time:
 
 ```bash
-node scripts/install.ts --profile openai      # default: HIGH/MID/LOW → GPT-5.5 efforts
+node scripts/install.ts --profile openai        # default: HIGH/MID/LOW → GPT-5.5 efforts
+node scripts/install.ts --profile chatgpt_codex # native ChatGPT Codex provider → gpt-5.5
 node scripts/install.ts --profile hybrid      # HIGH→codex-acp, MID/LOW→claude-acp
 node scripts/install.ts --profile anthropic   # full claude-* model IDs
 node scripts/install.ts --profile claude-acp  # Claude friendly shortnames
@@ -218,8 +228,11 @@ limits the session to only listed extensions. The installer reads enabled
 extensions from `~/.config/goose/config.yaml` and renders those into the
 installed recipe files, so each developer keeps their own machine's extension
 set. After changing enabled Goose extensions, rerun `node scripts/install.ts`.
-MCP tools are called directly through Goose; do not route normal MCP usage
-through a TypeScript execution wrapper.
+MCP tools can be called directly through Goose's normal tool interface. In
+Goose API/typed-SDK harnesses, supported MCP tools are also available as
+TypeScript namespace wrappers documented in
+[`docs/MCP-GOOSE-SDK-SIGNATURES.md`](docs/MCP-GOOSE-SDK-SIGNATURES.md) and the
+`skills/mcp-*` guides. Do not invent wrappers that are not exposed by the SDK.
 
 ### 4. Install Skills
 
@@ -228,7 +241,7 @@ node scripts/install.ts
 ```
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
-`~/.config/goose/recipes/*.yaml`, then copies all 49 skills from `skills/` to
+`~/.config/goose/recipes/*.yaml`, then copies all 50 skills from `skills/` to
 `~/.agents/skills/`. Requires Node 24+. By default this does not write
 `~/.config/goose/config.yaml`; it prints slash-command blocks to merge manually.
 
@@ -257,7 +270,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Skills vs Recipes:** Recipes launch standalone sessions with a pinned model and workflow. Skills are deep domain knowledge — FP patterns, framework rules, brand guidelines — loaded into running sessions on demand.
 
-**Cross-platform:** The same SKILL.md format works in Claude Code (via the Summon extension) and Goose. Write a skill once, use it in both.
+**Cross-platform:** The same SKILL.md format works in Claude Code (via the Summon extension) and Goose. Write a skill once, use it in both. MCP skills document both native/direct tool patterns and supported Goose TypeScript SDK wrappers; see [`docs/MCP-GOOSE-SDK-SIGNATURES.md`](docs/MCP-GOOSE-SDK-SIGNATURES.md).
 
 **Slash commands:** `/skills` lists available skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
@@ -268,9 +281,25 @@ Serena-enabled recipes bootstrap standardized project memories before acting:
 `task_completion`. Treat `.goosehints`, `CLAUDE.md`, and `AGENTS.md` as source
 files for migration, not as guaranteed runtime context. The `mcp-serena` skill
 includes a helper script that converts those files into reviewable Serena
-memory blocks. In Serena-enabled recipes, Serena bootstrap is the first tool
-action at session start before greeting, Taskwarrior, Jira, Vestige, repository
-search, or asking for local paths/config.
+memory blocks.
+
+In Serena-enabled recipes, Serena bootstrap is the first workstream at session
+start before greeting, Taskwarrior, Jira, Vestige, Qdrant, repository search,
+file discovery, browser inspection, or asking for local paths/config. Loading
+the `mcp-serena` skill first is allowed only as bootstrap support when an agent
+needs Serena tool guidance or Goose SDK signatures; it is not task-specific
+research.
+
+Goose typed SDK reminder:
+
+```ts
+await Serena.initialInstructions({});
+await Serena.listMemories({});
+await Serena.readMemory({ memory_name: "core" });
+```
+
+Those calls return `{ result: string }`. Do not use `memory_file_name`, and do
+not assume `listMemories` returns `.memories`.
 
 For task-scoped work, seed the org standards so Serena tells recipes how to use
 Vestige as the living task memory:
@@ -284,7 +313,8 @@ plan, implementation updates, review findings, resolutions, and final closeout
 under the task key.
 
 Inside any interactive Goose session, run `/serena-bootstrap` to reload the
-standard Serena project memories on demand.
+standard Serena project memories on demand. Run `/preflight` to perform a
+read-only Goose/MCP configuration canary; see [`docs/PREFLIGHT-CHECK.md`](docs/PREFLIGHT-CHECK.md).
 
 Use `/serena-memorize <note>` to add stable project context to the appropriate
 standard Serena memory:
@@ -293,7 +323,7 @@ standard Serena memory:
 /serena-memorize Our Claude Code design exists at ./claude-design and should be referenced when implementing app feature tasks.
 ```
 
-### Installed Skills (49 total)
+### Installed Skills (50 total)
 
 **FP languages (5):** `functional-programmer`, `js-fp`, `php-fp`, `py-fp`, `ruby-fp`
 
@@ -305,7 +335,7 @@ standard Serena memory:
 
 **Research (2):** `ima-researcher`, `patristic-researcher`
 
-**Workflow / git / arch (4):** `ima-git`, `architect`, `gh-cli`, `tea-gitea`
+**Workflow / git / arch (5):** `ima-git`, `architect`, `goose-preflight`, `gh-cli`, `tea-gitea`
 
 **Testing (3):** `unit-testing`, `phpunit-wp`, `playwright`
 
@@ -348,6 +378,7 @@ only the auto-injected `summon` extension.
 | `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | MID |
 | `task-planner` | Decomposition — Epic → Story → Task hierarchy for human-in-the-loop planning | HIGH |
 | `/prompt-starter` | Current-session prompt builder for dedicated recipe sessions | Current session |
+| `/preflight` | Read-only Goose/MCP configuration canary and readiness report | LOW |
 | `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | HIGH |
 | `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | HIGH |
 
@@ -395,7 +426,7 @@ Planned recipe dirs are harmless empty dirs signaling future scope. Convert when
 ## Model Profiles
 
 Recipes use `HIGH`, `MID`, and `LOW` tiers rendered from `profiles/*.yaml`.
-`openai` is the default profile. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
+`openai` is the default profile; `chatgpt_codex` is available for Goose's native ChatGPT Codex provider. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
 
 ---
 

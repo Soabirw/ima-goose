@@ -7,6 +7,20 @@ description: "Taskwarrior CLI skill for managing local tasks with the `task` com
 
 Use the local `task` command to inspect and manage the user's Taskwarrior database. Prefer structured Taskwarrior commands over editing data files directly.
 
+## Goose TypeScript SDK
+
+No Goose TypeScript SDK wrapper is currently exposed for Taskwarrior in this repository's supported tool set. Use the Taskwarrior CLI through shell commands. Do not invent calls such as `Taskwarrior.listTasks()` or `Taskwarrior.modifyTask()`.
+
+Supported interface examples:
+
+```bash
+task +PENDING export
+task <id-or-uuid> info
+task rc.confirmation=off <specific-filter> modify +tag
+```
+
+For automation, parse `task ... export` JSON and keep write commands narrowly filtered.
+
 ## First Checks
 
 Run these before assuming Taskwarrior is usable:

@@ -1,10 +1,17 @@
 ## Serena Project Memory Bootstrap
 
 At session start, before greeting, interpreting the prompt, or using any
-other tool, the first tool action MUST be the Serena bootstrap. Do this before
-Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
-inspection, or asking the user for paths/config that project memory may
-already contain:
+task-specific tool, the first tool action MUST be the Serena bootstrap.
+If Serena tool usage or Goose SDK signatures are not already known and the
+`mcp-serena` skill is available, you may load that skill first as bootstrap
+support. That skill load is part of Serena bootstrap, not task-specific
+research. After it, immediately continue with the Serena project-memory
+bootstrap.
+
+Do the bootstrap before Taskwarrior, Jira, Vestige, Qdrant, file reads,
+repository search, browser inspection, workflow discovery, or asking the user
+for paths/config that project memory may already contain:
+
 1. Call Serena `initial_instructions`.
 2. List memories and read standard memories when present: `core`,
    `conventions`, `tech_stack`, `suggested_commands`, and
@@ -15,6 +22,19 @@ already contain:
    `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
    workflow to create or refresh Serena memories. In read-only recipes,
    report the needed migration instead of writing memories.
+
+Goose typed SDK reminder: wrapper methods are camelCase and return
+`{ result: string }`:
+
+```ts
+await Serena.initialInstructions({});
+await Serena.listMemories({});
+await Serena.readMemory({ memory_name: "core" });
+```
+
+Do not call `readMemory` with `memory_file_name`, and do not assume
+`listMemories` returns an object with a `.memories` property. Read `.result`
+and parse only when a caller explicitly needs structured data.
 
 Do not continue with task-specific discovery until the bootstrap is complete
 or Serena is unavailable and you have said so explicitly. After bootstrap, if

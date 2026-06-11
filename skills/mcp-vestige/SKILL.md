@@ -7,6 +7,58 @@ description: "Vestige MCP — cognitive memory with semantic search, spaced repe
 
 Vestige is the neural memory layer. Use it for knowledge that should strengthen when reused and fade when it stops mattering.
 
+## Goose TypeScript SDK
+
+Use the `Vestige` namespace when the Goose typed SDK is available. Vestige wrappers return `Promise<any>` unless a specific tool response documents a narrower shape. Results are already parsed JavaScript values.
+
+| Purpose | Goose SDK wrapper | Required input | Useful optional input |
+|---|---|---|---|
+| Search memory | `Vestige.search` | `query: string` | `limit?`, `detail_level?`, `retrieval_mode?`, `concrete?`, `context_topics?`, `token_budget?` |
+| Get/edit memory | `Vestige.memory` | `action: "get" \| "get_batch" \| "state" \| "promote" \| "demote" \| "edit" \| "purge" \| "delete"` | `id?`, `ids?`, `content?`, `confirm?`, `reason?` |
+| Codebase context | `Vestige.codebase` | `action: "remember_pattern" \| "remember_decision" \| "get_context"` | `codebase?`, `name?`, `description?`, `decision?`, `rationale?`, `files?`, `limit?` |
+| Intentions | `Vestige.intention` | `action: "set" \| "check" \| "update" \| "list"` | `description?`, `trigger?`, `context?`, `id?`, `status?`, `priority?`, `deadline?` |
+| Smart save | `Vestige.smartIngest` | — | `content?`, `items?`, `node_type?`, `source?`, `tags?`, `forceCreate?`, `batchMergePolicy?` |
+| Timeline | `Vestige.memoryTimeline` | — | `start?`, `end?`, `limit?`, `node_type?`, `tags?`, `detail_level?` |
+| Changelog | `Vestige.memoryChangelog` | — | `memory_id?`, `start?`, `end?`, `limit?` |
+| System status | `Vestige.systemStatus` | `{}` | — |
+| Consolidate | `Vestige.consolidate` | `{}` | — |
+| Backup | `Vestige.backup` | `{}` | — |
+| Export | `Vestige.exportMemories` | — | `format?`, `path?`, `since?`, `tags?` |
+| Restore | `Vestige.restore` | `path: string` | `allowAnyPath?`, `merge?` |
+| Garbage collect | `Vestige.gc` | — | `dry_run?`, `max_age_days?`, `min_retention?` |
+| Importance score | `Vestige.importanceScore` | `content: string` | `context_topics?`, `project?` |
+| Duplicates | `Vestige.findDuplicates` | — | `limit?`, `similarity_threshold?`, `tags?` |
+| Dream | `Vestige.dream` | — | `memory_count?`, `min_similarity?` |
+| Connections | `Vestige.exploreConnections` | `action`, `from` | `to?`, `limit?` |
+| Prediction | `Vestige.predict` | — | `context?` |
+| Session context | `Vestige.sessionContext` | — | `queries?`, `context?`, include flags, `token_budget?` |
+| Health | `Vestige.memoryHealth` | `{}` | — |
+| Graph | `Vestige.memoryGraph` | — | `center_id?`, `query?`, `depth?`, `max_nodes?` |
+| Deep reference | `Vestige.deepReference` | `query: string` | `depth?` |
+| Cross reference | `Vestige.crossReference` | `query: string` | `depth?` |
+| Contradictions | `Vestige.contradictions` | — | `topic?`, `since?`, `limit?`, `min_trust?` |
+| Suppress | `Vestige.suppress` | `id: string` | `reason?`, `reverse?` |
+
+Safety: `Vestige.memory({ action: "purge" | "delete", ... })` permanently removes content and requires `confirm: true`. Do not use destructive actions unless the user explicitly asks.
+
+Examples:
+
+```ts
+const prior = await Vestige.search({
+  query: "FNR-123 implementation plan",
+  limit: 5,
+  detail_level: "summary",
+});
+
+await Vestige.smartIngest({
+  content: "FNR-123 implementation plan: ...",
+  node_type: "decision",
+  source: "planning session",
+  tags: ["FNR-123", "plan"],
+});
+```
+
+
 ## Session Start Protocol
 
 Before asking avoidable questions:

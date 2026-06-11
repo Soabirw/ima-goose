@@ -32,6 +32,18 @@ back to the old names.
 
 ## Other Profiles
 
+### ChatGPT Codex
+
+| Tier | Provider | Model |
+|---|---|---|
+| `HIGH` | `chatgpt_codex` | `gpt-5.5` |
+| `MID` | `chatgpt_codex` | `gpt-5.5` |
+| `LOW` | `chatgpt_codex` | `gpt-5.5` |
+
+Use when Goose is configured with the native `chatgpt_codex` provider. The
+profile keeps the base model ID because reasoning effort is configured through
+Goose provider settings such as `GOOSE_THINKING_EFFORT`.
+
 ### Hybrid
 
 | Tier | Provider | Model |
@@ -106,6 +118,7 @@ has been unreliable for this use case.
 
 ```bash
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile openai
+node ~/IMA/dev/ima-goose/scripts/install.ts --profile chatgpt_codex
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile hybrid
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile anthropic
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile claude-acp
