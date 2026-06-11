@@ -217,9 +217,11 @@ The `serena` extension in `config-template.yaml` is pre-configured with the corr
 Serena memory tools work without JetBrains. Keep Serena enabled when you want
 standard project memories, even if `jet_brains_*` code-navigation tools are not
 available. If you disable Serena, recipes lose the cross-harness project memory
-bootstrap. Serena-enabled recipes should load standard memories as the first
-workstream at session start before greeting, Taskwarrior, Jira, Vestige, Qdrant,
-file discovery, browser inspection, or asking for local paths/config. Loading
+bootstrap. Serena-enabled recipes should activate the Serena project first
+with the current project path or registered project name, then load standard
+memories as the first workstream at session start before greeting, Taskwarrior,
+Jira, Vestige, Qdrant, file discovery, browser inspection, or asking for local
+paths/config. Loading
 the `mcp-serena` skill first is allowed only as bootstrap support when an agent
 needs Serena tool guidance or Goose SDK signatures; it is not task-specific
 research.
@@ -227,6 +229,7 @@ research.
 When using Goose typed SDK wrappers, the canonical calls are:
 
 ```ts
+await Serena.activateProject({ project: "." });
 await Serena.initialInstructions({});
 await Serena.listMemories({});
 await Serena.readMemory({ memory_name: "core" });

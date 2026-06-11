@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.4"
 title: "WordPress Developer"
 description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, then delegates tests and review when appropriate."
 
@@ -205,8 +205,8 @@ instructions: |
   - Update Jira, create branches, commit, or open PRs unless explicitly asked.
 
 prompt: |
-  First run Serena bootstrap fully: call Serena `initial_instructions`, list
-  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
+  First run Serena bootstrap fully: activate the Serena project first, then call
+  Serena `initial_instructions`, list memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
 
   Mode: {{ mode }}.

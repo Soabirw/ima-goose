@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.4"
 title: "Brainstorm"
 description: "Interactive ideation session — shape an idea, problem, or Jira-fuzzy item into something well-defined. Researches memories on demand, iterates Q&A with the user, saves the brainstorm to memory or a file. Stand-alone."
 
@@ -139,8 +139,8 @@ parameters:
     description: "Optional. Raw idea, mental dump, Jira issue key (e.g., FNR-123), or blank to enter open brainstorming mode."
 
 prompt: |
-  First run Serena bootstrap fully: call Serena `initial_instructions`, list
-  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
+  First run Serena bootstrap fully: activate the Serena project first, then call
+  Serena `initial_instructions`, list memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
 
   {% if idea %}Brainstorm this input after Serena bootstrap:

@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "2.0.2"
 title: "Preflight Check"
 description: "Run a read-only Goose/MCP/tooling preflight and report what is configured, reachable, or failing."
 
@@ -75,8 +75,9 @@ instructions: |
   Quick/full should attempt these read-only probes when the corresponding tools
   are available:
 
-  - Serena memory: `Serena.initialInstructions({})`, `Serena.listMemories({})`.
-    If `core` appears to exist, optionally `Serena.readMemory({ memory_name: "core" })`.
+  - Serena memory: `Serena.activateProject({ project })`, `Serena.initialInstructions({})`,
+    `Serena.listMemories({})`. Activation is always first. If `core` appears to
+    exist, optionally `Serena.readMemory({ memory_name: "core" })`.
     JetBrains-specific failures are WARN unless symbol navigation is required.
   - Vestige: `Vestige.systemStatus({})` or `Vestige.search({ query: "preflight", limit: 1 })`.
   - Qdrant: `QdrantMemory.qdrantFind({ query: "preflight", limit: 1 })` and/or

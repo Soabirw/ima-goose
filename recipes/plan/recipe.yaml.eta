@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.4"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
 
@@ -293,8 +293,8 @@ parameters:
     description: "Optional. Raw text (idea / bug report / spec), Serena memory name, Jira key (FNR-123), local file path, or blank for open planning mode."
 
 prompt: |
-  First run Serena bootstrap fully: call Serena `initial_instructions`, list
-  memories, and read standard memories (`core`, `conventions`, `tech_stack`,
+  First run Serena bootstrap fully: activate the Serena project first, then call
+  Serena `initial_instructions`, list memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
 
   Mode: {{ mode }}

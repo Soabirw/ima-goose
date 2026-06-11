@@ -12,13 +12,16 @@ Do the bootstrap before Taskwarrior, Jira, Vestige, Qdrant, file reads,
 repository search, browser inspection, workflow discovery, or asking the user
 for paths/config that project memory may already contain:
 
-1. Call Serena `initial_instructions`.
-2. List memories and read standard memories when present: `core`,
+1. Activate the Serena project with the current project path or registered
+   project name. Activation is always first; without it, memory calls can return
+   `No active project`.
+2. Call Serena `initial_instructions`.
+3. List memories and read standard memories when present: `core`,
    `conventions`, `tech_stack`, `suggested_commands`, and
    `task_completion`.
-3. For implementation, review, testing, planning, or automation, at minimum
+4. For implementation, review, testing, planning, or automation, at minimum
    load `core`, `conventions`, and `suggested_commands` before acting.
-4. If required standard memories are missing but `.goosehints`,
+5. If required standard memories are missing but `.goosehints`,
    `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
    workflow to create or refresh Serena memories. In read-only recipes,
    report the needed migration instead of writing memories.
@@ -27,11 +30,13 @@ Goose typed SDK reminder: wrapper methods are camelCase and return
 `{ result: string }`:
 
 ```ts
+await Serena.activateProject({ project: "." });
 await Serena.initialInstructions({});
 await Serena.listMemories({});
 await Serena.readMemory({ memory_name: "core" });
 ```
 
+Use the current project path or a registered Serena project name for `project`.
 Do not call `readMemory` with `memory_file_name`, and do not assume
 `listMemories` returns an object with a `.memories` property. Read `.result`
 and parse only when a caller explicitly needs structured data.

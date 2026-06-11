@@ -92,6 +92,7 @@ async function probe(name: string, fn: () => Promise<unknown>) {
   }
 }
 
+await probe("serena.activateProject", () => Serena.activateProject({ project: "." }));
 await probe("serena.initialInstructions", () => Serena.initialInstructions({}));
 await probe("serena.listMemories", () => Serena.listMemories({}));
 await probe("vestige.systemStatus", () => Vestige.systemStatus({}));

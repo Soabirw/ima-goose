@@ -2,18 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.2.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.3.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.2.0
+## What's New In v2.3.0
 
-- Added provider-aware profile rendering so recipes emit the whole per-tier
-  Goose `settings:` block from `profiles/*.yaml`.
-- Added profile runtime-env metadata for providers like `chatgpt_codex` that
-  set thinking effort with `GOOSE_THINKING_EFFORT` instead of model suffixes.
-- Added tiered CLI and Goose Desktop alias wrappers for high, medium, and low
-  thinking effort.
-- Added installer and alias reminders to re-copy or merge `.goose-aliases.example`
-  whenever profile thinking effort/runtime env changes.
+- Fixed Serena bootstrap ordering so every Serena-enabled workflow activates the
+  current project before initial instructions or memory reads.
+- Updated Serena docs, SDK examples, preflight checks, and key recipes to use
+  `Serena.activateProject({ project: "." })` first.
+- Bumped affected recipe templates so rendered workflows carry the activation
+  requirement immediately.
 
 ---
 
@@ -282,7 +280,10 @@ includes a helper script that converts those files into reviewable Serena
 memory blocks.
 
 In Serena-enabled recipes, Serena bootstrap is the first workstream at session
-start before greeting, Taskwarrior, Jira, Vestige, Qdrant, repository search,
+start. Always activate the Serena project first with the current project path or
+registered project name before calling initial instructions or memory tools;
+without activation, memory calls can return `No active project`. Do this before
+greeting, Taskwarrior, Jira, Vestige, Qdrant, repository search,
 file discovery, browser inspection, or asking for local paths/config. Loading
 the `mcp-serena` skill first is allowed only as bootstrap support when an agent
 needs Serena tool guidance or Goose SDK signatures; it is not task-specific
@@ -291,6 +292,7 @@ research.
 Goose typed SDK reminder:
 
 ```ts
+await Serena.activateProject({ project: "." });
 await Serena.initialInstructions({});
 await Serena.listMemories({});
 await Serena.readMemory({ memory_name: "core" });

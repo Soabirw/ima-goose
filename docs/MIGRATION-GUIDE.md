@@ -137,8 +137,9 @@ Use Serena standard memories for stable project context:
 - `task_completion`
 - `memory_maintenance`
 
-Use `/serena-bootstrap` to reload them in a current session. Use
-`/serena-memorize <note>` for stable project context updates.
+Use `/serena-bootstrap` to reload them in a current session. Serena bootstrap
+always activates the current project first, before initial instructions or
+memory calls. Use `/serena-memorize <note>` for stable project context updates.
 
 Vestige remains the living task/decision memory. Qdrant remains the durable
 reference corpus for standards, PRDs, research, and architecture material.

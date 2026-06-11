@@ -49,6 +49,7 @@ Use Serena project memories as the cross-harness replacement for project-local c
 
 | Tool | Purpose |
 |------|---------|
+| `mcp__serena__activate_project` | Activate the project before setup or memory calls |
 | `mcp__serena__write_memory` | Write project context or notes |
 | `mcp__serena__read_memory` | Read stored memory by name |
 | `mcp__serena__edit_memory` | Edit existing memory entry |
@@ -60,6 +61,7 @@ Use Serena project memories as the cross-harness replacement for project-local c
 
 | Tool | Purpose |
 |------|---------|
+| `mcp__serena__activate_project` | Activate the project before setup or memory calls |
 | `mcp__serena__initial_instructions` | Read Serena setup instructions |
 | `mcp__serena__check_onboarding_performed` | Check if onboarding is done |
 | `mcp__serena__onboarding` | Run project onboarding |
@@ -69,8 +71,8 @@ Use Serena project memories as the cross-harness replacement for project-local c
 ## Goose TypeScript SDK
 
 Direct MCP/client examples use snake_case tool names such as
-`mcp__serena__initial_instructions`, `mcp__serena__list_memories`, and
-`mcp__serena__read_memory`. Goose's typed SDK wrapper exposes supported tools
+`mcp__serena__activate_project`, `mcp__serena__initial_instructions`,
+`mcp__serena__list_memories`, and `mcp__serena__read_memory`. Goose's typed SDK wrapper exposes supported tools
 under the `Serena` namespace with camelCase method names. Use the wrapper shape
 that fits the current harness.
 
@@ -82,6 +84,7 @@ the specific tool documents that inside the string payload.
 
 | Direct/native tool | Goose SDK wrapper | Required input | Optional input |
 |---|---|---|---|
+| `mcp__serena__activate_project` | `Serena.activateProject` | `project: string` | — |
 | `mcp__serena__initial_instructions` | `Serena.initialInstructions` | `{}` | — |
 | `mcp__serena__list_memories` | `Serena.listMemories` | — | `topic?: string` |
 | `mcp__serena__read_memory` | `Serena.readMemory` | `memory_name: string` | — |
@@ -96,6 +99,7 @@ the specific tool documents that inside the string payload.
 Correct bootstrap pattern:
 
 ```ts
+await Serena.activateProject({ project: "." });
 await Serena.initialInstructions({});
 const listed = await Serena.listMemories({});
 const core = await Serena.readMemory({ memory_name: "core" });
@@ -147,20 +151,25 @@ project-memory calls below before greeting, interpreting the prompt, or using
 Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
 inspection, or local workflow discovery.
 
-1. Call Serena initial instructions:
+1. Activate the Serena project with the current project path or registered
+   project name. Activation is always first; without it, memory calls can
+   return `No active project`.
+   - Direct MCP: `mcp__serena__activate_project` with `project`
+   - Goose SDK: `await Serena.activateProject({ project: "." })`
+2. Call Serena initial instructions:
    - Direct MCP: `mcp__serena__initial_instructions`
    - Goose SDK: `await Serena.initialInstructions({})`
-2. List memories:
+3. List memories:
    - Direct MCP: `mcp__serena__list_memories`
    - Goose SDK: `await Serena.listMemories({})`
-3. Read the standard memories that exist and are relevant to the task:
+4. Read the standard memories that exist and are relevant to the task:
    - Direct MCP: `mcp__serena__read_memory` with `memory_name`
    - Goose SDK: `await Serena.readMemory({ memory_name: "core" })`
    - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
    - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
    - Read `task_completion` before final verification, release work, or handoff.
    - Read `memory_maintenance` when updating or migrating project knowledge.
-4. If standard memories are missing and `.goosehints`, `CLAUDE.md`, or `AGENTS.md` exists, migrate the source file content into Serena memories before depending on it. In read-only recipes, report that migration is needed instead of writing memories.
+5. If standard memories are missing and `.goosehints`, `CLAUDE.md`, or `AGENTS.md` exists, migrate the source file content into Serena memories before depending on it. In read-only recipes, report that migration is needed instead of writing memories.
 
 Do not assume `.goosehints`, `CLAUDE.md`, or `AGENTS.md` was injected into the model context. If the task depends on project conventions, load Serena memories explicitly.
 
@@ -251,7 +260,7 @@ Need to find all callers?
   → jet_brains_find_referencing_symbols (NOT Grep)
 
 Need project rules, commands, or local workflow?
-  → initial_instructions, list_memories, read standard memories
+  → activate_project first, then initial_instructions, list_memories, read standard memories
      (NOT relying on .goosehints/CLAUDE.md injection)
 
 Need to migrate .goosehints or CLAUDE.md?
@@ -322,6 +331,9 @@ mcp__serena__write_memory
 ### Read standard project memories
 
 ```
+mcp__serena__activate_project
+  project: <current project path or registered project name>
+
 mcp__serena__initial_instructions
 
 mcp__serena__list_memories

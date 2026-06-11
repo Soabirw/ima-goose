@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+## v2.3.0 - 2026-06-11
+
+### Added
+
+- Added Serena activation to the canonical Goose typed SDK bootstrap examples
+  and direct MCP workflow documentation.
+
+### Changed
+
+- Updated Serena bootstrap workflows so project activation is always the first
+  Serena action before `initial_instructions`, memory listing, or memory reads.
+- Updated `/serena-bootstrap`, `/serena-memorize`, `/preflight`, and high-use
+  planning/development prompts to require activation before memory access.
+- Bumped affected recipe template versions for the Serena activation workflow
+  fix.
+
+### Fixed
+
+- Prevented Serena memory bootstrap from failing with `No active project` when
+  agents list or read memories before activating the current project.
+- Updated preflight's Serena probe guidance to activate the project before
+  checking initial instructions and memories.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check` using the stable
+  Hermit Node path.
+- Rendered and validated all 28 recipe templates for all supported profiles:
+  `openai`, `chatgpt_codex`, `hybrid`, `anthropic`, and `claude-acp`.
+- Confirmed changed rendered recipes were produced for `serena-bootstrap`,
+  `serena-memorize`, `preflight-check`, `brainstorm`, `plan`, and
+  `wp-developer`.
+- Ran `git diff --check`.
+
 ## v2.2.0 - 2026-06-11
 
 ### Added

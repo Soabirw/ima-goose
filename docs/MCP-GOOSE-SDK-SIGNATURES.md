@@ -72,6 +72,7 @@ Optional inputs: `isRevision`, `revisesThought`, `branchFromThought`, `branchId`
 Common bootstrap calls:
 
 ```ts
+await Serena.activateProject({ project: "." });
 await Serena.initialInstructions({});
 const memories = await Serena.listMemories({});
 const core = await Serena.readMemory({ memory_name: "core" });
@@ -85,7 +86,7 @@ await Serena.jetBrainsFindSymbol({ name_path_pattern: "MyClass/myMethod", includ
 await Serena.jetBrainsFindReferencingSymbols({ relative_path: "src/index.ts", name_path: "MyClass/myMethod" });
 ```
 
-Serena wrappers use `memory_name`, not `memory_file_name`, and return `{ result: string }`.
+Activate the project before initial instructions or memory calls. Serena wrappers use `memory_name`, not `memory_file_name`, and return `{ result: string }`.
 
 ## Chrome DevTools
 
