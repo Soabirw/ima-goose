@@ -7,6 +7,25 @@ description: "Vestige MCP — cognitive memory with semantic search, spaced repe
 
 Vestige is the neural memory layer. Use it for knowledge that should strengthen when reused and fade when it stops mattering.
 
+## ima-mcp Gateway Path
+
+When a project has the `ima-mcp` gateway installed and current, use it as a
+stable local CLI path for Vestige status, search, get, and explicit save
+operations when direct MCP wrappers are missing or inconsistent.
+
+```bash
+ima-mcp vestige status --json
+ima-mcp vestige doctor --json
+ima-mcp vestige search "<task key or topic>" --json
+ima-mcp vestige get <memory-id> --json
+ima-mcp vestige save --type closeout --file <path> --json
+```
+
+`vestige save` is mutating. Use it only when the task explicitly calls for a
+plan, decision, implementation update, review, resolution, or closeout record.
+Prefer direct `Vestige.*` wrappers when they are available and the current
+harness exposes the needed operation reliably.
+
 ## Goose TypeScript SDK
 
 Use the `Vestige` namespace when the Goose typed SDK is available. Vestige wrappers return `Promise<any>` unless a specific tool response documents a narrower shape. Results are already parsed JavaScript values.

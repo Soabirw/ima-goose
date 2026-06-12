@@ -11,6 +11,26 @@ configured, when you need deterministic scripted Jira workflow updates, or when
 the user explicitly asks for direct API work. The skill name remains
 `mcp-atlassian` for installer and recipe compatibility.
 
+## ima-mcp Gateway Path
+
+When a project has the `ima-mcp` gateway installed and current, use it as a
+stable local CLI path for safe Atlassian Rovo diagnostics and read-only Jira or
+Confluence lookups.
+
+```bash
+ima-mcp atlassian status --json
+ima-mcp atlassian doctor --json
+ima-mcp atlassian jira get FNR-123 --cloud-id <cloud-id> --json
+ima-mcp atlassian jira search "project = FNR ORDER BY updated DESC" --cloud-id <cloud-id> --max-results 25 --json
+ima-mcp atlassian confluence get <page-id> --cloud-id <cloud-id> --json
+```
+
+The gateway should return stable `auth_required` or `auth_failed` diagnostics
+instead of launching browser OAuth or mutating credentials by default. Run live
+Jira and Confluence reads only with approved safe targets. Prefer direct
+`AtlassianRovo.*` wrappers when they are available and the current harness
+exposes the needed operation reliably.
+
 ## Rovo MCP Setup in Goose
 
 The old Atlassian SSE endpoint is being retired after June 30, 2026. Do not

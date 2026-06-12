@@ -7,6 +7,12 @@ description: "Taskwarrior CLI skill for managing local tasks with the `task` com
 
 Use the local `task` command to inspect and manage the user's Taskwarrior database. Prefer structured Taskwarrior commands over editing data files directly.
 
+## ima-mcp Boundary
+
+`ima-mcp` intentionally does not wrap Taskwarrior. Taskwarrior already provides a
+stable native CLI, so use `task` directly for list, export, info, annotate,
+modify, complete, and delete operations.
+
 ## Goose TypeScript SDK
 
 No Goose TypeScript SDK wrapper is currently exposed for Taskwarrior in this repository's supported tool set. Use the Taskwarrior CLI through shell commands. Do not invent calls such as `Taskwarrior.listTasks()` or `Taskwarrior.modifyTask()`.

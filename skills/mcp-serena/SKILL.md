@@ -11,6 +11,24 @@ Use Serena FIRST for all code investigation — before Read, before Grep. Readin
 
 Use Serena project memories as the cross-harness replacement for project-local context files that may or may not be injected by Goose, Claude Code, Codex, or another runner. `.goosehints`, `CLAUDE.md`, and `AGENTS.md` are useful source files, but Serena memories are the reliable runtime source of truth once migrated.
 
+## ima-mcp Gateway Path
+
+When a project has the `ima-mcp` gateway installed and current, prefer it for
+stable local Serena bootstrap/status commands, especially when the active
+harness does not expose every Serena MCP tool.
+
+```bash
+ima-mcp serena project status --project . --json
+ima-mcp serena project activate . --json
+ima-mcp serena instructions --project . --json
+ima-mcp serena memory list --project . --json
+ima-mcp serena memory read core --project . --json
+```
+
+Use direct Serena MCP wrappers for symbol-aware code navigation and edits when
+they are exposed and reliable. The gateway complements direct MCP access; it
+does not replace JetBrains-backed Serena code intelligence.
+
 ## Tools
 
 ### Code Navigation (JetBrains — requires IDE)

@@ -22,6 +22,24 @@ Qdrant is the permanent library in the memory stack.
 
 Do not use Qdrant for temporary debugging notes, preferences, or session progress.
 
+## ima-mcp Gateway Path
+
+When a project has the `ima-mcp` gateway installed and current, use it as a
+stable local CLI path for Qdrant health checks, durable searches, and explicit
+stores when direct Qdrant MCP wrappers are missing or inconsistent.
+
+```bash
+ima-mcp qdrant status --json
+ima-mcp qdrant doctor --json
+ima-mcp qdrant collections --json
+ima-mcp qdrant find "<durable reference query>" --collection ima-knowledge --json
+ima-mcp qdrant store --file <path> --collection ima-knowledge --json
+```
+
+`qdrant store` is mutating. Use it only for approved durable reference material.
+Prefer direct `QdrantMemory.*` wrappers when they are available and the current
+harness exposes the needed operation reliably.
+
 ## Goose TypeScript SDK
 
 Use the `QdrantMemory` namespace when the Goose typed SDK is available. Both wrappers return `{ result: string }`.
