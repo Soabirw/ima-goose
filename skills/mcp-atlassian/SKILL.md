@@ -12,14 +12,6 @@ Goose convenience path when it is already authenticated and the current harness
 exposes the needed operation reliably. The skill name remains `mcp-atlassian`
 for installer and recipe compatibility.
 
-## ima-mcp Boundary
-
-`ima-mcp` intentionally does not wrap Atlassian Rovo or hosted Atlassian OAuth.
-The gateway is for local/self-hosted MCP reliability work such as Serena,
-Vestige, and Qdrant. Do not expect `ima-mcp mcp check` to manage
-`atlassian-rovo`; use this skill's REST helper or direct `AtlassianRovo.*`
-wrappers instead.
-
 ## Rovo MCP Setup in Goose
 
 The old Atlassian SSE endpoint is being retired after June 30, 2026. Do not
