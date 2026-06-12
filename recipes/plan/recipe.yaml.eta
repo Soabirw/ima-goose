@@ -1,4 +1,4 @@
-version: "2.0.4"
+version: "2.3.1"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
 
@@ -19,6 +19,8 @@ instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 
 <%~ it.include("instructions/memory-workflow.md", 2) %>
+
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
 
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
 
@@ -291,6 +293,16 @@ parameters:
     requirement: optional
     default: ""
     description: "Optional. Raw text (idea / bug report / spec), Serena memory name, Jira key (FNR-123), local file path, or blank for open planning mode."
+  - key: project
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+  - key: task
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
 
 prompt: |
   First run Serena bootstrap fully: activate the Serena project first, then call
@@ -300,6 +312,13 @@ prompt: |
   Mode: {{ mode }}
   {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for interactive approval or routine clarification. Use the supplied source, repository evidence, and documented conventions; record assumptions and blockers in the plan.
   {% else %}Guided/HITL mode is active. Use the normal planning conversation and wait for user answers where decisions are needed.
+  {% endif %}
+
+  {% if project and task %}Goose cycle context:
+  - Project: {{ project }}
+  - Task: {{ task }}
+
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task. Produce the implementation plan, then update Vestige with plan, non-goals, acceptance criteria, expected files, and verification plan. Add a narrow Taskwarrior annotation/tag indicating planning is complete when safe.
   {% endif %}
 
   {% if spec %}Planning-only mode is active for this entire session. Do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts. Treat the following as planning input after Serena bootstrap and produce a reviewable plan before any handoff:

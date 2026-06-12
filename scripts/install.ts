@@ -638,6 +638,27 @@ function installRecipes(): void {
   }
 }
 
+// ── Install goose-cycle helper ────────────────────────────────────────────────
+
+function installCycleShim(): void {
+  const localBin = path.join(os.homedir(), ".local", "bin");
+  const shimPath = path.join(localBin, "goose-cycle");
+  const cycleScript = path.join(repoRoot, "scripts", "cycle.ts");
+  const shim = `#!/usr/bin/env bash
+exec node ${JSON.stringify(cycleScript)} "$@"
+`;
+
+  fs.mkdirSync(localBin, { recursive: true });
+  fs.writeFileSync(shimPath, shim);
+  fs.chmodSync(shimPath, 0o755);
+  console.log(`\nInstalled goose-cycle shim to ${shimPath}`);
+
+  const pathEntries = (process.env.PATH ?? "").split(path.delimiter);
+  if (!pathEntries.includes(localBin)) {
+    console.warn(`  [WARN] ${localBin} is not on PATH. Add it to your shell profile to run goose-cycle directly.`);
+  }
+}
+
 // ── Install slash commands ───────────────────────────────────────────────────
 
 const slashCommands = [
@@ -782,13 +803,14 @@ function printNextSteps(): void {
   console.log("  4. Re-copy or merge ~/.goose-aliases whenever profile thinking effort/runtime env changes.");
   console.log("     chatgpt_codex uses alias-scoped GOOSE_THINKING_EFFORT rather than recipe model suffixes.");
   console.log("  5. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
-  console.log("  6. Switch model profile any time:");
+  console.log("  6. Ensure ~/.local/bin is on PATH for the goose-cycle helper.");
+  console.log("  7. Switch model profile any time:");
   console.log("       node scripts/install.ts --profile openai     # Default — GPT via codex-acp");
   console.log("       node scripts/install.ts --profile chatgpt_codex # Native ChatGPT Codex provider");
   console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");
-  console.log('  7. Run: goose-wp, goose-ui, goose-explore, goose-implement, etc.');
+  console.log('  8. Run: goose-wp, goose-ui, goose-explore, goose-implement, goose-cycle, etc.');
   console.log('     Inside a session, run /architect for architecture guidance.');
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
   console.log('     Run /preflight to verify Goose/MCP configuration.');
@@ -803,6 +825,7 @@ checkGoose();
 checkNodeVersion();
 installSkills();
 installRecipes();
+installCycleShim();
 if (cliArgs.registerSlashCommands) {
   registerSlashCommands();
 } else {

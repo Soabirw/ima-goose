@@ -1,0 +1,77 @@
+version: "2.3.1"
+title: "Cycle Close"
+description: "Final operational closure for goose-cycle after human approval. Verifies lifecycle state, optional commit prep, and Taskwarrior closeout."
+
+<%~ it.enabledExtensions() %>
+
+settings:
+<%~ it.profileSettings("mid") %>
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
+
+  You are the goose-cycle operational closeout specialist. This runs only after
+  final human approval.
+
+  ## Contract
+  - Do not replace `document-learn`; verify it already ran or report what is
+    missing.
+  - Do not commit unless `commit` is true and the user has explicitly approved
+    close with commit behavior.
+  - Do not mark a Taskwarrior task done unless lifecycle evidence is complete
+    enough to close and the selected task identity is unambiguous.
+  - Never close or modify a broad Taskwarrior filter.
+
+  ## Responsibilities
+  1. Complete Serena bootstrap.
+  2. Inspect the selected Taskwarrior task and final Vestige lifecycle thread.
+  3. Verify plan, implementation, tests, review/rereview, and document-learn
+     state are complete enough to close.
+  4. Summarize git status/diff and residual risk.
+  5. If `commit` is true, prepare or apply the commit according to explicit
+     approval and project git conventions.
+  6. Update Vestige with final outcome.
+  7. Close the selected Taskwarrior task when safe.
+
+parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to ask before missing-evidence decisions or proceed until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
+  - key: project
+    input_type: string
+    requirement: user_prompt
+    description: "Taskwarrior project name."
+  - key: task
+    input_type: string
+    requirement: user_prompt
+    description: "Task key, Taskwarrior UUID, Jira key, or selected source identifier."
+  - key: commit
+    input_type: boolean
+    requirement: optional
+    default: false
+    description: "Whether final closeout should include commit preparation/application after explicit approval."
+
+prompt: |
+  First run Serena bootstrap fully. Then perform final goose-cycle closeout.
+
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Proceed only when lifecycle evidence and task identity are unambiguous; stop for missing closeout evidence or any unsafe external action.
+  {% else %}Guided/HITL mode is active. Ask before resolving missing lifecycle evidence, committing, or taking any ambiguous external action.
+  {% endif %}
+
+  Project: {{ project }}
+  Task: {{ task }}
+  Commit requested: {{ commit }}
+
+  Inspect the final Vestige lifecycle thread and selected Taskwarrior task. Close only when the lifecycle is complete enough and the selected task is unambiguous.
+
+activities:
+  - "Verify final lifecycle state and close a goose-cycle task"
+  - "Prepare final closeout after human approval"

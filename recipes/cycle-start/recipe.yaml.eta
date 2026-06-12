@@ -1,0 +1,70 @@
+version: "2.3.1"
+title: "Cycle Start"
+description: "Normalize Taskwarrior and Vestige task context for a goose-cycle run. Terminal setup recipe; does not implement."
+
+<%~ it.enabledExtensions() %>
+
+settings:
+<%~ it.profileSettings("mid") %>
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
+
+  You are the goose-cycle task setup specialist. Normalize task identity and
+  durable lifecycle state before the plan phase begins.
+
+  ## Contract
+  - Do not implement code, write tests, review code, update docs, commit, or
+    close tasks.
+  - Inspect only the selected Taskwarrior task and related Vestige memories.
+  - Create or update a concise Vestige lifecycle thread only when the selected
+    task identity is unambiguous.
+  - Ask for clarification when multiple tasks, multiple Vestige threads, or
+    conflicting source identities are plausible.
+
+  ## Responsibilities
+  1. Complete Serena bootstrap.
+  2. Inspect the selected Taskwarrior task.
+  3. Search Vestige for the project, task key/UUID, Jira key, and source refs.
+  4. Create or update the lifecycle thread when missing.
+  5. Add a narrow Taskwarrior annotation/tag pointing to the Vestige thread when
+     safe.
+  6. Return a concise state summary and the next recommended command:
+     `goose-plan --project <project> --task <task>`.
+
+parameters:
+  - key: mode
+    input_type: select
+    requirement: optional
+    description: "Whether to ask on ambiguous identity matches or proceed until blocked."
+    default: "guided"
+    options:
+      - guided
+      - autonomous
+  - key: project
+    input_type: string
+    requirement: user_prompt
+    description: "Taskwarrior project name."
+  - key: task
+    input_type: string
+    requirement: user_prompt
+    description: "Task key, Taskwarrior UUID, Jira key, or selected source identifier."
+
+prompt: |
+  First run Serena bootstrap fully. Then normalize goose-cycle task context.
+
+  Mode: {{ mode }}.
+  {% if mode == "autonomous" %}Autonomous mode is active. Proceed when task identity is unambiguous; stop for conflicting task/thread matches.
+  {% else %}Guided/HITL mode is active. Ask before resolving conflicting task or Vestige thread identity.
+  {% endif %}
+
+  Project: {{ project }}
+  Task: {{ task }}
+
+  Inspect the selected Taskwarrior task, search Vestige, seed or update the lifecycle thread if needed, and return the next command for planning.
+
+activities:
+  - "Normalize the selected Taskwarrior task and Vestige thread before planning"
+  - "Seed the Vestige lifecycle thread for this goose-cycle task"

@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.3.1"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 
@@ -16,6 +16,7 @@ sub_recipes:
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are an implementation specialist. Write clean, functional, production-ready code.
 
@@ -104,6 +105,24 @@ parameters:
     requirement: optional
     default: ""
     description: "Optional. Plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief."
+  - key: project
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+  - key: task
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
+  - key: cycle_phase
+    input_type: select
+    requirement: optional
+    description: "Special goose-cycle implementation mode. Normal implementation is implicit."
+    default: "normal"
+    options:
+      - normal
+      - resolve-review
 
 prompt: |
   First run Serena bootstrap fully. Then continue.
@@ -114,6 +133,16 @@ prompt: |
   {% endif %}
 
   Implementation source:
+  {% if project and task %}Goose cycle context:
+  - Project: {{ project }}
+  - Task: {{ task }}
+  - Cycle phase: {{ cycle_phase }}
+
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task.
+  {% if cycle_phase == "resolve-review" %}Resolve confirmed review findings from Vestige without broadening scope. Update Vestige with the resolution summary, changed files, and verification. Add a narrow Taskwarrior annotation/tag indicating review findings were resolved when safe.
+  {% else %}Load the latest Vestige plan and implement that approved scope. Update Vestige with changed files, decisions, verification performed, and unresolved questions. Add a narrow Taskwarrior annotation/tag indicating implementation is complete when safe.
+  {% endif %}
+  {% endif %}
   {% if implementation_source %}{{ implementation_source }}{% else %}No implementation source provided. Ask for a plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief before editing.{% endif %}
 
 activities:

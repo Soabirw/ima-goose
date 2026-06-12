@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "install:recipes": "node scripts/install.ts",
-    "install:recipes:validate": "node scripts/install.ts --validate"
+    "install:recipes:validate": "node scripts/install.ts --validate",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "eta": "^4.0.1"

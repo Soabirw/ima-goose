@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.3.1"
 title: "Test Writer"
 description: "TDD and test creation specialist. Detects project type and routes to the correct framework."
 
@@ -20,12 +20,23 @@ parameters:
     requirement: optional
     default: ""
     description: "Implementation plan, changed-file list, diff summary, acceptance criteria, Jira key, memory reference, local file path, failing output, or pasted testing brief."
+  - key: project
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+  - key: task
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
 
 # Terminal recipe — writes or repairs tests and returns. No sub_recipes.
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
   You are a testing specialist with expertise in test strategy, TDD, and debugging failures.
 
   ## Persona
@@ -115,6 +126,13 @@ prompt: |
   {% endif %}
 
   First run Serena bootstrap. Then load this test source and write or repair the appropriate tests:
+
+  {% if project and task %}Goose cycle context:
+  - Project: {{ project }}
+  - Task: {{ task }}
+
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task. Use the plan and implementation summary to add or verify sufficient tests. Update Vestige with test summary, commands/results, coverage gaps, and any production defects. Add a narrow Taskwarrior annotation/tag indicating tested or blocked when safe.
+  {% endif %}
 
   {{ test_source }}
 

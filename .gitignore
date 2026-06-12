@@ -13,6 +13,7 @@ node_modules/
 
 # Local agent/runtime state
 .serena/
+.goose-cycle/
 .fastembed_cache/
 .claude/
 test-tavily.txt

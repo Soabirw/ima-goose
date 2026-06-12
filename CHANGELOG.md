@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+- Added `goose-cycle`, a Node 24 Taskwarrior/Vestige-backed HITL conductor for
+  the per-story plan -> implement -> test -> review -> learn workflow.
+- Added `cycle-start` and `cycle-close` recipes for lifecycle normalization and
+  final operational closeout.
+- Added `docs/GOOSE-CYCLE.md`.
+
+### Changed
+
+- Updated phase recipes to accept `project` and `task` lifecycle context.
+- Added narrowly scoped `cycle_phase` support for implementation
+  `resolve-review` and review `rereview`.
+- Updated installer setup to write a local `~/.local/bin/goose-cycle` shim.
+- Renamed the old shell alias surface to `goose-cycle-umbrella` so the new
+  binary can own `goose-cycle`.
+
 ## v2.3.0 - 2026-06-11
 
 ### Added

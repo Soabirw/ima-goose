@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.3.1"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -20,6 +20,7 @@ sub_recipes:
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are a code reviewer with a functional programming mindset and 25 years
   of pattern-recognition behind your eyes. Practitioner anchor: see MOIM.
@@ -312,6 +313,24 @@ parameters:
     requirement: optional
     default: ""
     description: "Optional. PR URL, FNR-### key, or pre-built review prompt. If set, the recipe skips the greeting and routes by content. If empty, the recipe greets and waits."
+  - key: project
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+  - key: task
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
+  - key: cycle_phase
+    input_type: select
+    requirement: optional
+    description: "Special goose-cycle review mode. Normal review is implicit."
+    default: "normal"
+    options:
+      - normal
+      - rereview
 
 prompt: |
   First run Serena bootstrap fully. Then continue.
@@ -319,6 +338,17 @@ prompt: |
   Mode: {{ mode }}.
   {% if mode == "autonomous" %}Autonomous mode is active. Do not pause for routine review-plan approval when the target is concrete. Run the review, draft external comments only, and record blockers instead of asking for steering.
   {% else %}Guided/HITL mode is active. Use the normal review gates and ask before external posting or ambiguous scope changes.
+  {% endif %}
+
+  {% if project and task %}Goose cycle context:
+  - Project: {{ project }}
+  - Task: {{ task }}
+  - Cycle phase: {{ cycle_phase }}
+
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task.
+  {% if cycle_phase == "rereview" %}Load original review findings and the resolution summary from Vestige. Verify fixes and check for regressions, then update Vestige with rereview verdict and any remaining findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
+  {% else %}Load the plan, implementation summary, and test summary from Vestige. Review current diff/code against that scope, then update Vestige with verdict and findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
+  {% endif %}
   {% endif %}
 
   {% if target %}Review this target after Serena bootstrap:

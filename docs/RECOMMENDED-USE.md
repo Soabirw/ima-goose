@@ -127,32 +127,32 @@ The important rule: pass artifacts forward explicitly. Good handoff inputs are:
 Do not assume a new recipe session remembers the previous session. Child
 sessions and separate recipe sessions need complete context.
 
-## Experimental: Full Cycle
+## HITL Cycle Helper
 
-Use `goose-cycle` only when you intentionally want to test the full-cycle
-umbrella recipe. It tries to conduct multiple phases in one session, but the
-recommended workflow is still HITL handoff between the product requirements
-workflow and the per-story delivery workflow.
+Use `goose-cycle` when you want a Taskwarrior/Vestige-backed conductor for the
+per-story delivery workflow. It runs existing top-level recipes in sequence and
+keeps detailed continuity in Vestige rather than relying on child session
+memory.
 
 ```bash
-goose-cycle
-goose-cycle "raw feature idea or problem statement"
-goose-cycle FNR-123
-goose-cycle "serena-memory-or-plan-name"
+goose-cycle start --project ima-mcp-gateway
+goose-cycle start --project ima-mcp-gateway --task S01
+goose-cycle status --project ima-mcp-gateway --task S01
+goose-cycle close --project ima-mcp-gateway --task S01
 ```
 
-This launches the `software-development-cycle` recipe. It owns the full phase
-graph and passes explicit artifacts between child recipes. It should stop at
-major gates in guided mode so a human can approve, revise, or skip phases.
+This calls the normal phase recipes as separate top-level Goose sessions:
+`cycle-start`, `plan`, `implement`, `test-writer`, `code-review`, and, after an
+approved review state, `document-learn`. It stops after document/learn for final
+human review. `goose-cycle close` performs operational closeout after that
+approval.
 
-Treat this as experimental. Use it only when:
+Use it when:
 
-- the work is not fully specified yet
-- multiple files or systems may be affected
-- acceptance criteria need to be clarified
-- you want tests and review to be part of the same workflow
-- the result should update docs or persistent memory
-- you are prepared to supervise every gate closely
+- Taskwarrior has the project/story queue
+- Vestige should carry the detailed lifecycle thread
+- you want the standard plan -> implement -> test -> review -> learn loop
+- you are prepared to inspect final output before closeout
 
 Avoid this mode when:
 
@@ -160,11 +160,11 @@ Avoid this mode when:
 - you already know the exact small edit and want a direct implementation recipe
 - you only need a review, scorecard, UI inspection, research answer, or release
   prep
-- you cannot actively review the plan, implementation, tests, and review output
+- Taskwarrior does not have a clear task identity yet
 
-Do not treat `goose-cycle` as the default path. It is useful for exercising the
-2.0 orchestration model, but the safer operating model is the HITL manual
-handoff path above.
+The older experimental umbrella recipe is still available as
+`goose-cycle-umbrella` for explicit orchestration experiments. See
+`docs/GOOSE-CYCLE.md` for the operational helper details.
 
 ## Experimental: Autonomous Mode
 
@@ -323,11 +323,15 @@ Use HITL per-story delivery for each approved story:
 story -> plan -> implement -> test -> review -> document-learn
 ```
 
-Use `goose-cycle` only when intentionally testing the experimental umbrella:
+Use `goose-cycle` when Taskwarrior and Vestige already hold the story queue
+and lifecycle state:
 
 ```text
-idea or ticket -> goose-cycle guided mode -> human review at every gate
+Taskwarrior story -> goose-cycle start -> document-learn -> human review -> goose-cycle close
 ```
+
+Use `goose-cycle-umbrella` only when intentionally testing the experimental
+single-session umbrella recipe.
 
 Use a specialty recipe when the task has one clear shape:
 

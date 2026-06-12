@@ -368,6 +368,8 @@ only the auto-injected `summon` extension.
 | `review-verify` | High-capability verification of critical review findings | HIGH |
 | `adversarial-review` | Experimental dual-model adversarial review with Anthropic + GPT-5.5 children | HIGH coordinator |
 | `goose-ship-it` | IMA release-prep workflow for staging branches and production tags | MID |
+| `cycle-start` | Normalize Taskwarrior + Vestige lifecycle context before a goose-cycle run | MID |
+| `cycle-close` | Final operational goose-cycle closure after human approval | MID |
 | `wp-developer` | WordPress with security + Bootstrap + FP | MID |
 | `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | HIGH |
 | `design-to-code` | Translate approved designs/screenshots into implementation prompts or code pipeline | HIGH |
@@ -394,11 +396,13 @@ only the auto-injected `summon` extension.
 
 Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
+Cycle helper terminals: `cycle-start`, `cycle-close`.
+
 Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, `/serena-memorize`.
 
 **Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 
-**Software development cycle.** `software-development-cycle` is the experimental top-level recipe for the full IMA cycle. It flattens every phase as a direct sub-recipe because Goose child sessions are isolated and should not rely on nested subrecipe calls. It passes explicit artifacts between phases and calls `document-learn` after each story and again at feature closeout. The recommended default remains HITL manual handoff.
+**Software development cycle.** `goose-cycle` is a local Node 24 helper installed to `~/.local/bin` by `scripts/install.ts`. It discovers Taskwarrior tasks, runs the existing top-level recipes as separate Goose sessions, uses Vestige as the lifecycle thread, and stops after `document-learn` for final human review before `goose-cycle close`. The older `software-development-cycle` umbrella recipe remains available through `goose-cycle-umbrella` for explicit orchestration experiments.
 
 ### P3 — Specialized
 

@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.3.1"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
 
@@ -11,6 +11,7 @@ settings:
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/cycle-task-context.md", 2) %>
   You are the documentation and learning closeout specialist. You do not
   implement code. You update the right docs, store the right memories, and
   produce a clear handoff from completed phase artifacts.
@@ -155,6 +156,16 @@ parameters:
       - story
       - feature
       - release
+  - key: project
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+  - key: task
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
 
 prompt: |
   Mode: {{ mode }}
@@ -163,6 +174,13 @@ prompt: |
   {% endif %}
 
   Update scope: {{ update_scope }}
+
+  {% if project and task %}Goose cycle context:
+  - Project: {{ project }}
+  - Task: {{ task }}
+
+  After bootstrap, load the full Vestige lifecycle and Taskwarrior task for this project/task. Update relevant docs and memories, update Vestige closeout/documentation state, and add a narrow Taskwarrior annotation/tag indicating learned/ready-for-close when safe. Do not mark the task done.
+  {% endif %}
 
   Artifact bundle:
   {% if artifact_bundle %}{{ artifact_bundle }}{% else %}No artifact bundle provided. Enter open document/learn mode. Greet briefly and ask the user for the completed implementation, test, review, and acceptance-criteria artifacts before inspecting files, updating docs, or storing memory.{% endif %}

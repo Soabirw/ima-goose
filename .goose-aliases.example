@@ -45,23 +45,25 @@ goose-desktop-high() { _goose_desktop_high "$@"; }
 goose-desktop-mid() { _goose_desktop_mid "$@"; }
 goose-desktop-low() { _goose_desktop_low "$@"; }
 
-# ── Experimental Full Cycle: Brainstorm → Plan → Implement → Test → Review → Document/Learn ─
-# Experimental umbrella for the complete IMA software development cycle. HITL
-# manual handoff remains the recommended default. Pass a raw idea, Serena
-# memory, file path, Jira key, existing plan, or story spec.
-# Usage: goose-cycle
-#        goose-cycle "goose-software-development-cycle-technical-plan"
-goose-cycle() {
+# ── HITL Cycle Helper: Taskwarrior → Plan → Implement → Test → Review → Learn ─
+# Installed by scripts/install.ts as ~/.local/bin/goose-cycle.
+# Usage:
+#   goose-cycle start --project ima-mcp-gateway
+#   goose-cycle status --project ima-mcp-gateway --task S01
+#   goose-cycle close --project ima-mcp-gateway --task S01
+#
+# Legacy umbrella recipe remains available for explicit experiments:
+goose-cycle-umbrella() {
   local source="${1:-}"
   if [ -n "$source" ]; then
     _goose_high run --recipe software-development-cycle \
       --params "source=${source}" \
       --params "mode=guided" \
       --params "scope=feature" \
-      --name "cycle-$(date +%Y%m%d-%H%M)" \
+      --name "cycle-umbrella-$(date +%Y%m%d-%H%M)" \
       --interactive
   else
-    _goose_high run --recipe software-development-cycle --name "cycle-$(date +%Y%m%d-%H%M)" --interactive
+    _goose_high run --recipe software-development-cycle --name "cycle-umbrella-$(date +%Y%m%d-%H%M)" --interactive
   fi
 }
 
@@ -91,12 +93,22 @@ goose-brainstorm() {
 #        goose-plan FNR-123
 #        goose-plan "raw idea text..."
 goose-plan() {
-  local spec="${1:-}"
-  if [ -n "$spec" ]; then
-    _goose_high run --recipe plan --params "spec=${spec}" --name "plan-$(date +%Y%m%d)" --interactive
-  else
-    _goose_high run --recipe plan --name "plan-$(date +%Y%m%d)" --interactive
-  fi
+  local spec=""
+  local project=""
+  local task=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-plan [spec] [--project <project> --task <task>]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-plan [spec] [--project <project> --task <task>]}"; shift 2 ;;
+      *) spec="$1"; shift ;;
+    esac
+  done
+
+  local args=(run --recipe plan --name "plan-$(date +%Y%m%d)" --interactive)
+  [ -n "$spec" ] && args+=(--params "spec=${spec}")
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  _goose_high "${args[@]}"
 }
 
 # ── Product Requirements: Task Planning ───────────────────────────────────────
@@ -126,12 +138,26 @@ goose-story-prompt() {
 # Usage: goose-implement
 #        goose-implement FNR-123
 goose-implement() {
-  local key="${1:-}"
-  if [ -n "$key" ]; then
-    _goose_mid run --recipe wp-developer --params "plan_source=${key}" --name "story-${key}-impl" --interactive
-  else
-    _goose_mid run --recipe wp-developer --name "story-$(date +%Y%m%d-%H%M)-impl" --interactive
-  fi
+  local key=""
+  local project=""
+  local task=""
+  local cycle_phase=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      --cycle-phase) cycle_phase="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      *) key="$1"; shift ;;
+    esac
+  done
+
+  local name_slug="${key:-${task:-$(date +%Y%m%d-%H%M)}}"
+  local args=(run --recipe wp-developer --name "story-${name_slug}-impl" --interactive)
+  [ -n "$key" ] && args+=(--params "plan_source=${key}")
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  [ -n "$cycle_phase" ] && args+=(--params "cycle_phase=${cycle_phase}")
+  _goose_mid "${args[@]}"
 }
 
 # ── Phase 4: Code Review ──────────────────────────────────────────────────────
@@ -145,15 +171,32 @@ goose-implement() {
 #   goose-review FNR-123                                  # Mode 1, full review
 #   goose-review https://git.example/owner/repo/pulls/45  # Mode 1, full review
 goose-review() {
-  local target="${1:-}"
+  local target=""
+  local project=""
+  local task=""
+  local cycle_phase=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      --cycle-phase) cycle_phase="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      *) target="$1"; shift ;;
+    esac
+  done
+
   local slug
+  local args=(run --recipe code-review)
   if [ -n "$target" ]; then
     # Build a filesystem-safe session-name slug from the target (PR URL or FNR key).
     slug=$(echo "$target" | tr -c 'A-Za-z0-9-' '-' | sed -E 's/-+/-/g; s/^-|-$//g' | cut -c1-40)
-    _goose_high run --recipe code-review --params "target=${target}" --name "review-${slug}-$(date +%Y%m%d-%H%M)" --interactive
+    args+=(--params "target=${target}" --name "review-${slug}-$(date +%Y%m%d-%H%M)" --interactive)
   else
-    _goose_high run --recipe code-review --name "review-$(date +%Y%m%d-%H%M)" --interactive
+    args+=(--name "review-$(date +%Y%m%d-%H%M)" --interactive)
   fi
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  [ -n "$cycle_phase" ] && args+=(--params "cycle_phase=${cycle_phase}")
+  _goose_high "${args[@]}"
 }
 
 # ── Phase 4b: Adversarial Code Review ─────────────────────────────────────────
@@ -180,9 +223,24 @@ goose-adversarial-review() {
 # Usage: goose-learn
 #        goose-learn "artifact bundle"
 #        goose-learn "artifact bundle" feature
+#        goose-learn "artifact bundle" story --project ima-mcp-gateway --task S01
 goose-learn() {
-  local artifact_bundle="${1:-}"
-  local update_scope="${2:-story}"
+  local artifact_bundle=""
+  local update_scope="story"
+  local project=""
+  local task=""
+  local positional=()
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-learn [artifact] [story|feature|release] [--project <project> --task <task>]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-learn [artifact] [story|feature|release] [--project <project> --task <task>]}"; shift 2 ;;
+      *) positional+=("$1"); shift ;;
+    esac
+  done
+
+  artifact_bundle="${positional[0]:-}"
+  update_scope="${positional[1]:-story}"
 
   case "$update_scope" in
     story|feature|release) ;;
@@ -192,18 +250,11 @@ goose-learn() {
       ;;
   esac
 
-  if [ -n "$artifact_bundle" ]; then
-    _goose_mid run --recipe document-learn \
-      --params "artifact_bundle=${artifact_bundle}" \
-      --params "update_scope=${update_scope}" \
-      --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" \
-      --interactive
-  else
-    _goose_mid run --recipe document-learn \
-      --params "update_scope=${update_scope}" \
-      --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" \
-      --interactive
-  fi
+  local args=(run --recipe document-learn --params "update_scope=${update_scope}" --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" --interactive)
+  [ -n "$artifact_bundle" ] && args+=(--params "artifact_bundle=${artifact_bundle}")
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  _goose_mid "${args[@]}"
 }
 
 # ── Model Profile Switcher ────────────────────────────────────────────────────
@@ -281,7 +332,22 @@ goose-explore() {
 }
 
 goose-tests() {
-  _goose_mid run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive
+  local test_source=""
+  local project=""
+  local task=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-tests [source] [--project <project> --task <task>]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-tests [source] [--project <project> --task <task>]}"; shift 2 ;;
+      *) test_source="$1"; shift ;;
+    esac
+  done
+
+  local args=(run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive)
+  [ -n "$test_source" ] && args+=(--params "test_source=${test_source}")
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  _goose_mid "${args[@]}"
 }
 
 goose-scorecard() {
@@ -366,7 +432,9 @@ RECOMMENDED HITL WORKFLOWS:
 
 EXPERIMENTAL:
 
-  goose-cycle [source]          Experimental umbrella: supervise every gate
+  goose-cycle start --project P
+                                Taskwarrior/Vestige-backed HITL cycle helper
+  goose-cycle-umbrella [source] Experimental umbrella recipe
   goose-story-prompt FNR-123    Jira story → implementation prompt (legacy)
   goose-adversarial-review [target]
                                 Experimental Anthropic + GPT-5.5 adversarial review
