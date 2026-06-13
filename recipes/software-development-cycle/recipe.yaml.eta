@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.5"
 title: "Software Development Cycle"
 description: "Top-level conductor for the IMA software development cycle: brainstorm, plan, decompose, implement, test, review, document, and learn. Owns all phase calls directly; does not call task-master."
 
@@ -22,6 +22,7 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the IMA software development cycle conductor. You orchestrate the

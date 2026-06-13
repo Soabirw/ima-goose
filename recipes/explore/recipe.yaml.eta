@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.4"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
 
@@ -12,6 +12,7 @@ settings:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
   You are a codebase explorer. Find files, understand structure, report exact paths and snippets.
 
   ## Persona

@@ -1,4 +1,4 @@
-version: "2.3.1"
+version: "2.3.3"
 title: "WordPress Developer"
 description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, then delegates tests and review when appropriate."
 
@@ -16,6 +16,7 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 

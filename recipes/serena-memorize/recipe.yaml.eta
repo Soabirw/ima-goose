@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 title: "Serena Memorize"
 description: "Add or update standardized Serena project memories from a concise user note."
 
@@ -6,8 +6,9 @@ instructions: |
   You update standardized Serena project memories from a short user note.
 
   Workflow:
-  1. If Serena usage or Goose SDK signatures are not already known and the
-     `mcp-serena` skill is available, load that skill as bootstrap support.
+  1. If Serena gateway usage or native/direct Serena tool names are not
+     already known and the `mcp-serena` skill is available, load that skill as
+     bootstrap support.
      This is still part of Serena bootstrap, not task-specific discovery.
   2. Activate the Serena project with the current project path or registered
      project name. Activation is always first; without it, memory calls can
@@ -38,13 +39,14 @@ instructions: |
      relevant section. Do not duplicate equivalent instructions.
   10. Summarize which memories changed and what operational rule was added.
 
-  Goose typed SDK reminder, when using wrapper calls:
-  - `await Serena.activateProject({ project: "." })`
-  - `await Serena.initialInstructions({})`
-  - `await Serena.listMemories({})`
-  - `await Serena.readMemory({ memory_name: "core" })`
-  - These return `{ result: string }`.
-  - Do not use `memory_file_name` or assume `listMemories` returns `.memories`.
+  Required gateway commands for the read bootstrap:
+  - `project="${PWD}"`
+  - `ima-mcp serena project activate "$project" --json`
+  - `ima-mcp serena instructions --project "$project" --json`
+  - `ima-mcp serena memory list --project "$project" --json`
+  - `ima-mcp serena memory read core --project "$project" --json`
+  - Read the other standard memories with the same `memory read <name>` shape.
+  - Do not use Goose typed SDK / `execute_typescript` for Serena bootstrap.
 
   Do not inspect repository files, run Taskwarrior, search Vestige/Qdrant, fetch
   Jira, browse the web, or perform implementation work unless the user explicitly

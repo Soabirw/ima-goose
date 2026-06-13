@@ -1,23 +1,65 @@
 # Changelog
 
-## Unreleased
+## v2.4.0 - 2026-06-12
 
 ### Added
 
 - Added `goose-cycle`, a Node 24 Taskwarrior/Vestige-backed HITL conductor for
-  the per-story plan -> implement -> test -> review -> learn workflow.
+  the per-story `plan -> implement -> test -> review -> learn` workflow.
 - Added `cycle-start` and `cycle-close` recipes for lifecycle normalization and
   final operational closeout.
-- Added `docs/GOOSE-CYCLE.md`.
+- Added `docs/GOOSE-CYCLE.md` with operator guidance for the cycle workflow.
+- Added shared `cycle-task-context` instructions so phase recipes can receive
+  project/task context from the cycle conductor.
+- Added shared `vestige-bootstrap` instructions plus `/vestige-bootstrap` and
+  `/bootstrap-vestige`, a read-only current-session preference bootstrap through
+  `ima-mcp vestige search "preferences" --json`.
+- Added `/bootstrap-serena` as an alias for `/serena-bootstrap`.
 
 ### Changed
 
-- Updated phase recipes to accept `project` and `task` lifecycle context.
-- Added narrowly scoped `cycle_phase` support for implementation
-  `resolve-review` and review `rereview`.
-- Updated installer setup to write a local `~/.local/bin/goose-cycle` shim.
-- Renamed the old shell alias surface to `goose-cycle-umbrella` so the new
-  binary can own `goose-cycle`.
+- Updated Serena bootstrap guidance across recipes, skills, setup docs, and
+  preflight to require the `ima-mcp serena` CLI gateway for project activation,
+  initial instructions, status, and memory reads instead of built-in/native
+  Serena bootstrap or the Goose TypeScript SDK path.
+- Updated Vestige guidance across recipes, skills, setup docs, and preflight to
+  require the `ima-mcp vestige` CLI gateway and to stop recommending
+  `execute_typescript` / `Vestige.*` usage.
+- Included Vestige preference bootstrap after Serena bootstrap in
+  Serena-enabled primary workflow recipes so sessions load user preferences
+  before task-specific memory discovery.
+- Updated phase recipes to accept `project` and `task` lifecycle context from
+  `goose-cycle`, including scoped support for implementation `resolve-review`
+  and review `rereview` phases.
+- Updated installer output and slash-command registration for the new Serena and
+  Vestige bootstrap aliases, and added a local `~/.local/bin/goose-cycle` shim.
+- Renamed the old shell alias surface to `goose-cycle-umbrella` so the
+  `goose-cycle` binary can own that command name.
+- Updated Quick Start provider guidance around the recommended `chatgpt_codex`
+  path, ACP limitations, and `ima-mcp` gateway usage.
+- Updated the Quick Start MCP setup section with top recommended install notes
+  for Serena, Vestige, and Qdrant; clarified `npx`/`uvx` examples in
+  `config-template.yaml`; and documented the required Atlassian REST helper
+  environment variables without committing secrets.
+- Refreshed `config-template.yaml` against the current representative Goose
+  extension/slash-command shape while keeping all sensitive values as
+  placeholders.
+
+### Fixed
+
+- Prevented Serena and Vestige bootstrap/preflight paths from depending on the
+  Goose TypeScript SDK, which can fail during SDK generation before the intended
+  MCP call runs.
+- Clarified that `ATLASSIAN_API_TOKEN` and `ATLASSIAN_BEARER_TOKEN` are the same
+  token value for `mcp-atlassian` REST helper usage.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check`.
+- Ran `npm test`.
+- Rendered and validated recipe templates with `node scripts/install.ts --validate`.
+- Parsed `config-template.yaml` as YAML.
+- Ran `git diff --check`.
 
 ## v2.3.0 - 2026-06-11
 

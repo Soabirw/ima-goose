@@ -223,20 +223,24 @@ memories as the first workstream at session start before greeting, Taskwarrior,
 Jira, Vestige, Qdrant, file discovery, browser inspection, or asking for local
 paths/config. Loading
 the `mcp-serena` skill first is allowed only as bootstrap support when an agent
-needs Serena tool guidance or Goose SDK signatures; it is not task-specific
-research.
+needs Serena gateway guidance or native/direct tool names; it is not
+task-specific research.
 
-When using Goose typed SDK wrappers, the canonical calls are:
+For Serena bootstrap, use the `ima-mcp` CLI gateway. Do not use Goose typed
+SDK / `execute_typescript` for Serena activation, `initial_instructions`, or
+memory reads; that path can fail before Serena runs when generated SDK type
+output from another registered tool is invalid TypeScript.
 
-```ts
-await Serena.activateProject({ project: "." });
-await Serena.initialInstructions({});
-await Serena.listMemories({});
-await Serena.readMemory({ memory_name: "core" });
+```bash
+project="${PWD}"
+ima-mcp serena project activate "$project" --json
+ima-mcp serena instructions --project "$project" --json
+ima-mcp serena memory list --project "$project" --json
+ima-mcp serena memory read core --project "$project" --json
 ```
 
-Those calls return `{ result: string }`. Do not use `memory_file_name`, and do
-not assume `listMemories` returns `.memories`.
+If `ima-mcp` is missing or Serena reports unavailable, capture the command
+output and fix that gateway path first.
 
 To migrate existing project context files into Serena memories, load the
 `mcp-serena` skill and run:
@@ -251,7 +255,7 @@ Review the generated blocks, then write them to Serena memories named `core`,
 `memory_maintenance`. Use `--include-org-standards` for IMA-style projects so
 the generated memories include the Vestige task lifecycle protocol.
 
-Inside an interactive Goose session, use `/serena-bootstrap` to reload standard
+Inside an interactive Goose session, use `/serena-bootstrap` (or `/bootstrap-serena`) to reload standard
 Serena project memories on demand. The installer prints slash-command config to
 merge manually. To let the installer write slash commands, pass
 `--register-slash-commands`; it creates a timestamped `config.yaml` backup
@@ -277,17 +281,28 @@ standard Serena memory:
 | `fetch` | None | Requires `uvx` |
 | `chrome-devtools` | None | Requires `npx`; Chrome/Chromium for browser debugging |
 | `qdrant-memory` | None by default | Requires `qdrant-mcp`; Qdrant at `http://localhost:6333` |
-| `vestige` | None | Requires `vestige-mcp` |
+| `vestige` | None | Requires `vestige-mcp`; use through `ima-mcp vestige`, not Goose typed SDK |
 | `atlassian-rovo` | Browser OAuth | Remote MCP via `https://mcp.atlassian.com/v1/mcp/authv2`; no static token needed for interactive use |
 | `mcp-atlassian` skill REST helper | `ATLASSIAN_BEARER_TOKEN`, `ATLASSIAN_CLOUD_ID`, `ATLASSIAN_DOMAIN`; fallback: `ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL` | Direct REST fallback for Jira/Confluence scripts and workflow updates |
 | `tom` | `GOOSE_MOIM_MESSAGE_TEXT` or `GOOSE_MOIM_MESSAGE_FILE` | Optional persistent instructions injected every turn |
 | `todo` | None | Built-in task checklist extension for complex workflows |
 
 MCP extensions expose tools directly to Goose. In API/typed-SDK harnesses,
-supported MCP tools are also available through TypeScript namespace wrappers.
-Use the signatures in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md)
+some supported MCP tools are also available through TypeScript namespace
+wrappers. Use the signatures in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md)
 and the `skills/mcp-*` guides; do not invent wrappers that are not exposed by
-the SDK.
+the SDK. Vestige is an explicit exception: use `ima-mcp vestige`, not
+`execute_typescript` or `Vestige.*`, because Vestige can break SDK generation
+before any tool call runs.
+
+
+Use `/vestige-bootstrap` (or `/bootstrap-vestige`) inside an interactive Goose
+session to load user preferences from Vestige. The tested read-only gateway
+command is:
+
+```bash
+ima-mcp vestige search "preferences" --json
+```
 
 ---
 

@@ -62,7 +62,8 @@ Some workflows are commands, not dedicated sessions:
 
 - `/architect` applies the architecture/persona lens to the current session.
 - `/prompt-starter` builds a prompt for a future dedicated recipe session.
-- `/serena-bootstrap` reloads project memories.
+- `/serena-bootstrap` (`/bootstrap-serena` alias) reloads project memories.
+- `/vestige-bootstrap` (`/bootstrap-vestige` alias) loads user preferences from Vestige.
 - `/serena-memorize <note>` updates standardized Serena project memory.
 
 ## Sub-Recipe Delegation

@@ -1,6 +1,6 @@
 ---
 name: mcp-serena
-description: "Serena MCP — use for code investigation, symbol-aware editing, and project-scoped memory. Use before Read/Grep for code navigation; use project memories to load cross-harness project context; use the migration workflow to convert .goosehints, CLAUDE.md, or AGENTS.md into standard Serena memories. Triggers on: Serena, project memory, .goosehints, CLAUDE.md, AGENTS.md, find function, find class, find references, rename symbol, refactor, search code, onboarding, initial_instructions."
+description: "Serena MCP — use ima-mcp serena CLI as the required path for project activation, initial instructions, status, and memories; do not use execute_typescript/Goose SDK for Serena bootstrap. Use native/direct Serena tools only for symbol-aware code navigation and edits when exposed and reliable. Triggers on: Serena, ima-mcp, project memory, .goosehints, CLAUDE.md, AGENTS.md, find function, find class, find references, rename symbol, refactor, search code, onboarding, initial_instructions."
 ---
 
 # Serena MCP - Code Navigation and Project Memory
@@ -11,23 +11,46 @@ Use Serena FIRST for all code investigation — before Read, before Grep. Readin
 
 Use Serena project memories as the cross-harness replacement for project-local context files that may or may not be injected by Goose, Claude Code, Codex, or another runner. `.goosehints`, `CLAUDE.md`, and `AGENTS.md` are useful source files, but Serena memories are the reliable runtime source of truth once migrated.
 
-## ima-mcp Gateway Path
+## Required ima-mcp Gateway Path
 
-When a project has the `ima-mcp` gateway installed and current, prefer it for
-stable local Serena bootstrap/status commands, especially when the active
-harness does not expose every Serena MCP tool.
+Use `ima-mcp serena` as **the required path** for Serena project activation,
+status, initial instructions, and memory reads in Goose/API harness sessions.
+Do not treat this as a preference or fallback. The Goose `execute_typescript`
+SDK path can fail before any Serena call runs because registered SDK type output
+may contain invalid TypeScript from unrelated tools. If a user asks for Serena
+bootstrap, `initial_instructions`, or project memories, go straight to the CLI.
+
+Canonical bootstrap:
 
 ```bash
-ima-mcp serena project status --project . --json
-ima-mcp serena project activate . --json
-ima-mcp serena instructions --project . --json
-ima-mcp serena memory list --project . --json
-ima-mcp serena memory read core --project . --json
+project="${PWD}"
+ima-mcp serena project activate "$project" --json
+ima-mcp serena instructions --project "$project" --json
+ima-mcp serena memory list --project "$project" --json
+ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena memory read conventions --project "$project" --json
+ima-mcp serena memory read tech_stack --project "$project" --json
+ima-mcp serena memory read suggested_commands --project "$project" --json
+ima-mcp serena memory read task_completion --project "$project" --json
 ```
 
-Use direct Serena MCP wrappers for symbol-aware code navigation and edits when
-they are exposed and reliable. The gateway complements direct MCP access; it
-does not replace JetBrains-backed Serena code intelligence.
+Diagnostics:
+
+```bash
+command -v ima-mcp
+ima-mcp doctor --project . --json
+ima-mcp serena project status --project . --json
+ima-mcp serena doctor --project . --json
+```
+
+If `ima-mcp` is missing or the CLI reports Serena is unavailable, stop and
+report the blocker with the command output. Do not silently fall back to
+`execute_typescript` for Serena bootstrap.
+
+Use native/direct Serena MCP wrappers only for symbol-aware code navigation and
+edits when they are exposed and reliable in the active harness. The gateway is
+for stable project lifecycle, instructions, and memory operations; direct Serena
+still provides JetBrains-backed code intelligence when available.
 
 ## Tools
 
@@ -86,103 +109,96 @@ does not replace JetBrains-backed Serena code intelligence.
 | `mcp__serena__serena_info` | Get Serena server info |
 | `mcp__serena__open_dashboard` | Open Serena dashboard |
 
-## Goose TypeScript SDK
+## Goose TypeScript SDK Boundary
 
-Direct MCP/client examples use snake_case tool names such as
-`mcp__serena__activate_project`, `mcp__serena__initial_instructions`,
-`mcp__serena__list_memories`, and `mcp__serena__read_memory`. Goose's typed SDK wrapper exposes supported tools
-under the `Serena` namespace with camelCase method names. Use the wrapper shape
-that fits the current harness.
+Do **not** use `execute_typescript` / Goose TypeScript SDK calls for Serena
+bootstrap, status, initial instructions, or memory access in this project. The
+SDK signatures may look correct, but the execution harness can fail during
+TypeScript generation before it reaches Serena. A known failure shape is:
 
-Serena Goose SDK calls return `{ result: string }` for the supported tools below.
-Read `.result`; do not assume list calls return arrays or object properties unless
-the specific tool documents that inside the string payload.
-
-### Memory and onboarding
-
-| Direct/native tool | Goose SDK wrapper | Required input | Optional input |
-|---|---|---|---|
-| `mcp__serena__activate_project` | `Serena.activateProject` | `project: string` | — |
-| `mcp__serena__initial_instructions` | `Serena.initialInstructions` | `{}` | — |
-| `mcp__serena__list_memories` | `Serena.listMemories` | — | `topic?: string` |
-| `mcp__serena__read_memory` | `Serena.readMemory` | `memory_name: string` | — |
-| `mcp__serena__write_memory` | `Serena.writeMemory` | `memory_name: string`, `content: string` | `max_chars?: number` |
-| `mcp__serena__edit_memory` | `Serena.editMemory` | `memory_name`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
-| `mcp__serena__delete_memory` | `Serena.deleteMemory` | `memory_name: string` | — |
-| `mcp__serena__rename_memory` | `Serena.renameMemory` | `old_name: string`, `new_name: string` | — |
-| `mcp__serena__onboarding` | `Serena.onboarding` | `{}` | — |
-| `mcp__serena__serena_info` | `Serena.serenaInfo` | `topic: string` | — |
-| `mcp__serena__open_dashboard` | `Serena.openDashboard` | `{}` | — |
-
-Correct bootstrap pattern:
-
-```ts
-await Serena.activateProject({ project: "." });
-await Serena.initialInstructions({});
-const listed = await Serena.listMemories({});
-const core = await Serena.readMemory({ memory_name: "core" });
-console.log(listed.result, core.result);
+```text
+Expected ident ...
+    export
+    ~~~~~~
 ```
 
-Do not call `readMemory` with `memory_file_name`, and do not assume
-`listMemories` returns `.memories`.
+That error can be caused by an unrelated registered SDK namespace and still
+blocks Serena calls. Re-trying `Serena.initialInstructions({})` through
+`execute_typescript` wastes turns and does not activate the project. Use the
+`ima-mcp serena ... --json` commands above instead.
+
+The direct/native tool names below remain useful documentation for harnesses
+that expose Serena MCP tools directly, outside the broken TypeScript execution
+path. Use them for direct MCP access only when the native tools are available
+and have already proven reliable in the current session.
+
+### Direct/native memory and onboarding tool names
+
+| Direct/native tool | Required input | Optional input |
+|---|---|---|
+| `mcp__serena__activate_project` | `project: string` | — |
+| `mcp__serena__initial_instructions` | `{}` | — |
+| `mcp__serena__list_memories` | — | `topic?: string` |
+| `mcp__serena__read_memory` | `memory_name: string` | — |
+| `mcp__serena__write_memory` | `memory_name: string`, `content: string` | `max_chars?: number` |
+| `mcp__serena__edit_memory` | `memory_name`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
+| `mcp__serena__delete_memory` | `memory_name: string` | — |
+| `mcp__serena__rename_memory` | `old_name: string`, `new_name: string` | — |
+| `mcp__serena__onboarding` | `{}` | — |
+| `mcp__serena__serena_info` | `topic: string` | — |
+| `mcp__serena__open_dashboard` | `{}` | — |
 
 ### Content editing
 
-| Direct/native tool | Goose SDK wrapper | Required input | Optional input |
-|---|---|---|---|
-| `mcp__serena__replace_content` | `Serena.replaceContent` | `relative_path`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
-| `mcp__serena__replace_symbol_body` | `Serena.replaceSymbolBody` | `relative_path`, `name_path`, `body` | — |
-| `mcp__serena__insert_after_symbol` | `Serena.insertAfterSymbol` | `relative_path`, `name_path`, `body` | — |
-| `mcp__serena__insert_before_symbol` | `Serena.insertBeforeSymbol` | `relative_path`, `name_path`, `body` | — |
+| Direct/native tool | Required input | Optional input |
+|---|---|---|
+| `mcp__serena__replace_content` | `relative_path`, `needle`, `repl`, `mode: "literal" \| "regex"` | `allow_multiple_occurrences?: boolean` |
+| `mcp__serena__replace_symbol_body` | `relative_path`, `name_path`, `body` | — |
+| `mcp__serena__insert_after_symbol` | `relative_path`, `name_path`, `body` | — |
+| `mcp__serena__insert_before_symbol` | `relative_path`, `name_path`, `body` | — |
 
-Use symbol/content editing only after targeted retrieval confirms the exact symbol
-or content to change.
+Use symbol/content editing only after targeted retrieval confirms the exact
+symbol or content to change.
 
 ### JetBrains code intelligence and refactoring
 
 These require a JetBrains IDE with the Serena MCP plugin running.
 
-| Direct/native tool | Goose SDK wrapper | Required input | Useful optional input |
-|---|---|---|---|
-| `mcp__serena__jet_brains_get_symbols_overview` | `Serena.jetBrainsGetSymbolsOverview` | `relative_path` | `depth?`, `max_answer_chars?`, `include_file_documentation?` |
-| `mcp__serena__jet_brains_find_symbol` | `Serena.jetBrainsFindSymbol` | `name_path_pattern` | `relative_path?`, `depth?`, `include_body?`, `include_info?`, `search_deps?`, `max_matches?` |
-| `mcp__serena__jet_brains_find_referencing_symbols` | `Serena.jetBrainsFindReferencingSymbols` | `relative_path`, `name_path` | `max_answer_chars?` |
-| `mcp__serena__jet_brains_find_declaration` | `Serena.jetBrainsFindDeclaration` | `relative_path`, `regex` | `include_body?` |
-| `mcp__serena__jet_brains_find_implementations` | `Serena.jetBrainsFindImplementations` | `relative_path`, `name_path` | — |
-| `mcp__serena__jet_brains_type_hierarchy` | `Serena.jetBrainsTypeHierarchy` | `relative_path`, `name_path` | `hierarchy_type?`, `depth?`, `max_answer_chars?` |
-| `mcp__serena__jet_brains_rename` | `Serena.jetBrainsRename` | `relative_path`, `new_name` | `name_path?`, `rename_in_comments?`, `rename_in_text_occurrences?` |
-| `mcp__serena__jet_brains_move` | `Serena.jetBrainsMove` | `relative_path` | `name_path?`, `target_relative_path?`, `target_parent_name_path?` |
-| `mcp__serena__jet_brains_safe_delete` | `Serena.jetBrainsSafeDelete` | `relative_path` | `name_path?`, `delete_even_if_used?`, `propagate?` |
-| `mcp__serena__jet_brains_inline_symbol` | `Serena.jetBrainsInlineSymbol` | `relative_path`, `name_path` | `keep_definition?` |
-| `mcp__serena__jet_brains_debug` | `Serena.jetBrainsDebug` | `expression` | `repl_key?` |
-| `mcp__serena__jet_brains_run_inspections` | `Serena.jetBrainsRunInspections` | `relative_path` | `min_severity?`, `inspection_names?`, `start_line?`, `end_line?`, `max_answer_chars?` |
-| `mcp__serena__jet_brains_list_inspections` | `Serena.jetBrainsListInspections` | — | `language?`, `group_path_contains?`, `max_answer_chars?` |
+| Direct/native tool | Required input | Useful optional input |
+|---|---|---|
+| `mcp__serena__jet_brains_get_symbols_overview` | `relative_path` | `depth?`, `max_answer_chars?`, `include_file_documentation?` |
+| `mcp__serena__jet_brains_find_symbol` | `name_path_pattern` | `relative_path?`, `depth?`, `include_body?`, `include_info?`, `search_deps?`, `max_matches?` |
+| `mcp__serena__jet_brains_find_referencing_symbols` | `relative_path`, `name_path` | `max_answer_chars?` |
+| `mcp__serena__jet_brains_find_declaration` | `relative_path`, `regex` | `include_body?` |
+| `mcp__serena__jet_brains_find_implementations` | `relative_path`, `name_path` | — |
+| `mcp__serena__jet_brains_type_hierarchy` | `relative_path`, `name_path` | `hierarchy_type?`, `depth?`, `max_answer_chars?` |
+| `mcp__serena__jet_brains_rename` | `relative_path`, `new_name` | `name_path?`, `rename_in_comments?`, `rename_in_text_occurrences?` |
+| `mcp__serena__jet_brains_move` | `relative_path` | `name_path?`, `target_relative_path?`, `target_parent_name_path?` |
+| `mcp__serena__jet_brains_safe_delete` | `relative_path` | `name_path?`, `delete_even_if_used?`, `propagate?` |
+| `mcp__serena__jet_brains_inline_symbol` | `relative_path`, `name_path` | `keep_definition?` |
+| `mcp__serena__jet_brains_debug` | `expression` | `repl_key?` |
+| `mcp__serena__jet_brains_run_inspections` | `relative_path` | `min_severity?`, `inspection_names?`, `start_line?`, `end_line?`, `max_answer_chars?` |
+| `mcp__serena__jet_brains_list_inspections` | — | `language?`, `group_path_contains?`, `max_answer_chars?` |
 
 ## Project Memory Bootstrap
 
 At the start of project-specific work in any Serena-enabled harness, Serena
 bootstrap is the first workstream. If this skill was loaded first to learn
-Serena mechanics or Goose wrapper signatures, that load is bootstrap support,
+Serena gateway mechanics or native/direct tool names, that load is bootstrap support,
 not task-specific research. After loading the skill, immediately run the Serena
 project-memory calls below before greeting, interpreting the prompt, or using
 Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
 inspection, or local workflow discovery.
 
 1. Activate the Serena project with the current project path or registered
-   project name. Activation is always first; without it, memory calls can
-   return `No active project`.
-   - Direct MCP: `mcp__serena__activate_project` with `project`
-   - Goose SDK: `await Serena.activateProject({ project: "." })`
-2. Call Serena initial instructions:
-   - Direct MCP: `mcp__serena__initial_instructions`
-   - Goose SDK: `await Serena.initialInstructions({})`
-3. List memories:
-   - Direct MCP: `mcp__serena__list_memories`
-   - Goose SDK: `await Serena.listMemories({})`
-4. Read the standard memories that exist and are relevant to the task:
-   - Direct MCP: `mcp__serena__read_memory` with `memory_name`
-   - Goose SDK: `await Serena.readMemory({ memory_name: "core" })`
+   project name by using `ima-mcp serena project activate "$project" --json`.
+   Activation is always first; without it, memory calls can return
+   `No active project`.
+2. Call Serena initial instructions with
+   `ima-mcp serena instructions --project "$project" --json`.
+3. List memories with `ima-mcp serena memory list --project "$project" --json`.
+4. Read the standard memories that exist and are relevant to the task with
+   `ima-mcp serena memory read <name> --project "$project" --json`.
    - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
    - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
    - Read `task_completion` before final verification, release work, or handoff.
@@ -278,8 +294,8 @@ Need to find all callers?
   → jet_brains_find_referencing_symbols (NOT Grep)
 
 Need project rules, commands, or local workflow?
-  → activate_project first, then initial_instructions, list_memories, read standard memories
-     (NOT relying on .goosehints/CLAUDE.md injection)
+  → ima-mcp serena project activate, instructions, memory list, memory read
+     (NOT execute_typescript and NOT relying on .goosehints/CLAUDE.md injection)
 
 Need to migrate .goosehints or CLAUDE.md?
   → scripts/migrate-context-to-serena.py, then write_memory
@@ -295,7 +311,8 @@ Non-code file (YAML, JSON, Markdown)?
   → Native Read tool (Serena/LSP doesn't index these)
 
 Serena unavailable?
-  → Fall back to native Read/Grep
+  → Report the ima-mcp/Serena blocker explicitly, then fall back only for the
+     task-specific work the user still wants done
 ```
 
 ## Common Patterns
@@ -348,22 +365,14 @@ mcp__serena__write_memory
 
 ### Read standard project memories
 
-```
-mcp__serena__activate_project
-  project: <current project path or registered project name>
-
-mcp__serena__initial_instructions
-
-mcp__serena__list_memories
-
-mcp__serena__read_memory
-  memory_name: "core"
-
-mcp__serena__read_memory
-  memory_name: "conventions"
-
-mcp__serena__read_memory
-  memory_name: "suggested_commands"
+```bash
+project="${PWD}"
+ima-mcp serena project activate "$project" --json
+ima-mcp serena instructions --project "$project" --json
+ima-mcp serena memory list --project "$project" --json
+ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena memory read conventions --project "$project" --json
+ima-mcp serena memory read suggested_commands --project "$project" --json
 ```
 
 ## Setup

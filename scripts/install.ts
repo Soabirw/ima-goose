@@ -679,6 +679,18 @@ const slashCommands = [
     recipe: "serena-bootstrap.yaml",
   },
   {
+    command: "bootstrap-serena",
+    recipe: "serena-bootstrap.yaml",
+  },
+  {
+    command: "vestige-bootstrap",
+    recipe: "vestige-bootstrap.yaml",
+  },
+  {
+    command: "bootstrap-vestige",
+    recipe: "vestige-bootstrap.yaml",
+  },
+  {
     command: "serena-memorize",
     recipe: "serena-memorize.yaml",
   },
@@ -815,6 +827,7 @@ function printNextSteps(): void {
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
   console.log('     Run /preflight to verify Goose/MCP configuration.');
   console.log('     Run /serena-bootstrap to reload project memory.');
+  console.log('     Run /vestige-bootstrap to load user preferences.');
   console.log('     Use /serena-memorize <note> to update standard Serena memories.');
   console.log("");
 }

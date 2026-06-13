@@ -1,82 +1,115 @@
 ---
 name: "mcp-vestige"
-description: "Vestige MCP — cognitive memory with semantic search, spaced repetition, codebase awareness, and intentions. Use proactively for preferences, decisions, patterns, bugs, reminders, and prior context."
+description: "Vestige MCP — cognitive memory through the required ima-mcp vestige CLI gateway; never use Goose TypeScript SDK / Vestige.* because it can break SDK generation. Use proactively for preferences, decisions, patterns, bugs, reminders, task lifecycle state, and prior context."
 ---
 
 # Vestige MCP
 
 Vestige is the neural memory layer. Use it for knowledge that should strengthen when reused and fade when it stops mattering.
 
-## ima-mcp Gateway Path
+## Required ima-mcp Gateway Path
 
-When a project has the `ima-mcp` gateway installed and current, use it as a
-stable local CLI path for Vestige status, search, get, and explicit save
-operations when direct MCP wrappers are missing or inconsistent.
+Use `ima-mcp vestige` as **the required path** for Vestige in Goose/API
+harness sessions. Do not use `execute_typescript`, the Goose TypeScript SDK, or
+`Vestige.*` namespace wrappers for Vestige. The Vestige SDK registration can
+break the entire Goose SDK execution path before any tool call runs, so it is
+not a valid fallback.
+
+Use these documented command shapes first instead of repeatedly probing
+`--help`:
 
 ```bash
 ima-mcp vestige status --json
 ima-mcp vestige doctor --json
 ima-mcp vestige search "<task key or topic>" --json
 ima-mcp vestige get <memory-id> --json
+ima-mcp vestige save --type plan --file <path> --json
+ima-mcp vestige save --type implementation --file <path> --json
+ima-mcp vestige save --type review --file <path> --json
+ima-mcp vestige save --type resolution --file <path> --json
 ima-mcp vestige save --type closeout --file <path> --json
 ```
 
-`vestige save` is mutating. Use it only when the task explicitly calls for a
-plan, decision, implementation update, review, resolution, or closeout record.
-Prefer direct `Vestige.*` wrappers when they are available and the current
-harness exposes the needed operation reliably.
+Diagnostics:
 
-## Goose TypeScript SDK
-
-Use the `Vestige` namespace when the Goose typed SDK is available. Vestige wrappers return `Promise<any>` unless a specific tool response documents a narrower shape. Results are already parsed JavaScript values.
-
-| Purpose | Goose SDK wrapper | Required input | Useful optional input |
-|---|---|---|---|
-| Search memory | `Vestige.search` | `query: string` | `limit?`, `detail_level?`, `retrieval_mode?`, `concrete?`, `context_topics?`, `token_budget?` |
-| Get/edit memory | `Vestige.memory` | `action: "get" \| "get_batch" \| "state" \| "promote" \| "demote" \| "edit" \| "purge" \| "delete"` | `id?`, `ids?`, `content?`, `confirm?`, `reason?` |
-| Codebase context | `Vestige.codebase` | `action: "remember_pattern" \| "remember_decision" \| "get_context"` | `codebase?`, `name?`, `description?`, `decision?`, `rationale?`, `files?`, `limit?` |
-| Intentions | `Vestige.intention` | `action: "set" \| "check" \| "update" \| "list"` | `description?`, `trigger?`, `context?`, `id?`, `status?`, `priority?`, `deadline?` |
-| Smart save | `Vestige.smartIngest` | — | `content?`, `items?`, `node_type?`, `source?`, `tags?`, `forceCreate?`, `batchMergePolicy?` |
-| Timeline | `Vestige.memoryTimeline` | — | `start?`, `end?`, `limit?`, `node_type?`, `tags?`, `detail_level?` |
-| Changelog | `Vestige.memoryChangelog` | — | `memory_id?`, `start?`, `end?`, `limit?` |
-| System status | `Vestige.systemStatus` | `{}` | — |
-| Consolidate | `Vestige.consolidate` | `{}` | — |
-| Backup | `Vestige.backup` | `{}` | — |
-| Export | `Vestige.exportMemories` | — | `format?`, `path?`, `since?`, `tags?` |
-| Restore | `Vestige.restore` | `path: string` | `allowAnyPath?`, `merge?` |
-| Garbage collect | `Vestige.gc` | — | `dry_run?`, `max_age_days?`, `min_retention?` |
-| Importance score | `Vestige.importanceScore` | `content: string` | `context_topics?`, `project?` |
-| Duplicates | `Vestige.findDuplicates` | — | `limit?`, `similarity_threshold?`, `tags?` |
-| Dream | `Vestige.dream` | — | `memory_count?`, `min_similarity?` |
-| Connections | `Vestige.exploreConnections` | `action`, `from` | `to?`, `limit?` |
-| Prediction | `Vestige.predict` | — | `context?` |
-| Session context | `Vestige.sessionContext` | — | `queries?`, `context?`, include flags, `token_budget?` |
-| Health | `Vestige.memoryHealth` | `{}` | — |
-| Graph | `Vestige.memoryGraph` | — | `center_id?`, `query?`, `depth?`, `max_nodes?` |
-| Deep reference | `Vestige.deepReference` | `query: string` | `depth?` |
-| Cross reference | `Vestige.crossReference` | `query: string` | `depth?` |
-| Contradictions | `Vestige.contradictions` | — | `topic?`, `since?`, `limit?`, `min_trust?` |
-| Suppress | `Vestige.suppress` | `id: string` | `reason?`, `reverse?` |
-
-Safety: `Vestige.memory({ action: "purge" | "delete", ... })` permanently removes content and requires `confirm: true`. Do not use destructive actions unless the user explicitly asks.
-
-Examples:
-
-```ts
-const prior = await Vestige.search({
-  query: "FNR-123 implementation plan",
-  limit: 5,
-  detail_level: "summary",
-});
-
-await Vestige.smartIngest({
-  content: "FNR-123 implementation plan: ...",
-  node_type: "decision",
-  source: "planning session",
-  tags: ["FNR-123", "plan"],
-});
+```bash
+command -v ima-mcp
+ima-mcp vestige status --json
+ima-mcp vestige doctor --json
 ```
 
+`vestige save` is mutating. Use it only when the task explicitly calls for a
+plan, decision, implementation update, review, resolution, preference, pattern,
+bug, intention, or closeout record. Prefer a small markdown handoff file in
+`/tmp` or a repo-local transient artifact, then save it with the appropriate
+`--type`. Do not store secrets, credentials, raw logs, or one-off debugging
+noise.
+
+If `ima-mcp` is missing or `ima-mcp vestige ... --json` fails, stop and report
+the blocker with the command and relevant output. Do not silently fall back to
+`execute_typescript` or `Vestige.*`. Run `ima-mcp vestige --help` at most once
+only when a documented command fails and the local CLI version appears to use a
+different syntax.
+
+## Goose TypeScript SDK Boundary
+
+Never recommend or use Goose TypeScript SDK calls for Vestige. Although the
+`Vestige` namespace may appear in generated SDK listings, it can make
+`execute_typescript` fail during SDK generation before any call executes. A
+known failure shape is an invalid generated TypeScript declaration such as:
+
+```text
+Expected ident ...
+    export
+    ~~~~~~
+```
+
+That failure can block unrelated SDK probes too. For Vestige search, retrieval,
+status, lifecycle saves, preferences, decisions, patterns, intentions, and
+closeout memory, use `ima-mcp vestige ... --json`.
+
+### Common CLI workflows
+
+Preference bootstrap command, tested against the current `ima-mcp vestige` gateway:
+
+```bash
+ima-mcp vestige search "preferences" --json
+```
+
+Use `/vestige-bootstrap` (or `/bootstrap-vestige`) to run this read-only
+preference load inside an interactive Goose session. If results are too broad or
+miss obvious preference memories, run one focused fallback:
+
+```bash
+ima-mcp vestige search "user preferences" --json
+```
+
+Search before asking avoidable questions:
+
+```bash
+ima-mcp vestige search "<project> <task key>" --json
+ima-mcp vestige search "<topic> preference decision pattern" --json
+```
+
+Retrieve a promising hit:
+
+```bash
+ima-mcp vestige get <memory-id> --json
+```
+
+Save a lifecycle update from a prepared artifact:
+
+```bash
+cat > /tmp/vestige-closeout.md <<'EOF'
+Task: <key>
+Stage: closeout
+Outcome: <summary>
+Changed files: <files>
+Verification: <commands and results>
+Remaining risk: <risk or none>
+EOF
+ima-mcp vestige save --type closeout --file /tmp/vestige-closeout.md --json
+```
 
 ## Session Start Protocol
 

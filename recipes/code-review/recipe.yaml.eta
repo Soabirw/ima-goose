@@ -1,4 +1,4 @@
-version: "2.3.1"
+version: "2.3.3"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -19,6 +19,7 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>

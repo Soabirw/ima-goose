@@ -2,7 +2,7 @@
 
 The preflight check is a read-only canary for ima-goose configuration. It answers
 one question: can this session actually use the recipes, skills, MCP endpoints,
-and Goose TypeScript SDK wrappers the workflow expects?
+and Goose TypeScript SDK wrappers or required CLI gateways the workflow expects?
 
 Run it from an interactive Goose session:
 
@@ -34,7 +34,7 @@ goose run --recipe preflight-check
   not mutated.
 - Installed skill directories and expected `mcp-*` skills.
 - Serena memory tools and optional JetBrains capability classification.
-- Vestige, Qdrant, Context7, Sequential Thinking, Fetch, Tavily, Chrome DevTools,
+- Vestige through `ima-mcp vestige`; Qdrant, Context7, Sequential Thinking, Fetch, Tavily, Chrome DevTools,
   and Atlassian Rovo when available and in scope.
 - Taskwarrior through the CLI, because no Goose TypeScript SDK wrapper is
   currently exposed for Taskwarrior.

@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.4"
 title: "Task Planner"
 description: "Decompose architecture specs, brainstorm summaries, planning memories, or Jira epics into an Epic → Story → Task hierarchy with dependency graph and sub-recipe routing. Interactive by design."
 
@@ -12,6 +12,7 @@ settings:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 

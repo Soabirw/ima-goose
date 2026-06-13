@@ -306,7 +306,8 @@ recipe session.
 |---|---|
 | `/architect` | You want architecture judgment on the current topic before choosing a design. |
 | `/prompt-starter` | You want to turn rough context into a prompt for a future recipe session. |
-| `/serena-bootstrap` | You need to reload standard Serena project memories mid-session. |
+| `/serena-bootstrap` (`/bootstrap-serena` alias) | You need to reload standard Serena project memories mid-session. |
+| `/vestige-bootstrap` (`/bootstrap-vestige` alias) | You need to load user preferences from Vestige mid-session. |
 | `/serena-memorize <note>` | You need to persist stable project context into Serena. |
 
 ## Choosing The Right Path

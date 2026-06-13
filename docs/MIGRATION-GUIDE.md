@@ -102,7 +102,8 @@ The following recipes are intended as commands inside an existing session:
 
 - `/architect` loads the architecture/persona lens.
 - `/prompt-starter` creates a prompt for a dedicated recipe session.
-- `/serena-bootstrap` reloads standard Serena project memories.
+- `/serena-bootstrap` (`/bootstrap-serena` alias) reloads standard Serena project memories.
+- `/vestige-bootstrap` (`/bootstrap-vestige` alias) loads user preferences from Vestige using `ima-mcp vestige search "preferences" --json`.
 - `/serena-memorize <note>` updates standardized Serena project memory.
 
 They do not pin provider/model. Recipes that declare `sub_recipes` render
@@ -137,7 +138,7 @@ Use Serena standard memories for stable project context:
 - `task_completion`
 - `memory_maintenance`
 
-Use `/serena-bootstrap` to reload them in a current session. Serena bootstrap
+Use `/serena-bootstrap` (or `/bootstrap-serena`) to reload them in a current session. Serena bootstrap
 always activates the current project first, before initial instructions or
 memory calls. Use `/serena-memorize <note>` for stable project context updates.
 

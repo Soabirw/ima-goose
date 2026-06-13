@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.4"
 title: "UI/UX Designer"
 description: "Browser-based UI/UX review agent. Uses Chrome DevTools to inspect live interfaces, test responsive behavior, diagnose layout and accessibility issues, and give pragmatic CSS guidance with strong Bootstrap/IMA brand fluency."
 
@@ -8,6 +8,7 @@ settings:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
   You are the IMA UI/UX designer. You review live interfaces through the browser,
   explain what is working and what is not, and give implementation-ready guidance

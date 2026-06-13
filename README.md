@@ -2,16 +2,23 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.3.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.4.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.3.0
+## What's New In v2.4.0
 
-- Fixed Serena bootstrap ordering so every Serena-enabled workflow activates the
-  current project before initial instructions or memory reads.
-- Updated Serena docs, SDK examples, preflight checks, and key recipes to use
-  `Serena.activateProject({ project: "." })` first.
-- Bumped affected recipe templates so rendered workflows carry the activation
-  requirement immediately.
+- Added `goose-cycle`, a Taskwarrior/Vestige-backed HITL conductor for the
+  per-story `plan -> implement -> test -> review -> learn` workflow.
+- Added `/vestige-bootstrap` (`/bootstrap-vestige`) and `/bootstrap-serena`
+  current-session commands so agents can reload working memory preferences and
+  project memory through stable `ima-mcp` gateways.
+- Hardened Serena and Vestige guidance so bootstrap, memory, and preflight use
+  `ima-mcp serena` / `ima-mcp vestige` instead of fragile Goose TypeScript SDK
+  paths.
+- Refreshed Quick Start provider and MCP setup guidance, including top
+  recommended MCP installs for Serena, Vestige, and Qdrant plus Atlassian REST
+  helper environment variables.
+- Updated `config-template.yaml`, setup docs, recipe versions, and validation
+  guidance to match the current representative Goose workflow.
 
 ---
 
@@ -30,13 +37,14 @@ Skills, MOIM, and shell aliases all read from the working tree. If you clone to 
 
 ### 2. Install the ACP provider binaries
 
-Goose needs the ACP binary on PATH to route through your Claude Code (or Codex) subscription. Install at least the one you'll use as your default — installing both is fine if you want to switch providers later:
+Goose needs an ACP binary on `PATH` for ACP-backed providers. Install at least
+the provider you plan to use; installing both is fine for local testing.
 
 ```bash
-# Codex ACP (team default — routes through your Codex subscription)
+# Codex ACP (recommended default for this repo)
 npm install -g @zed-industries/codex-acp
 
-# Claude ACP (optional, only for hybrid/claude-acp profiles)
+# Claude ACP (optional; use only when you intentionally want the Claude ACP path)
 npm install -g @agentclientprotocol/claude-agent-acp
 ```
 
@@ -44,22 +52,59 @@ Verify on PATH:
 
 ```bash
 which codex-acp        # /usr/local/bin/codex-acp (or your npm global prefix)
+which claude-agent-acp # optional, only if installed
 ```
 
-Without these binaries, the next step's provider config silently fails to connect — Goose only knows the provider *name* (`claude-acp`); the binary is what actually proxies requests to your subscription.
+Provider notes, current as of 2026-06-12:
+
+- **Recommended path:** use the `chatgpt_codex` profile with ChatGPT/Codex OAuth,
+  plus [`ima-mcp-gateway`](https://gitea.theflccc.org/IMA/ima-mcp-gateway)
+  for Serena and Vestige access. This is the least fragile setup for the
+  current IMA workflow.
+- **Claude ACP billing changed:** Claude ACP should be treated as Anthropic
+  API/metered usage rather than a Claude subscription proxy. See Anthropic's
+  announcement: [What Anthropic's New Claude Billing Means](https://zed.dev/blog/anthropic-subscription-changes).
+- **Known ACP limitations:** both Codex ACP and Claude ACP have active rough
+  edges with MCP tool handling and are currently unable to trigger Goose
+  sub-recipes reliably. The IMA workflows avoid the worst failures by routing
+  fragile memory operations through `ima-mcp` CLI gateways instead of the Goose
+  typed SDK path.
+
+If you choose ACP as your provider, without the selected ACP binary, the next step's provider config silently fails
+to connect — Goose only knows the provider *name*; the binary is what actually
+proxies requests.
 
 ### 3. Configure Goose provider (one-time)
 
-Add to `~/.config/goose/config.yaml`:
+Recommended `~/.config/goose/config.yaml` provider block:
 
 ```yaml
-GOOSE_PROVIDER: "codex-acp"
-GOOSE_MODEL: "gpt-5.5/medium"
-GOOSE_PLANNER_PROVIDER: "codex-acp"
-GOOSE_PLANNER_MODEL: "gpt-5.5/high"
+GOOSE_THINKING_EFFORT: high
+active_provider: chatgpt_codex
+providers:
+  chatgpt_codex:
+    enabled: true
+    model: gpt-5.5
+    configured: true
+  codex-acp:
+    enabled: true
+    model: gpt-5.5/high
+    configured: true
 ```
 
-Use the `chatgpt_codex`, `hybrid`, `anthropic`, or `claude-acp` installer profiles only when those providers are configured locally. Alternative providers are in the [Setup](#setup) section below.
+Provider effort handling differs by path:
+
+- `chatgpt_codex` uses the bare model name (`gpt-5.5`) and reads effort from
+  `GOOSE_THINKING_EFFORT`. Do **not** configure `gpt-5.5/low`,
+  `gpt-5.5/medium`, or `gpt-5.5/high` for `chatgpt_codex`.
+- `codex-acp` does **not** read `GOOSE_THINKING_EFFORT`; effort must be part of
+  the model name, such as `gpt-5.5/high`.
+
+The profile system handles this split when rendering recipes and aliases. Use
+`node scripts/install.ts --profile chatgpt_codex` for the recommended OAuth
+path, or another profile only when that provider is configured locally. See
+[`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) and the [Setup](#setup) section
+for profile details.
 
 ### 4. Install skills globally — REQUIRED
 
@@ -68,7 +113,7 @@ node scripts/install.ts
 ```
 
 Renders recipe templates from `recipes/**/*.yaml.eta` into
-`~/.config/goose/recipes/*.yaml`, then copies all 50 skills from `skills/*/` to
+`~/.config/goose/recipes/*.yaml`, then copies all skills from `skills/*/` to
 `~/.agents/skills/` where Summon auto-discovers them. **Without this step,
 recipes load but their skill references go nowhere** — Summon has nothing to
 find and the recipes silently lose their deep domain knowledge. Requires
@@ -95,14 +140,14 @@ Open `~/.goose-aliases`, find the commented-out export, and uncomment:
 export GOOSE_MOIM_MESSAGE_FILE="$GOOSE_RECIPE_PATH/moim/ima-practitioner.md"
 ```
 
-Re-source your shell. Now every Goose session — IMA recipes or not — gets the 6-line Practitioner persona anchor injected every turn. Survives `/compact`.
+Re-source your shell. Now every Goose session — IMA recipes or not — gets the Practitioner persona anchor injected every turn. Survives `/compact`.
 
 ### Verify
 
 ```bash
 goose-help                    # prints all the workflow commands
 goose-explore                 # launches the LOW-tier explore recipe
-goose-ui                      # launches the HIGH-tier UI/UX designer recipe
+goose-brainstorm              # launches the HIGH-tier brainstorming recipe
 ```
 
 Inside the interactive session, type `/skills` — you should see ~50 skills listed. Ask *"who are you?"* — if MOIM is enabled, the Practitioner persona answers.
@@ -152,30 +197,55 @@ The hybrid model uses six distinct layers. Understanding which layer does what p
 
 ### 1. Configure Goose Provider
 
-The team's current default routes Goose through Codex ACP.
+The team's current default is Goose's native ChatGPT Codex provider with OAuth.
+Now that Serena and Vestige are routed through `ima-mcp-gateway`, this path gives
+us the best mix of MCP reliability and working sub-recipes.
 
-**Codex ACP / OpenAI profile (default):**
+**Recommended default — ChatGPT Codex OAuth:**
+
 ```yaml
 # ~/.config/goose/config.yaml
-GOOSE_PROVIDER: "codex-acp"
-GOOSE_MODEL: "gpt-5.5/medium"
-GOOSE_PLANNER_PROVIDER: "codex-acp"
-GOOSE_PLANNER_MODEL: "gpt-5.5/high"
+GOOSE_THINKING_EFFORT: high
+active_provider: chatgpt_codex
+providers:
+  chatgpt_codex:
+    enabled: true
+    model: gpt-5.5
+    configured: true
+  codex-acp:
+    enabled: true
+    model: gpt-5.5/high
+    configured: true
 ```
 
-**Alternatives** (if you're not on Claude Code subscription):
+Use `codex-acp` as the recommended fallback when the native ChatGPT Codex
+provider is unavailable. `codex-acp` still has ACP rough edges, but it is a
+better team fallback than `claude-acp` because Claude ACP is now metered/API
+billing rather than subscription-backed usage.
+
+Provider effort handling differs by path:
+
+- `chatgpt_codex` uses the bare model name (`gpt-5.5`) and reads effort from
+  `GOOSE_THINKING_EFFORT`. Do **not** configure `gpt-5.5/low`,
+  `gpt-5.5/medium`, or `gpt-5.5/high` for `chatgpt_codex`.
+- `codex-acp` does **not** read `GOOSE_THINKING_EFFORT`; effort must be part of
+  the model name, such as `gpt-5.5/high`.
+- `claude-acp` is no longer recommended for the team default because of metered
+  billing. Use it only when you intentionally want that provider and understand
+  the cost model.
+
+**Other valid provider examples:**
 
 ```yaml
-# Native ChatGPT Codex provider
-GOOSE_PROVIDER: "chatgpt_codex"
-GOOSE_MODEL: "gpt-5.5"
-GOOSE_THINKING_EFFORT: "high"
+# Codex ACP fallback
+GOOSE_PROVIDER: "codex-acp"
+GOOSE_MODEL: "gpt-5.5/high"
 
-# Claude ACP, if working locally
+# Claude ACP, explicit opt-in only
 GOOSE_PROVIDER: "claude-acp"
 GOOSE_MODEL: "sonnet"
 
-# Direct Anthropic
+# Direct Anthropic API
 GOOSE_PROVIDER: "anthropic"
 GOOSE_MODEL: "claude-sonnet-4-6"
 
@@ -183,24 +253,36 @@ GOOSE_MODEL: "claude-sonnet-4-6"
 GOOSE_PROVIDER: "openrouter"
 GOOSE_MODEL: "anthropic/claude-sonnet-4-6"
 
-# RunPod (self-hosted, OpenAI-compatible)
+# RunPod or another self-hosted OpenAI-compatible endpoint
 GOOSE_PROVIDER: "openai"
 OPENAI_HOST: "https://api.runpod.ai/v2/<endpoint-id>"
 OPENAI_API_KEY: "<your-runpod-key>"
 GOOSE_MODEL: "your-deployed-model"
+
+# Local OpenAI-compatible server, such as Ollama or llama.cpp
+GOOSE_PROVIDER: "openai"
+OPENAI_HOST: "http://localhost:11434/v1"
+OPENAI_API_KEY: "ollama"
+GOOSE_MODEL: "qwen3-coder:latest"
 ```
 
-Recipes declare `HIGH`, `MID`, or `LOW` by rendering the whole per-tier profile settings block. The installer writes only provider-supported recipe settings at deploy time. `chatgpt_codex` thinking effort is set by shell aliases with `GOOSE_THINKING_EFFORT`, not by recipe model suffix. Switch profiles any time:
+Recipes declare `HIGH`, `MID`, or `LOW` by rendering the whole per-tier profile
+settings block. The installer writes only provider-supported recipe settings at
+deploy time, and shell aliases set `GOOSE_THINKING_EFFORT` for `chatgpt_codex`.
+Switch profiles any time:
 
 ```bash
-node scripts/install.ts --profile openai        # default: HIGH/MID/LOW → GPT-5.5 efforts
-node scripts/install.ts --profile chatgpt_codex # native ChatGPT Codex provider → gpt-5.5
-node scripts/install.ts --profile hybrid      # HIGH→codex-acp, MID/LOW→claude-acp
-node scripts/install.ts --profile anthropic   # full claude-* model IDs
-node scripts/install.ts --profile claude-acp  # Claude friendly shortnames
+node scripts/install.ts --profile chatgpt_codex # recommended OAuth path → gpt-5.5 + GOOSE_THINKING_EFFORT
+node scripts/install.ts --profile openai        # codex-acp fallback → gpt-5.5/<effort>
+node scripts/install.ts --profile hybrid        # HIGH→codex-acp, MID/LOW→claude-acp
+node scripts/install.ts --profile anthropic     # direct Anthropic API model IDs
+node scripts/install.ts --profile claude-acp    # explicit Claude ACP opt-in
 ```
 
-See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping rationale and per-recipe overrides. After changing profile thinking effort/runtime env, copy or merge `.goose-aliases.example` to `~/.goose-aliases` so command wrappers stay in sync.
+See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping
+rationale and per-recipe overrides. After changing profile thinking
+effort/runtime env, copy or merge `.goose-aliases.example` to `~/.goose-aliases`
+so command wrappers stay in sync.
 
 ### 2. Install Rendered Recipes
 
@@ -218,6 +300,83 @@ goose configure
 # Toggle Extensions → enable the extensions from config-template.yaml
 ```
 
+This repo assumes the IMA MCP gateway is installed for stable CLI access to
+MCPs that cannot safely use Goose's typed SDK path. Install it from
+[`ima-mcp-gateway`](https://gitea.theflccc.org/IMA/ima-mcp-gateway.git). The
+gateway's local installer copies runtime files to
+`~/.local/share/ima-mcp-gateway` and writes the stable launcher to
+`~/.local/bin/ima-mcp`; prefer this over `npm link` because Goose environments
+may not load npm-managed bin paths reliably. For durable Qdrant-backed
+knowledge, use IMA's custom RAG/MCP server from
+[`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag):
+
+```bash
+git clone https://gitea.theflccc.org/IMA/ima-mcp-gateway.git ~/IMA/dev/ima-mcp-gateway
+cd ~/IMA/dev/ima-mcp-gateway
+
+# Use sfw when available; otherwise use npm directly.
+sfw npm install
+sfw npm run build
+sfw npm test
+sfw npm run install:local
+
+# If sfw is unavailable:
+npm install
+npm run build
+npm test
+npm run install:local
+
+# Ensure ~/.local/bin is on PATH, then verify:
+command -v ima-mcp
+ima-mcp --help
+ima-mcp doctor --project . --json
+ima-mcp mcp check --project . --json
+ima-mcp serena project status --project . --json
+ima-mcp vestige status --json
+ima-mcp qdrant status --json
+```
+
+Required MCPs / gateways for the primary IMA workflows:
+
+| Capability | Required tool | Why it is required |
+|---|---|---|
+| Skill loading | `summon` extension | Loads `skills/*/SKILL.md` on demand; recipes rely on skill bodies for MCP usage and domain rules. |
+| Project memory + code navigation | `mcp-serena` skill, Serena MCP, and `ima-mcp serena` | Every primary workflow starts with Serena project-memory bootstrap. Use `ima-mcp serena` for activation, initial instructions, and memories. |
+| Working memory + preferences | `mcp-vestige` skill, Vestige MCP, and `ima-mcp vestige` | Primary workflows load user preferences and task lifecycle memory from Vestige. Use `ima-mcp vestige`; never use `execute_typescript` / `Vestige.*`. |
+| Queue/status lifecycle | `mcp-taskwarrior` skill and local `task` CLI | `goose-cycle` uses Taskwarrior as the queue/status source for story phases. |
+
+Top recommended MCP installs:
+
+- **Serena** ([`oraios/serena`](https://github.com/oraios/serena)) provides project memory and JetBrains-backed code navigation. Install `uvx`, install the Serena MCP JetBrains plugin when using the JetBrains backend, then use the `serena` extension in [`config-template.yaml`](config-template.yaml). The template launches Serena with `uvx --from git+https://github.com/oraios/serena serena start-mcp-server ...`.
+- **Vestige** ([`samvallad33/vestige`](https://github.com/samvallad33/vestige)) provides working memory, preferences, decisions, and task lifecycle continuity. Install its MCP server so `vestige-mcp` is on `PATH`, enable the `vestige` extension in [`config-template.yaml`](config-template.yaml), and access it through `ima-mcp vestige` for workflow reliability.
+- **Qdrant** ([`qdrant/qdrant`](https://github.com/qdrant/qdrant)) provides the vector database behind durable semantic knowledge. Run Qdrant locally (the template defaults to `http://localhost:6333`), install a compatible `qdrant-mcp` command such as IMA's [`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag), and enable the `qdrant-memory` extension.
+
+Most other recommended MCPs are installed directly by Goose through `npx` or `uvx`; see [`config-template.yaml`](config-template.yaml) for copyable examples.
+
+For `mcp-atlassian` REST helper scripts and workflow automation to fully work, set these environment variables in your shell or secrets manager before starting Goose:
+
+```bash
+export ATLASSIAN_DOMAIN="your-site.atlassian.net"
+export ATLASSIAN_CLOUD_ID="your-cloud-id"
+export ATLASSIAN_BEARER_TOKEN="your-api-token"
+export ATLASSIAN_EMAIL="you@example.com"
+export ATLASSIAN_API_TOKEN="$ATLASSIAN_BEARER_TOKEN"
+```
+
+`ATLASSIAN_API_TOKEN` and `ATLASSIAN_BEARER_TOKEN` are the same token value. Do not commit real Atlassian values to `config-template.yaml`; keep the template placeholder-only.
+
+Recommended MCPs for a fully capable development session:
+
+| Capability | Recommended MCP / skill | Typical use |
+|---|---|---|
+| Durable reference library | `mcp-qdrant` / `qdrant-memory` via [`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag) | Long-lived architecture docs, standards, PRDs, research, and reusable patterns. |
+| Library/API docs | `mcp-context7` | Current package docs before guessing APIs. |
+| Web/content fetch | `mcp-fetch` | Fetch specific URLs and source material. |
+| Web research | `mcp-tavily` | Current web research, when external sources are part of the task. |
+| Browser inspection | `mcp-chrome-devtools` | UI debugging, DOM snapshots, console/network checks, Lighthouse-style audits. |
+| Structured reasoning | `mcp-sequential-thinking` | Complex planning/review reasoning when the recipe calls for it. |
+| Jira/Confluence | `mcp-atlassian` / `atlassian-rovo` | Jira issue context, Confluence pages, and approved workflow comments. |
+
 Recipes that declare `sub_recipes` need an explicit rendered `extensions:`
 block because Goose auto-injects `summon`, and any explicit extension block
 limits the session to only listed extensions. The installer reads enabled
@@ -225,10 +384,12 @@ extensions from `~/.config/goose/config.yaml` and renders those into the
 installed recipe files, so each developer keeps their own machine's extension
 set. After changing enabled Goose extensions, rerun `node scripts/install.ts`.
 MCP tools can be called directly through Goose's normal tool interface. In
-Goose API/typed-SDK harnesses, supported MCP tools are also available as
+Goose API/typed-SDK harnesses, some supported MCP tools are also available as
 TypeScript namespace wrappers documented in
 [`docs/MCP-GOOSE-SDK-SIGNATURES.md`](docs/MCP-GOOSE-SDK-SIGNATURES.md) and the
-`skills/mcp-*` guides. Do not invent wrappers that are not exposed by the SDK.
+`skills/mcp-*` guides. Serena bootstrap and all Vestige operations are explicit
+exceptions: use `ima-mcp serena` and `ima-mcp vestige` instead of the typed SDK.
+Do not invent wrappers that are not exposed by the SDK.
 
 ### 4. Install Skills
 
@@ -266,7 +427,7 @@ Skills live in `~/.agents/skills/<name>/SKILL.md` and are auto-discovered by the
 
 **Skills vs Recipes:** Recipes launch standalone sessions with a pinned model and workflow. Skills are deep domain knowledge — FP patterns, framework rules, brand guidelines — loaded into running sessions on demand.
 
-**Cross-platform:** The same SKILL.md format works in Claude Code (via the Summon extension) and Goose. Write a skill once, use it in both. MCP skills document both native/direct tool patterns and supported Goose TypeScript SDK wrappers; see [`docs/MCP-GOOSE-SDK-SIGNATURES.md`](docs/MCP-GOOSE-SDK-SIGNATURES.md).
+**Cross-platform:** The same SKILL.md format works in Claude Code (via the Summon extension) and Goose. Write a skill once, use it in both. MCP skills document the reliable interface for each tool, including CLI-gateway exceptions such as Serena bootstrap and Vestige memory; see [`docs/MCP-GOOSE-SDK-SIGNATURES.md`](docs/MCP-GOOSE-SDK-SIGNATURES.md).
 
 **Slash commands:** `/skills` lists available skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
@@ -289,17 +450,23 @@ the `mcp-serena` skill first is allowed only as bootstrap support when an agent
 needs Serena tool guidance or Goose SDK signatures; it is not task-specific
 research.
 
-Goose typed SDK reminder:
+Use the `mcp-serena` skill's `ima-mcp serena` gateway for bootstrap. Do **not**
+use a built-in Goose extension, native/direct Serena memory wrappers, or the
+Goose typed SDK / `execute_typescript` path for activation, initial
+instructions, or memory reads; generated SDK definitions can fail before Serena
+runs.
 
-```ts
-await Serena.activateProject({ project: "." });
-await Serena.initialInstructions({});
-await Serena.listMemories({});
-await Serena.readMemory({ memory_name: "core" });
+```bash
+project="${PWD}"
+command -v ima-mcp
+ima-mcp serena project activate "$project" --json
+ima-mcp serena instructions --project "$project" --json
+ima-mcp serena memory list --project "$project" --json
+ima-mcp serena memory read core --project "$project" --json
 ```
 
-Those calls return `{ result: string }`. Do not use `memory_file_name`, and do
-not assume `listMemories` returns `.memories`.
+If `ima-mcp` is missing or Serena reports unavailable, stop and report the
+blocker instead of falling back to SDK/native Serena bootstrap calls.
 
 For task-scoped work, seed the org standards so Serena tells recipes how to use
 Vestige as the living task memory:
@@ -312,9 +479,17 @@ Serena holds the stable startup instructions; Vestige carries each task's
 plan, implementation updates, review findings, resolutions, and final closeout
 under the task key.
 
-Inside any interactive Goose session, run `/serena-bootstrap` to reload the
-standard Serena project memories on demand. Run `/preflight` to perform a
+Inside any interactive Goose session, run `/serena-bootstrap` (or the alias
+`/bootstrap-serena`) to reload the standard Serena project memories on demand.
+Run `/preflight` to perform a
 read-only Goose/MCP configuration canary; see [`docs/PREFLIGHT-CHECK.md`](docs/PREFLIGHT-CHECK.md).
+
+Use `/vestige-bootstrap` (or `/bootstrap-vestige`) to load user preferences from
+Vestige on demand. The tested read-only command is:
+
+```bash
+ima-mcp vestige search "preferences" --json
+```
 
 Use `/serena-memorize <note>` to add stable project context to the appropriate
 standard Serena memory:
@@ -398,7 +573,7 @@ Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner
 
 Cycle helper terminals: `cycle-start`, `cycle-close`.
 
-Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap`, `/serena-memorize`.
+Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap` (`/bootstrap-serena` alias), `/vestige-bootstrap` (`/bootstrap-vestige` alias), `/serena-memorize`.
 
 **Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 

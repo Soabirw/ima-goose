@@ -55,7 +55,8 @@ Use these inside an existing session:
 |---|---|
 | `/architect` | Apply architecture judgment/persona to the current topic |
 | `/prompt-starter` | Create a prompt for a future dedicated recipe session |
-| `/serena-bootstrap` | Reload standard Serena project memories |
+| `/serena-bootstrap` (`/bootstrap-serena` alias) | Reload standard Serena project memories |
+| `/vestige-bootstrap` (`/bootstrap-vestige` alias) | Load user preferences from Vestige |
 | `/serena-memorize <note>` | Persist stable project context into Serena |
 
 `/prompt-starter` does not execute the generated prompt. It stops after

@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 title: "Preflight Check"
 description: "Run a read-only Goose/MCP/tooling preflight and report what is configured, reachable, or failing."
 
@@ -66,20 +66,22 @@ instructions: |
 
   ## MCP / SDK Probes
 
-  When Goose TypeScript SDK wrappers are available, batch probes in one execution
-  and catch errors per probe. When only direct MCP tools are available, use the
-  equivalent direct tool calls. Results are already parsed JavaScript values; do
-  not `JSON.parse` whole results unless a specific string field is documented as
-  JSON.
+  When Goose TypeScript SDK wrappers are available, batch probes that are safe for
+  the SDK in one execution and catch errors per probe. Do not include Serena or
+  Vestige in SDK probes. Results are already parsed
+  JavaScript values; do not `JSON.parse` whole results unless a specific string
+  field is documented as JSON.
 
   Quick/full should attempt these read-only probes when the corresponding tools
   are available:
 
-  - Serena memory: `Serena.activateProject({ project })`, `Serena.initialInstructions({})`,
-    `Serena.listMemories({})`. Activation is always first. If `core` appears to
-    exist, optionally `Serena.readMemory({ memory_name: "core" })`.
+  - Serena memory: use the CLI gateway, not `execute_typescript`:
+    `command -v ima-mcp`, `ima-mcp serena project activate "$project" --json`,
+    `ima-mcp serena instructions --project "$project" --json`,
+    `ima-mcp serena memory list --project "$project" --json`, and optionally
+    `ima-mcp serena memory read core --project "$project" --json`.
     JetBrains-specific failures are WARN unless symbol navigation is required.
-  - Vestige: `Vestige.systemStatus({})` or `Vestige.search({ query: "preflight", limit: 1 })`.
+  - Vestige: use the CLI gateway, not `execute_typescript` or `Vestige.*`: `command -v ima-mcp`, `ima-mcp vestige status --json`, `ima-mcp vestige doctor --json`, and optionally `ima-mcp vestige search "preflight" --json`.
   - Qdrant: `QdrantMemory.qdrantFind({ query: "preflight", limit: 1 })` and/or
     local `curl http://localhost:6333/health` when Qdrant is expected.
   - Context7: `Context7.resolveLibraryId({ libraryName: "React", query: "React documentation" })`.

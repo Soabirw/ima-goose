@@ -69,14 +69,27 @@ ls ~/.agents/skills
 ls ~/.agents/skills | wc -l
 ```
 
-## Goose TypeScript SDK Probe Pattern
+## Probe Pattern
 
-When the Goose typed SDK is available, batch independent probes in one TypeScript
-execution and catch errors per probe. Tool results are already parsed JavaScript
-values. Do not `JSON.parse` whole results unless a specific string field is
-known to contain JSON.
+Probe Serena through the `ima-mcp` CLI gateway first. Do not use Goose typed SDK
+/ `execute_typescript` for Serena preflight; that path can fail before Serena
+runs because SDK generation includes unrelated registered tools.
 
-Recommended probes:
+```bash
+project="${PWD}"
+command -v ima-mcp
+ima-mcp serena project activate "$project" --json
+ima-mcp serena instructions --project "$project" --json
+ima-mcp serena memory list --project "$project" --json
+ima-mcp serena memory read core --project "$project" --json
+```
+
+When the Goose typed SDK is available, batch independent **non-Serena** probes
+in one TypeScript execution and catch errors per probe. Tool results are already
+parsed JavaScript values. Do not `JSON.parse` whole results unless a specific
+string field is known to contain JSON.
+
+Recommended non-Serena probes:
 
 ```ts
 const checks: Record<string, unknown> = {};
@@ -92,9 +105,6 @@ async function probe(name: string, fn: () => Promise<unknown>) {
   }
 }
 
-await probe("serena.activateProject", () => Serena.activateProject({ project: "." }));
-await probe("serena.initialInstructions", () => Serena.initialInstructions({}));
-await probe("serena.listMemories", () => Serena.listMemories({}));
 await probe("vestige.systemStatus", () => Vestige.systemStatus({}));
 await probe("qdrant.find", () => QdrantMemory.qdrantFind({ query: "preflight", limit: 1 }));
 await probe("context7.resolve", () => Context7.resolveLibraryId({ libraryName: "React", query: "React documentation" }));

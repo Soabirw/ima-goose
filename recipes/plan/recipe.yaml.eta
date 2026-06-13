@@ -1,4 +1,4 @@
-version: "2.3.1"
+version: "2.3.3"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
 
@@ -17,6 +17,7 @@ sub_recipes:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 

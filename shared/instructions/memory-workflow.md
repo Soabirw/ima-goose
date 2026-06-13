@@ -15,8 +15,8 @@ scratchpads. Each system has a distinct job:
 
 At session start, follow the Serena bootstrap first when this recipe includes
 `instructions/serena-bootstrap.md`. Loading the `mcp-serena` skill solely to
-learn Serena tool usage or Goose SDK signatures is bootstrap support, not
-extra topic research. After bootstrap, use memory only when it is relevant to
+learn Serena gateway usage or native/direct tool names is bootstrap support,
+not extra topic research. After bootstrap, use memory only when it is relevant to
 the user's stated task. Do not pre-load extra memory, skills, or reference
 material before the user has provided the topic or source.
 

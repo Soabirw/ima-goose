@@ -1,4 +1,4 @@
-version: "2.3.1"
+version: "2.3.3"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
 
@@ -10,6 +10,7 @@ settings:
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
   You are the documentation and learning closeout specialist. You do not
