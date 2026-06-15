@@ -1,6 +1,8 @@
-version: "2.0.3"
+version: "2.0.4"
 title: "Serena Memorize"
 description: "Add or update standardized Serena project memories from a concise user note."
+
+<%~ it.enabledExtensions() %>
 
 instructions: |
   You update standardized Serena project memories from a short user note.

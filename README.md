@@ -2,21 +2,18 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.4.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.4.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.4.1
+## What's New In v2.4.2
 
-- Added `vision-handoff`, a read-only GPT-5.5 vision recipe pinned to
-  `codex-acp` / `gpt-5.5/medium` for screenshots, mockups, visual diffs,
-  diagrams, scanned docs, and image attachments.
-- Updated brainstorm, plan, implementation, testing, review, document/learn,
-  design-to-code, and software-development-cycle workflows to route image
-  interpretation through `vision_handoff`.
-- Documented the current `chatgpt_codex` GPT-5.5 image transport limitation and
-  the standard `codex-acp` hand-off path.
-- Clarified rendered-recipe validation guidance: install to a temporary
-  destination with `node scripts/install.ts --dest "$tmpdir" --validate`, then
-  validate rendered YAML to avoid changing a user's installed recipes.
+
+- Fixed Serena/Vestige bootstrap startup failures by rendering enabled Goose
+  extensions at the top of every bootstrap-enabled recipe, before any
+  `sub_recipes` declarations.
+- Ensured direct recipes such as `goose-plan` and `goose-learn`, plus delegated
+  slash-command/subagent sessions, keep the developer shell tool required for
+  `ima-mcp` gateway commands.
+- Preserved the `vision-handoff` image-analysis workflow from v2.4.1.
 
 ---
 
@@ -488,6 +485,9 @@ under the task key.
 
 Inside any interactive Goose session, run `/serena-bootstrap` (or the alias
 `/bootstrap-serena`) to reload the standard Serena project memories on demand.
+Recipes that run Serena/Vestige bootstrap render enabled extensions so direct
+recipe sessions and delegated slash-command sessions keep the developer shell
+tool required for `ima-mcp`.
 Run `/preflight` to perform a
 read-only Goose/MCP configuration canary; see [`docs/PREFLIGHT-CHECK.md`](docs/PREFLIGHT-CHECK.md).
 

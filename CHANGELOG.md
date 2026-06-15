@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.4.2 - 2026-06-15
+
+### Fixed
+
+- Render enabled Goose extensions at the top of every Serena/Vestige bootstrap-enabled recipe so startup bootstrap blocks, direct recipe sessions such as `goose-plan` / `goose-learn`, and subagent-launched `/bootstrap-serena`, `/serena-bootstrap`, `/bootstrap-vestige`, `/vestige-bootstrap`, and `/serena-memorize` sessions have the developer shell tool required for `ima-mcp` gateway commands.
+- Fixed `test-writer` extension ordering so `extensions:` renders before `sub_recipes:` like the other parent recipes.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check`.
+- Ran `npm test`.
+- Rendered and validated recipe templates to temporary directories for `openai`, `hybrid`, and `chatgpt_codex` profiles.
+- Verified no bootstrap-enabled recipe is missing `it.enabledExtensions()` and no `sub_recipes:` declaration appears before `it.enabledExtensions()`.
+- Ran `git diff --check`.
+
 ## v2.4.1 - 2026-06-15
 
 ### Added

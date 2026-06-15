@@ -1,6 +1,8 @@
-version: "2.0.4"
+version: "2.0.5"
 title: "Explore"
 description: "Fast, read-only codebase exploration. File discovery, architecture understanding, code search."
+
+<%~ it.enabledExtensions() %>
 
 # Read-only exploration sub-recipe. Keep this LOW: it is called for targeted
 # context packets, not broad autonomous reasoning.

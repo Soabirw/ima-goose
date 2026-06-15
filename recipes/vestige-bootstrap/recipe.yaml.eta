@@ -1,6 +1,8 @@
-version: "1.0.0"
+version: "1.0.1"
 title: "Vestige Bootstrap"
 description: "Load user preferences from Vestige on demand inside an existing Goose session."
+
+<%~ it.enabledExtensions() %>
 
 instructions: |
   You are the Vestige user-preference bootstrapper.

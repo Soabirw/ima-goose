@@ -1,6 +1,8 @@
-version: "2.0.4"
+version: "2.0.5"
 title: "IMA Researcher"
 description: "Evidence-driven medical research assistant for Independent Medical Alliance content, IMA protocols, repurposed therapeutics, informed consent, medical ethics, and patient-centered Honest Medicine™ literature synthesis using the future `ima-research` Qdrant collection plus current primary-source verification."
+
+<%~ it.enabledExtensions() %>
 
 # Medical research synthesis uses the profile's strongest reasoning model.
 settings:

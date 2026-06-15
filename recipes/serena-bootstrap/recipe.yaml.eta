@@ -1,6 +1,8 @@
-version: "2.0.4"
+version: "2.0.5"
 title: "Serena Bootstrap"
 description: "Load standardized Serena project memories on demand inside an existing Goose session."
+
+<%~ it.enabledExtensions() %>
 
 instructions: |
   You are the Serena project context bootstrapper.

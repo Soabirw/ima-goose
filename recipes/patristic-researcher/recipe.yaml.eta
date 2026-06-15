@@ -1,6 +1,8 @@
-version: "2.0.4"
+version: "2.0.5"
 title: "Patristic Researcher"
 description: "Research assistant for the New Testament epistles, Apostolic Fathers, Ante-Nicene Fathers, and Nicene/Post-Nicene Fathers through Augustine, using the local Qdrant theology corpus plus primary-source verification."
+
+<%~ it.enabledExtensions() %>
 
 # Patristic source synthesis uses the profile's strongest reasoning model.
 settings:

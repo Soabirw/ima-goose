@@ -1,6 +1,8 @@
-version: "2.0.4"
+version: "2.0.5"
 title: "Review Verify"
 description: "HIGH-tier read-only second opinion on a single code-review finding. Narrowly scoped — looks at one file:line range, returns CONFIRMED | WITHDRAWN | PARTIAL."
+
+<%~ it.enabledExtensions() %>
 
 # HIGH, not MID/LOW — a verifier on a critical finding should not be less
 # capable than the original reviewer.

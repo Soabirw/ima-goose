@@ -1,6 +1,8 @@
-version: "2.3.4"
+version: "2.3.5"
 title: "Test Writer"
 description: "TDD and test creation specialist. Detects project type and routes to the correct framework."
+
+<%~ it.enabledExtensions() %>
 
 # Test coding usually wants the profile's balanced implementation model.
 settings:

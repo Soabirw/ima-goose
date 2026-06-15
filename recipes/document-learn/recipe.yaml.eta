@@ -1,6 +1,8 @@
-version: "2.3.4"
+version: "2.3.5"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
+
+<%~ it.enabledExtensions() %>
 
 # Closeout needs solid synthesis and careful memory routing.
 settings:
