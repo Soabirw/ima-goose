@@ -1,4 +1,4 @@
-version: "2.0.5"
+version: "2.0.6"
 title: "Design To Code"
 description: "Dedicated design-to-WordPress workflow. Turns screenshots, mockups, Jira context, or an existing design implementation prompt into an implementation prompt and optionally executes through WordPress sub-recipes."
 
@@ -9,6 +9,7 @@ settings:
 <%~ it.profileSettings("high") %>
 
 sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
   - name: explore
     path: ../explore/recipe.yaml.eta
     description: "Read-only codebase/design-system exploration"
@@ -27,6 +28,7 @@ instructions: |
 <%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
   You are the Design To Code orchestrator.
 
   Your job is to turn screenshots, mockups, Jira context, design notes, or an
@@ -68,6 +70,10 @@ instructions: |
   - mcp-atlassian - Jira context and acceptance criteria.
   - mcp-serena / rg - existing templates, shortcodes, components, SCSS, assets, and call sites.
   - mcp-vestige / mcp-qdrant - prior design decisions, component standards, and durable design-to-code patterns.
+
+  ## Visual Hand-Off Requirement
+
+  When source includes screenshots, mockups, design images, or visual QA evidence, call `vision_handoff` before drafting the implementation prompt. Require exact extracted text/copy, preserve image-derived layout hierarchy, mark uncertainty for cropped or ambiguous visual elements, and pass the visual hand-off result into `wp_implement`, `write_tests`, and `code_review` briefs as needed.
 
   ## Phase A: Design To Prompt
 

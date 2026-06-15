@@ -24,6 +24,7 @@ brainstorm -> plan -> task-planner -> story loop -> document-learn
 For each story it can call:
 
 - `explore` for focused LOW-cost code discovery
+- `vision_handoff` for cross-cutting image analysis of screenshots, mockups, visual diffs, diagrams, scanned docs, and Jira image attachments
 - `wp-developer`, `implement`, or `js-developer` for implementation
 - `test-writer` for tests
 - `code-review` for review
@@ -77,6 +78,8 @@ configured with the native ChatGPT Codex provider. See `docs/MODEL-TIERS.md`.
 
 Each sub-recipe call must receive a self-contained brief. Child sessions do not
 inherit the parent context reliably enough to depend on implied state.
+
+Parents should delegate image interpretation to `vision_handoff` and pass its visual-analysis result forward explicitly when later phases need it. This hand-off is standard even when the parent provider appears vision-capable because it saves context and normalizes evidence.
 
 Parents should pass:
 

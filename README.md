@@ -2,23 +2,21 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.4.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.4.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.4.0
+## What's New In v2.4.1
 
-- Added `goose-cycle`, a Taskwarrior/Vestige-backed HITL conductor for the
-  per-story `plan -> implement -> test -> review -> learn` workflow.
-- Added `/vestige-bootstrap` (`/bootstrap-vestige`) and `/bootstrap-serena`
-  current-session commands so agents can reload working memory preferences and
-  project memory through stable `ima-mcp` gateways.
-- Hardened Serena and Vestige guidance so bootstrap, memory, and preflight use
-  `ima-mcp serena` / `ima-mcp vestige` instead of fragile Goose TypeScript SDK
-  paths.
-- Refreshed Quick Start provider and MCP setup guidance, including top
-  recommended MCP installs for Serena, Vestige, and Qdrant plus Atlassian REST
-  helper environment variables.
-- Updated `config-template.yaml`, setup docs, recipe versions, and validation
-  guidance to match the current representative Goose workflow.
+- Added `vision-handoff`, a read-only GPT-5.5 vision recipe pinned to
+  `codex-acp` / `gpt-5.5/medium` for screenshots, mockups, visual diffs,
+  diagrams, scanned docs, and image attachments.
+- Updated brainstorm, plan, implementation, testing, review, document/learn,
+  design-to-code, and software-development-cycle workflows to route image
+  interpretation through `vision_handoff`.
+- Documented the current `chatgpt_codex` GPT-5.5 image transport limitation and
+  the standard `codex-acp` hand-off path.
+- Clarified rendered-recipe validation guidance: install to a temporary
+  destination with `node scripts/install.ts --dest "$tmpdir" --validate`, then
+  validate rendered YAML to avoid changing a user's installed recipes.
 
 ---
 
@@ -293,6 +291,15 @@ by the installer, not the `.yaml.eta` source templates directly.
 node scripts/install.ts --validate
 ```
 
+To validate rendered recipes without changing your installed Goose recipe set,
+render to a temporary destination:
+
+```bash
+tmpdir=$(mktemp -d)
+node scripts/install.ts --dest "$tmpdir" --profile openai --validate
+goose recipe validate "$tmpdir/vision-handoff.yaml"
+```
+
 ### 3. Enable Required Extensions
 
 ```bash
@@ -548,6 +555,7 @@ only the auto-injected `summon` extension.
 | `wp-developer` | WordPress with security + Bootstrap + FP | MID |
 | `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | HIGH |
 | `design-to-code` | Translate approved designs/screenshots into implementation prompts or code pipeline | HIGH |
+| `vision-handoff` | Read-only GPT-5.5 image analysis hand-off via `codex-acp` for screenshots, mockups, visual diffs, diagrams, scanned docs, and image attachments | Pinned |
 | `explore` | Fast read-only codebase exploration, sub-recipe oriented | LOW |
 | `test-writer` | TDD, test creation, debugging failures | MID |
 | `/architect` | Current-session architecture lens and technology selection command | Current session |
@@ -561,15 +569,15 @@ only the auto-injected `summon` extension.
 
 ### Sub-Recipe Wiring
 
-`software-development-cycle` delegates to: `brainstorm`, `plan_feature` (plan), `decompose` (task-planner), `explore`, `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `document_learn` (document-learn). It owns the full phase graph directly and does not call `task-master`.
+`software-development-cycle` delegates to: `brainstorm`, `plan_feature` (plan), `decompose` (task-planner), `explore`, `vision_handoff`, `implement`, `wp_implement` (wp-developer), `write_tests` (test-writer), `code_review` (code-review), `document_learn` (document-learn). It owns the full phase graph directly and does not call `task-master`.
 
 `implement` and `wp-developer` delegate to: `write_tests`, `code_review`.
 
-`code-review` delegates to: `verify` (review-verify) and `scorecard` when the user requests project/PR scoring.
+`code-review` delegates to: `verify` (review-verify), `scorecard` when the user requests project/PR scoring, and `vision_handoff` when review evidence includes images or visual artifacts.
 
 `adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `anthropic`/`claude-opus-4-7` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rendering.
 
-Terminal (no sub-recipes): `brainstorm`, `plan`, `document-learn`, `task-planner`, `test-writer`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+Terminal/no-write-helper recipes: `task-planner`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
 Cycle helper terminals: `cycle-start`, `cycle-close`.
 
@@ -653,3 +661,8 @@ can load the same project rules consistently.
 ## Origin
 
 Adapted from [ima-claude](https://github.com/Soabirw/ima-claude) (Claude Code plugin, 63 skills). This repo packages the same team standards and FP patterns in Goose's recipe + skills hybrid format. Skills are cross-installed: the same SKILL.md files serve both Claude Code (via Summon extension) and Goose (via Summon built-in).
+
+
+## Vision Hand-Off
+
+`chatgpt_codex` currently cannot pass images to GPT-5.5 vision. Parent workflows therefore delegate image interpretation to `vision_handoff`, a read-only recipe pinned to `codex-acp` / `gpt-5.5/medium`. Use it for screenshots, mockups, browser captures, visual diffs, diagrams, scanned forms, Jira image attachments, and image URLs. Parents consume the structured visual evidence instead of interpreting image context directly.

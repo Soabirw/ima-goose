@@ -1,4 +1,4 @@
-version: "2.0.5"
+version: "2.0.6"
 title: "Software Development Cycle"
 description: "Top-level conductor for the IMA software development cycle: brainstorm, plan, decompose, implement, test, review, document, and learn. Owns all phase calls directly; does not call task-master."
 
@@ -10,6 +10,7 @@ settings:
 # Flattened phase graph. Goose subrecipe sessions are isolated and cannot nest
 # subrecipes reliably, so this umbrella owns each phase call directly.
 sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
   - { name: plan_feature, path: ../plan/recipe.yaml.eta }
   - { name: decompose, path: ../task-planner/recipe.yaml.eta }
   - { name: explore, path: ../explore/recipe.yaml.eta }
@@ -25,6 +26,7 @@ instructions: |
 <%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
   You are the IMA software development cycle conductor. You orchestrate the
   full workflow.
 
@@ -59,11 +61,15 @@ instructions: |
     - architect — phase-level tradeoffs and architecture-risk decisions
     - unit-testing, phpunit-wp, playwright — verification strategy and artifacts
 
+  ## Visual Evidence Routing
+
+  Because Goose subrecipes cannot reliably nest, this conductor declares `vision_handoff` directly. Call `vision_handoff` whenever the source or a phase artifact includes images, screenshots, mockups, diagrams, visual diffs, scanned documents, or Jira image attachments. Pass the visual-analysis result forward explicitly into `plan_feature`, `implement`, `wp_implement`, `js_implement`, `write_tests`, `code_review`, or `document_learn` briefs.
+
   ## Hard Constraint: Flattened Subrecipes
 
   This recipe declares every phase it needs:
-  plan_feature, decompose, explore, implement, wp_implement,
-  write_tests, code_review, and document_learn.
+  plan_feature, decompose, explore, vision_handoff, implement, wp_implement,
+  js_implement, write_tests, code_review, and document_learn.
 
   Goose subrecipe sessions are isolated. Every phase brief must be complete and
   standalone. Never say "as discussed" or rely on parent conversation memory.

@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.4.1 - 2026-06-15
+
+### Added
+
+- Added dedicated `vision-handoff` recipe pinned to `codex-acp` / `gpt-5.5/medium` for read-only image analysis.
+
+### Changed
+
+- Updated brainstorm, plan, implement, test, review, document/learn, design-to-code, and software-development-cycle workflows to delegate image analysis through `vision_handoff`.
+- Documented the current `chatgpt_codex` GPT-5.5 image transport limitation and the standard `codex-acp` hand-off path.
+- Documented temporary-destination rendered-recipe validation so agents can validate without changing a user's installed Goose recipes.
+
+### Validation
+
+- Syntax-checked `scripts/install.ts` with `node --check`.
+- Ran `npm test`.
+- Rendered and validated recipe templates to temporary directories for `openai`, `hybrid`, and `chatgpt_codex` profiles.
+- Validated rendered changed recipes with `goose recipe validate`.
+- Ran `git diff --check`.
+
 ## v2.4.0 - 2026-06-12
 
 ### Added

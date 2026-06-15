@@ -291,6 +291,7 @@ engineering workflow.
 | JavaScript/TypeScript implementation | `goose-js` | The task is Svelte, Node, API, CLI, TUI, or browser JS work. |
 | UI/UX inspection | `goose-ui` | You need browser-based layout, responsive, accessibility, or Bootstrap/IMA CSS review. |
 | Design to implementation | `goose-design-to-code [source]` | You have a screenshot, mockup, Jira design context, or design prompt to convert into code work. |
+| Image interpretation | `vision_handoff` subrecipe | Parent recipes route screenshots, mockups, design comps, visual diffs, diagrams, scanned docs/forms, Jira image attachments, and image URLs through the standard vision hand-off. |
 | Project or PR scorecard | `goose-scorecard [target]` | You want a graded assessment of standards, security, tests, docs, and maintainability. |
 | Release prep | `goose-ship-it stg|prod [project-path]` | You are intentionally preparing staging or production release branches/tags. |
 | MCP config migration | `goose run --recipe mcp-migration --interactive` | You need to migrate MCP servers from Claude Code config into Goose config. |
@@ -357,3 +358,8 @@ Before moving from one recipe to the next, make the handoff explicit:
 
 This keeps recipe sessions small, auditable, and less dependent on hidden chat
 history.
+
+
+## Vision-heavy sources
+
+When a workflow depends on screenshots, mockups, design comps, browser captures, visual regression diffs, diagrams, scanned docs/forms, Jira image attachments, or image URLs, route interpretation through `vision_handoff`. The child recipe is pinned to `codex-acp` / `gpt-5.5/medium` because `chatgpt_codex` currently cannot pass images to GPT-5.5 vision. Parent recipes use the returned visual evidence for planning, implementation, tests, review, or closeout decisions.

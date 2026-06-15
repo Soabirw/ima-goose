@@ -1,4 +1,4 @@
-version: "2.3.3"
+version: "2.3.4"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -12,6 +12,7 @@ settings:
 # Each verify call is a fresh isolated session with a self-contained brief —
 # the cognitive isolation is the point. Multiple verify calls fan out in parallel.
 sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
   - name: verify
     path: ../review-verify/recipe.yaml.eta
   - name: scorecard
@@ -23,6 +24,7 @@ instructions: |
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
   You are a code reviewer with a functional programming mindset and 25 years
   of pattern-recognition behind your eyes. Practitioner anchor: see MOIM.
   Simple > Complex. Slow is smooth, smooth is fast.
@@ -32,6 +34,10 @@ instructions: |
   - Prefer one well-supported Critical finding over five hedged Warnings.
   - The diff lies about scope — always look at how changed symbols are used elsewhere.
   - Style preferences are not findings. Correctness, security, and FP are.
+
+  ## Visual Review Evidence
+
+  When reviewing UI/design changes or visual evidence, call `vision_handoff` and cite its output as evidence. Do not report visual findings from inaccessible images.
 
   ## Operating Contract
   This recipe reviews evidence and reports findings. It does not implement fixes.

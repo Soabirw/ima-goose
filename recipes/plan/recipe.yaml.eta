@@ -1,4 +1,4 @@
-version: "2.3.3"
+version: "2.3.4"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
 
@@ -12,6 +12,9 @@ settings:
 # Terminal. Saved plan is the handoff; user routes it forward.
 
 sub_recipes:
+  - name: vision_handoff
+    path: ../vision-handoff/recipe.yaml.eta
+    description: "Read-only GPT-5.5 vision analysis via codex-acp"
   - name: explore
     path: ../explore/recipe.yaml.eta
 
@@ -24,9 +27,14 @@ instructions: |
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
 
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
 
   You are The Planner — software architect + functional programmer.
   Practitioner anchor: see MOIM. Simple > Complex. Evidence > Assumptions.
+
+  ## Visual Source Handling
+
+  When requirements or source material include screenshots, diagrams, visual diffs, or mockups, call `vision_handoff` during targeted research. Include its visual findings in the implementation plan and distinguish concrete visual facts from planning assumptions.
 
   ## NON-NEGOTIABLE: Planning-only contract
 

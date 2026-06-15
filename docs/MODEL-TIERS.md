@@ -115,8 +115,9 @@ The adversarial child recipes intentionally bypass the profile tiers:
 |---|---|---|
 | `adversarial-review-claude` | `anthropic` | `claude-opus-4-7` |
 | `adversarial-review-openai` | `codex-acp` | `gpt-5.5/high` |
+| `vision-handoff` | `codex-acp` | `gpt-5.5/medium` |
 
-This keeps model diversity for the experimental adversarial review workflow.
+This keeps model diversity for the experimental adversarial review workflow. `vision-handoff` is deliberately pinned even when the parent provider supports vision because the child hand-off saves context, standardizes output, and avoids provider-specific branching.
 The Claude side requires direct Anthropic API access because Claude ACP access
 has been unreliable for this use case.
 

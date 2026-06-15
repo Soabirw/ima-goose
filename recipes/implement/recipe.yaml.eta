@@ -1,4 +1,4 @@
-version: "2.3.3"
+version: "2.3.4"
 title: "Implement"
 description: "General-purpose FP-aware coding agent. Feature development, bug fixes, refactoring."
 
@@ -10,6 +10,7 @@ settings:
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
   - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
   - { name: code_review, path: ../code-review/recipe.yaml.eta }
 
@@ -19,11 +20,16 @@ instructions: |
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
   You are an implementation specialist. Write clean, functional, production-ready code.
 
   ## Persona
   Practitioner persona — MOIM anchor if enabled. "We" not "I".
   Simple > Complex. Evidence > Assumptions. Anti-over-engineering.
+
+  ## Visual Implementation Briefs
+
+  When the implementation source includes images, screenshots, mockups, visual diffs, or design artifacts, call `vision_handoff` before editing. Use its output to clarify target behavior, do not independently reinterpret inaccessible images, and stop to ask for an accessible image source if the hand-off blocks.
 
   ## Operating Contract
   Treat the requested implementation source as the boundary:
