@@ -1,6 +1,6 @@
 // ima-goose developer setup
 // Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate] [--register-slash-commands]
-// Profiles: openai (default), chatgpt_codex, hybrid, anthropic, claude-acp
+// Profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp
 // Requires: Node 24+ (native TypeScript support)
 
 import { execFileSync, execSync } from "node:child_process";
@@ -54,7 +54,7 @@ function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
   const parsed = {
     dest: path.join(os.homedir(), ".config", "goose", "recipes"),
-    profile: "openai",
+    profile: "chatgpt_codex",
     registerSlashCommands: false,
     validate: false,
   };
@@ -817,8 +817,8 @@ function printNextSteps(): void {
   console.log("  5. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  6. Ensure ~/.local/bin is on PATH for the goose-cycle helper.");
   console.log("  7. Switch model profile any time:");
-  console.log("       node scripts/install.ts --profile openai     # Default — GPT via codex-acp");
-  console.log("       node scripts/install.ts --profile chatgpt_codex # Native ChatGPT Codex provider");
+  console.log("       node scripts/install.ts --profile chatgpt_codex # Default — native ChatGPT Codex provider");
+  console.log("       node scripts/install.ts --profile openai     # codex-acp fallback");
   console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");

@@ -1,5 +1,41 @@
 # Changelog
 
+## v2.5.0 - 2026-06-16
+
+### Added
+
+- Added `investigate`, a HIGH-tier Sherlock-style troubleshooting recipe for
+  evidence-led, non-mutating root-cause analysis with quick/standard/deep depth,
+  guided/autonomous modes, visual handoff support, and read-only WordPress and
+  JavaScript/browser investigation guardrails.
+- Added `goose-investigate [source]` to the direct recipe aliases and help text.
+- Documented `investigate` as a one-off complex troubleshooting side path in the
+  README and workflow docs, explicitly outside goose-cycle and routine
+  per-story delivery.
+
+### Changed
+
+- Changed the installer default profile from `openai` to `chatgpt_codex` so
+  `node scripts/install.ts` uses Goose's native ChatGPT Codex provider by
+  default.
+- Reframed `openai` as the codex-acp fallback profile in installer output,
+  aliases, and model-tier documentation.
+- Bumped the package and lockfile release version to v2.5.0.
+
+### Fixed
+
+- Fixed the new `investigate` recipe profile tier rendering so its HIGH-tier
+  settings render valid Goose recipe YAML.
+- Corrected the stale root package version in `package-lock.json` while bumping
+  the release.
+
+### Validation
+
+- Rendered and validated all recipe templates for `chatgpt_codex`, `openai`,
+  `hybrid`, `anthropic`, and `claude-acp` profiles.
+- Ran `npm test`.
+- Ran `git diff --check`.
+
 ## v2.4.2 - 2026-06-15
 
 ### Fixed

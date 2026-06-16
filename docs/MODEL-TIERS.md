@@ -23,17 +23,9 @@ The old `opus` / `sonnet` / `haiku` source-tier vocabulary is deprecated.
 Profiles must define `high`, `mid`, and `low`; the installer no longer falls
 back to the old names.
 
-## Default Profile: OpenAI
+## Default Profile: ChatGPT Codex
 
-`node scripts/install.ts` defaults to `--profile openai`.
-
-| Tier | Provider | Model |
-|---|---|---|
-| `HIGH` | `codex-acp` | `gpt-5.5/high` |
-| `MID` | `codex-acp` | `gpt-5.5/medium` |
-| `LOW` | `codex-acp` | `gpt-5.5/low` |
-
-## Other Profiles
+`node scripts/install.ts` defaults to `--profile chatgpt_codex`.
 
 ### ChatGPT Codex
 
@@ -43,12 +35,22 @@ back to the old names.
 | `MID` | `chatgpt_codex` | `gpt-5.5` |
 | `LOW` | `chatgpt_codex` | `gpt-5.5` |
 
-Use when Goose is configured with the native `chatgpt_codex` provider. Recipes
+Use as the default when Goose is configured with the native `chatgpt_codex` provider. Recipes
 keep the base model ID because reasoning effort is runtime environment, not a
 recipe model suffix. The profile declares per-tier `GOOSE_THINKING_EFFORT`
 values for shell aliases: HIGH→`high`, MID→`medium`, LOW→`low`. Copy or merge
 `.goose-aliases.example` to `~/.goose-aliases` after changing those profile env
 values.
+
+### OpenAI codex-acp fallback
+
+| Tier | Provider | Model |
+|---|---|---|
+| `HIGH` | `codex-acp` | `gpt-5.5/high` |
+| `MID` | `codex-acp` | `gpt-5.5/medium` |
+| `LOW` | `codex-acp` | `gpt-5.5/low` |
+
+Use `--profile openai` when the native `chatgpt_codex` provider is unavailable and the codex-acp path is configured locally.
 
 ### Hybrid
 

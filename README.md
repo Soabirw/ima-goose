@@ -2,18 +2,18 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.4.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.5.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.4.2
+## What's New In v2.5.0
 
 
-- Fixed Serena/Vestige bootstrap startup failures by rendering enabled Goose
-  extensions at the top of every bootstrap-enabled recipe, before any
-  `sub_recipes` declarations.
-- Ensured direct recipes such as `goose-plan` and `goose-learn`, plus delegated
-  slash-command/subagent sessions, keep the developer shell tool required for
-  `ima-mcp` gateway commands.
-- Preserved the `vision-handoff` image-analysis workflow from v2.4.1.
+- Added `investigate`, a HIGH-tier Sherlock-style troubleshooting recipe for
+  evidence-led, non-mutating root-cause analysis.
+- Added `goose-investigate [source]` and documented the workflow as a one-off
+  complex troubleshooting side path, not a goose-cycle or routine per-story
+  phase.
+- Changed the default installer profile to `chatgpt_codex`, keeping `openai`
+  available as the codex-acp fallback.
 
 ---
 
@@ -36,7 +36,7 @@ Goose needs an ACP binary on `PATH` for ACP-backed providers. Install at least
 the provider you plan to use; installing both is fine for local testing.
 
 ```bash
-# Codex ACP (recommended default for this repo)
+# Codex ACP (fallback path and vision handoff support)
 npm install -g @zed-industries/codex-acp
 
 # Claude ACP (optional; use only when you intentionally want the Claude ACP path)
@@ -95,9 +95,8 @@ Provider effort handling differs by path:
 - `codex-acp` does **not** read `GOOSE_THINKING_EFFORT`; effort must be part of
   the model name, such as `gpt-5.5/high`.
 
-The profile system handles this split when rendering recipes and aliases. Use
-`node scripts/install.ts --profile chatgpt_codex` for the recommended OAuth
-path, or another profile only when that provider is configured locally. See
+The profile system handles this split when rendering recipes and aliases. `node scripts/install.ts` defaults to the recommended `chatgpt_codex` OAuth
+path. Use another profile only when that provider is configured locally. See
 [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) and the [Setup](#setup) section
 for profile details.
 
@@ -267,7 +266,7 @@ deploy time, and shell aliases set `GOOSE_THINKING_EFFORT` for `chatgpt_codex`.
 Switch profiles any time:
 
 ```bash
-node scripts/install.ts --profile chatgpt_codex # recommended OAuth path → gpt-5.5 + GOOSE_THINKING_EFFORT
+node scripts/install.ts                       # default chatgpt_codex OAuth path → gpt-5.5 + GOOSE_THINKING_EFFORT
 node scripts/install.ts --profile openai        # codex-acp fallback → gpt-5.5/<effort>
 node scripts/install.ts --profile hybrid        # HIGH→codex-acp, MID/LOW→claude-acp
 node scripts/install.ts --profile anthropic     # direct Anthropic API model IDs
@@ -293,7 +292,7 @@ render to a temporary destination:
 
 ```bash
 tmpdir=$(mktemp -d)
-node scripts/install.ts --dest "$tmpdir" --profile openai --validate
+node scripts/install.ts --dest "$tmpdir" --profile chatgpt_codex --validate
 goose recipe validate "$tmpdir/vision-handoff.yaml"
 ```
 
@@ -555,6 +554,7 @@ only the auto-injected `summon` extension.
 | `wp-developer` | WordPress with security + Bootstrap + FP | MID |
 | `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | HIGH |
 | `design-to-code` | Translate approved designs/screenshots into implementation prompts or code pipeline | HIGH |
+| `investigate` | Sherlock-style, evidence-led troubleshooting and non-mutating root-cause investigation | HIGH |
 | `vision-handoff` | Read-only GPT-5.5 image analysis hand-off via `codex-acp` for screenshots, mockups, visual diffs, diagrams, scanned docs, and image attachments | Pinned |
 | `explore` | Fast read-only codebase exploration, sub-recipe oriented | LOW |
 | `test-writer` | TDD, test creation, debugging failures | MID |
@@ -577,7 +577,7 @@ only the auto-injected `summon` extension.
 
 `adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `anthropic`/`claude-opus-4-7` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rendering.
 
-Terminal/no-write-helper recipes: `task-planner`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+Terminal/no-write-helper recipes: `task-planner`, `investigate`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
 
 Cycle helper terminals: `cycle-start`, `cycle-close`.
 
@@ -613,7 +613,7 @@ Planned recipe dirs are harmless empty dirs signaling future scope. Convert when
 ## Model Profiles
 
 Recipes use `HIGH`, `MID`, and `LOW` tiers rendered from `profiles/*.yaml`.
-`openai` is the default profile; `chatgpt_codex` is available for Goose's native ChatGPT Codex provider. For `chatgpt_codex`, aliases scope `GOOSE_THINKING_EFFORT` per command. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
+`chatgpt_codex` is the default profile for Goose's native ChatGPT Codex provider. Use `openai` only as the codex-acp fallback. For `chatgpt_codex`, aliases scope `GOOSE_THINKING_EFFORT` per command. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
 
 ---
 

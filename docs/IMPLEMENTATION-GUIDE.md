@@ -9,13 +9,13 @@ This guide reflects the current human-in-the-loop Goose workflow. The old
 node scripts/install.ts --validate
 ```
 
-The default profile is `openai`, which renders recipes through `codex-acp`:
+The default profile is `chatgpt_codex`, which renders recipes through Goose's native ChatGPT Codex provider:
 
-- HIGH: `gpt-5.5/high`
-- MID: `gpt-5.5/medium`
-- LOW: `gpt-5.5/low`
+- HIGH: `gpt-5.5` with alias-scoped `GOOSE_THINKING_EFFORT=high`
+- MID: `gpt-5.5` with alias-scoped `GOOSE_THINKING_EFFORT=medium`
+- LOW: `gpt-5.5` with alias-scoped `GOOSE_THINKING_EFFORT=low`
 
-Use `--profile chatgpt_codex`, `--profile hybrid`, `--profile anthropic`,
+Use `--profile openai`, `--profile hybrid`, `--profile anthropic`,
 or `--profile claude-acp` only when those providers are configured locally.
 For `chatgpt_codex`, copy or merge `.goose-aliases.example` after profile
 changes because aliases set command-scoped `GOOSE_THINKING_EFFORT`.
@@ -87,6 +87,11 @@ Current parents:
 `explore` is LOW and is intended as a focused read-only sub-recipe. It should
 return compact findings to its parent, not design or implement.
 
+`investigate` is HIGH and owns evidence synthesis, hypothesis testing,
+reproduction analysis, and root-cause reporting. It remains non-mutating and is
+intended as a one-off tool for hairy troubleshooting, not a routine workflow
+phase.
+
 `review-verify` is HIGH because it verifies critical review findings and should
 not be less capable than the original reviewer.
 
@@ -96,6 +101,7 @@ not be less capable than the original reviewer.
 |---|---|---|
 | `brainstorm` | HIGH | Shape an idea into a feature set |
 | `plan` | HIGH | Turn a feature set into an implementation plan |
+| `investigate` | HIGH | Read-only Sherlock-style debugging and root-cause analysis |
 | `task-planner` | HIGH | Decompose a plan into Epic -> Story -> Task |
 | `wp-developer` | MID | Implement approved WordPress plans |
 | `implement` | MID | General implementation |

@@ -279,6 +279,28 @@ This is a terminal closeout recipe. It should update docs and route learning to
 Serena, Vestige, and Qdrant. It should not implement code or reopen product
 decisions.
 
+## Complex troubleshooting
+
+Use `goose-investigate` for hairy, ambiguous, cross-system problems where the
+root cause is not clear and normal bug-fix tools would start changing code too
+soon.
+
+This is a one-off investigation tool, not a required per-story phase.
+
+Good inputs:
+- unclear production-like symptom
+- intermittent failure
+- browser console/network issue with unknown source
+- WordPress hook/form/AJAX behavior that crosses plugins/themes
+- stack trace without an obvious owner
+- environment-specific failure
+- "we do not know where this is breaking yet"
+
+`investigate` produces an evidence-backed root-cause report or ranked
+hypotheses. After that, choose the next workflow based on the finding:
+`plan`, `wp-developer`, `js-developer`, `implement`, `code-review`, or no
+code-change workflow at all.
+
 ## Specialty Recipes
 
 These recipes are useful, but they are not mandatory phases in every compound
@@ -286,6 +308,7 @@ engineering workflow.
 
 | Need | Recommended command | Use when |
 |---|---|---|
+| Complex troubleshooting | `goose-investigate [source]` | You need Sherlock-style root-cause investigation before deciding whether to plan, implement, review, or escalate. |
 | Fast codebase discovery | `goose-explore` | You need read-only answers about structure, dependencies, or likely edit points. |
 | WordPress implementation | `goose-wp` | The task is clearly WordPress/PHP/Bootstrap/IMA Forms work. |
 | JavaScript/TypeScript implementation | `goose-js` | The task is Svelte, Node, API, CLI, TUI, or browser JS work. |

@@ -45,22 +45,22 @@ Render recipes and install skills:
 node scripts/install.ts --validate
 ```
 
-`openai` is the default installer profile. It renders:
+`chatgpt_codex` is the default installer profile. It renders:
 
-- HIGH -> `codex-acp` / `gpt-5.5/high`
-- MID -> `codex-acp` / `gpt-5.5/medium`
-- LOW -> `codex-acp` / `gpt-5.5/low`
+- HIGH -> `chatgpt_codex` / `gpt-5.5` with `GOOSE_THINKING_EFFORT=high` in aliases
+- MID -> `chatgpt_codex` / `gpt-5.5` with `GOOSE_THINKING_EFFORT=medium` in aliases
+- LOW -> `chatgpt_codex` / `gpt-5.5` with `GOOSE_THINKING_EFFORT=low` in aliases
 
 Other profiles are available:
 
 ```bash
-node scripts/install.ts --profile chatgpt_codex
+node scripts/install.ts --profile openai
 node scripts/install.ts --profile hybrid
 node scripts/install.ts --profile anthropic
 node scripts/install.ts --profile claude-acp
 ```
 
-See `docs/MODEL-TIERS.md`. If you use `chatgpt_codex`, copy or merge
+See `docs/MODEL-TIERS.md`. Because the default `chatgpt_codex` profile uses alias-scoped effort, copy or merge
 `.goose-aliases.example` to `~/.goose-aliases` after profile changes so alias
 scoped `GOOSE_THINKING_EFFORT` stays current.
 

@@ -262,8 +262,8 @@ goose-learn() {
 # with a different profile. See docs/MODEL-TIERS.md for the tier mapping.
 #
 # Profiles:
-#   openai        — Default. codex-acp via ChatGPT Pro/Max. HIGH/MID/LOW → GPT-5.5 efforts.
-#   chatgpt_codex — Native ChatGPT Codex provider. HIGH/MID/LOW → GPT-5.5.
+#   chatgpt_codex — Default. Native ChatGPT Codex provider. HIGH/MID/LOW → GPT-5.5.
+#   openai        — codex-acp fallback via ChatGPT Pro/Max. HIGH/MID/LOW → GPT-5.5 efforts.
 #   hybrid        — HIGH via codex-acp, MID/LOW via claude-acp.
 #   anthropic     — Direct Anthropic API. HIGH/MID/LOW → full claude-* model IDs.
 #   claude-acp    — Claude friendly shortnames, if working locally.
@@ -273,8 +273,8 @@ goose-learn() {
 #
 # Usage:
 #   goose-profile                  (shows current; lists available)
-#   goose-profile openai
 #   goose-profile chatgpt_codex
+#   goose-profile openai
 #   goose-profile hybrid
 #   goose-profile anthropic
 #   goose-profile claude-acp
@@ -282,7 +282,7 @@ goose-profile() {
   local profile="${1:-}"
   local script="$HOME/IMA/dev/ima-goose/scripts/install.ts"
   if [ -z "$profile" ]; then
-    echo "Available profiles: openai (default), chatgpt_codex, hybrid, anthropic, claude-acp"
+    echo "Available profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp"
     echo "Deployed recipes (first 5):"
     grep -h "^  goose_model:" "$HOME/.config/goose/recipes/"*.yaml 2>/dev/null | sort -u | head -5
     return 0
@@ -324,6 +324,18 @@ goose-design-to-code() {
       --interactive
   else
     _goose_high run --recipe design-to-code --name "design-to-code-$(date +%Y%m%d-%H%M)" --interactive
+  fi
+}
+
+goose-investigate() {
+  local source="${1:-}"
+  if [ -n "$source" ]; then
+    _goose_high run --recipe investigate \
+      --params "source=${source}" \
+      --name "investigate-$(date +%Y%m%d-%H%M)" \
+      --interactive
+  else
+    _goose_high run --recipe investigate --name "investigate-$(date +%Y%m%d-%H%M)" --interactive
   fi
 }
 
@@ -450,6 +462,7 @@ DIRECT RECIPES:
   goose-js                      JavaScript/TypeScript development (Svelte, Node, APIs, CLIs, TUIs)
   goose-ui                      UI/UX review with Chrome DevTools + Bootstrap/IMA CSS guidance
   goose-design-to-code [source] Design/screenshot → implementation prompt or code pipeline
+  goose-investigate [source]    Sherlock-style read-only troubleshooting/root-cause investigation
   goose-explore                 Read-only codebase exploration
   goose-tests                   Write or debug tests
   goose-scorecard [target]      Project, PR, or codebase quality scorecard
@@ -461,8 +474,8 @@ UPDATING RECIPES:
 
   node ~/IMA/dev/ima-goose/scripts/install.ts   Re-sync after pulling updates
   goose-profile                                 Show available model profiles
-  goose-profile openai                          Switch recipes to default GPT-5.5 profile
-  goose-profile chatgpt_codex                   Switch recipes to native ChatGPT Codex provider
+  goose-profile chatgpt_codex                   Switch recipes to default native ChatGPT Codex provider
+  goose-profile openai                          Switch recipes to codex-acp fallback GPT-5.5 profile
   goose-profile hybrid                          Switch HIGH to GPT-5.5, MID/LOW to Claude ACP
   goose-profile claude-acp                      Switch recipes to Claude ACP shortnames
 

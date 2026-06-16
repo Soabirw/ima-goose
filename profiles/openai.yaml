@@ -1,4 +1,4 @@
-# OpenAI via codex-acp profile (default)
+# OpenAI via codex-acp fallback profile
 # Uses ChatGPT Pro/Max subscription auth.
 
 tiers:

@@ -48,6 +48,19 @@ Artifacts move forward by memory name, file path, Jira key, PR URL, or pasted
 summary. Recipes should not assume a prior session exists unless the user
 provides a reference.
 
+## Complex Troubleshooting Side Path
+
+For unusually hairy defects or ambiguous production-like symptoms:
+
+```text
+symptom / Jira / logs / URL -> investigate -> choose next workflow
+```
+
+`investigate` is not part of the standard per-story cycle. It is a one-off
+diagnostic tool for cases where the problem is not understood well enough to
+plan or implement safely. The resulting report may feed `plan`, `wp-developer`,
+`js-developer`, `implement`, `code-review`, or no code-change workflow at all.
+
 ## Commands
 
 Use these inside an existing session:
@@ -71,8 +84,7 @@ returning a copy-ready prompt.
 | MID | Implementation, tests, release prep, documentation |
 | LOW | Focused exploration |
 
-`openai` is the default profile. Use `chatgpt_codex` when Goose is
-configured with the native ChatGPT Codex provider. See `docs/MODEL-TIERS.md`.
+`chatgpt_codex` is the default profile for Goose's native ChatGPT Codex provider. Use `openai` only as the codex-acp fallback. See `docs/MODEL-TIERS.md`.
 
 ## Sub-Recipe Rule
 
