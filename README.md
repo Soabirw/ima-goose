@@ -268,9 +268,9 @@ OPENAI_API_KEY: "ollama"
 GOOSE_MODEL: "qwen3-coder:latest"
 
 # Sakana API profile provider
-# Configure a Goose model provider named `sakana` with base_url https://api.sakana.ai/v1,
+# Configure a Goose model provider named `custom_sakana` with base_url https://api.sakana.ai/v1,
 # env_key SAKANA_API_KEY, wire_api responses, and the stream/retry settings from config-template.yaml.
-GOOSE_PROVIDER: "sakana"
+GOOSE_PROVIDER: "custom_sakana"
 GOOSE_MODEL: "fugu"
 GOOSE_THINKING_EFFORT: "xhigh"
 ```

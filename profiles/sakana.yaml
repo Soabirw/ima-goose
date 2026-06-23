@@ -1,5 +1,5 @@
 # Sakana API profile
-# Uses Goose provider name "sakana" configured as an OpenAI-compatible Responses endpoint.
+# Uses Goose provider name "custom_sakana" configured as an OpenAI-compatible Responses endpoint.
 # Sakana fugu accepts reasoning effort high and xhigh/max only.
 
 tiers:
@@ -8,9 +8,9 @@ tiers:
   low: fugu
 
 providers:
-  high: sakana
-  mid: sakana
-  low: sakana
+  high: custom_sakana
+  mid: custom_sakana
+  low: custom_sakana
 
 env:
   high:

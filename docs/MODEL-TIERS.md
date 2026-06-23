@@ -84,12 +84,12 @@ Kept for users with working Claude ACP access. It is no longer the default.
 
 | Tier | Provider | Model | Runtime effort |
 |---|---|---|---|
-| `HIGH` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=xhigh` |
-| `MID` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
-| `LOW` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
+| `HIGH` | `custom_sakana` | `fugu` | `GOOSE_THINKING_EFFORT=xhigh` |
+| `MID` | `custom_sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
+| `LOW` | `custom_sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
 
 Use `--profile sakana` when Goose is configured with a model provider named
-`sakana` pointing at `https://api.sakana.ai/v1` with `wire_api = "responses"`
+`custom_sakana` pointing at `https://api.sakana.ai/v1` with `wire_api = "responses"`
 and `SAKANA_API_KEY`. Sakana accepts only `high` and `xhigh`/`max` reasoning
 efforts, so this profile deliberately does not use `medium` or `low`. When using
 `.goose-aliases.example`, set `GOOSE_HIGH_THINKING_EFFORT=xhigh`,

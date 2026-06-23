@@ -250,8 +250,8 @@ GOOSE_MODEL: "gpt-5.5/medium"
 # Add ANTHROPIC_API_KEY to your shell profile.
 
 # Option E: Sakana API (OpenAI-compatible Responses endpoint)
-# Configure a Goose model provider named `sakana` with:
-# [model_providers.sakana]
+# Configure a Goose model provider named `custom_sakana` with:
+# [model_providers.custom_sakana]
 # name = "Sakana API"
 # base_url = "https://api.sakana.ai/v1"
 # env_key = "SAKANA_API_KEY"
@@ -260,7 +260,7 @@ GOOSE_MODEL: "gpt-5.5/medium"
 # stream_max_retries = 5
 # request_max_retries = 4
 #
-# GOOSE_PROVIDER: sakana
+# GOOSE_PROVIDER: custom_sakana
 # GOOSE_MODEL: "fugu"
 # GOOSE_THINKING_EFFORT: "xhigh"
 # Installer profile: sakana. Renders HIGH/MID/LOW to fugu and uses alias-scoped
