@@ -1,5 +1,64 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Updated `task-planner` persistence guidance so Stories are the default Jira and
+  Taskwarrior lifecycle units, while lower-level Tasks are embedded Story
+  checklists/annotations/acceptance criteria unless explicitly promoted.
+- Clarified Taskwarrior/goose-cycle lifecycle granularity in docs and the
+  Taskwarrior skill.
+- Fixed v2.6.0 setup docs to use `ima-mcp-gateway >= 0.3.0` as the
+  source of truth for Serena, Vestige, and Qdrant instead of removed direct
+  extension blocks.
+- Added missing `instructor` model-tier and sub-recipe delegation documentation.
+
+### Validation
+
+- Ran targeted stale wording scans for old task-planner granularity language.
+- Rendered and validated recipes with `node scripts/install.ts --validate --dest <tmp> --profile chatgpt_codex`.
+- Ran `npm test`.
+- Ran `git diff --check`.
+
+## v2.6.0 - 2026-06-18
+
+### Added
+
+- Added `instructor`, a HIGH-tier context-aware read-only mentoring recipe that
+  researches enough evidence to explain what the human should do next and why,
+  with `vision_handoff` and `explore` as its only subrecipes.
+- Added the `goose-instructor [source]` shell alias and documented the recipe as
+  a mentoring side path, not a `goose-cycle` or routine per-story phase.
+
+### Changed
+
+- Updated `task-planner` to allow optional approved PM persistence after hierarchy
+  and persistence-preview approval, with exactly one target per hierarchy: Jira
+  or Taskwarrior. The recipe remains non-implementation and still forbids
+  code/content/config/database/dependency/branch/commit/generated-artifact,
+  test/build, migration, deployment, and implementation changes.
+- Added Taskwarrior persistence rules for native `task` CLI usage, read-before-write
+  checks, user-scoped setup, narrow project filters, safe commands, and
+  `project:<project>.<epic-slug>` namespace mapping.
+- Added Jira persistence rules requiring metadata-driven mapping, explicit
+  preview/approval, and no hardcoded Epic/Story/Sub-task assumptions.
+- Removed direct Serena, Qdrant, and Vestige extension entries from
+  `config-template.yaml` now that those integrations are provided through
+  `ima-mcp-gateway`.
+- Bumped the package, lockfile, README release reference, and `task-planner`
+  recipe version for v2.6.0.
+
+### Validation
+
+- Rendered templates to a temporary recipe directory with `node scripts/install.ts --validate --dest /tmp/ima-goose-instructor-recipes`.
+- Validated rendered recipes, including `instructor.yaml` and `task-planner.yaml`.
+- Ran `npm test`.
+- Ran stale wording scans for contradictory task-planner no-write language and
+  targeted scans for `goose-instructor` / `instructor` references.
+- Ran `git diff --check`.
+
+
 ## v2.5.0 - 2026-06-16
 
 ### Added

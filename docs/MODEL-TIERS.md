@@ -94,6 +94,7 @@ Kept for users with working Claude ACP access. It is no longer the default.
 | `adversarial-review` | HIGH |
 | `ui-ux-designer` | HIGH |
 | `design-to-code` | HIGH |
+| `instructor` | HIGH |
 | `ima-researcher` | HIGH |
 | `patristic-researcher` | HIGH |
 | `implement` | MID |

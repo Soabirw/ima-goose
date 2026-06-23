@@ -68,11 +68,15 @@ goose-learn "PRD and story map artifact bundle" feature
 In this workflow:
 
 - `brainstorm` turns concepts into product requirements and open questions
-- `task-planner` decomposes the PRD into epics, stories, and tasks
-- the epics, stories, and tasks are still requirements artifacts, not
+- `task-planner` decomposes the PRD into epics, stories, and task checklists
+- the epics, stories, and task checklists are still requirements artifacts, not
   implementation plans
-- `document-learn` records the approved PRD, story map, and durable product
-  decisions
+- after review, `task-planner` may persist the approved hierarchy to exactly one
+  PM source of truth: Jira or Taskwarrior, never both; Stories are the default
+  PM lifecycle units and lower-level tasks are embedded in Story descriptions,
+  checklists, annotations, or acceptance criteria unless explicitly promoted
+- `document-learn` records the approved PRD, story map, PM persistence outcome,
+  and durable product decisions
 
 Do not use `plan` as the default bridge between brainstorm and task-planner.
 `plan` is for implementation planning on a specific story.
@@ -126,6 +130,39 @@ The important rule: pass artifacts forward explicitly. Good handoff inputs are:
 
 Do not assume a new recipe session remembers the previous session. Child
 sessions and separate recipe sessions need complete context.
+
+## Mentoring Side Path
+
+Use `goose-instructor` when you want context-aware guidance, not an agent doing
+the work. It researches enough read-only evidence to explain what the human
+should do next, why it matters, what to avoid, and where to go deeper.
+
+```bash
+goose-instructor "What should I do next with this review finding?"
+goose-instructor "Vestige memory or Jira key"
+goose-instructor "task question" --project ima-mcp-gateway --task S01
+```
+
+Use it when:
+
+- you are unsure which workflow or command is appropriate
+- you need a mentor-style explanation before acting
+- you want evidence-backed guidance without code edits, tests, migrations,
+  deploys, or operational changes
+- you need help thinking through risk before choosing `plan`, `investigate`,
+  `implement`, `code-review`, or no agent workflow at all
+
+Avoid it when:
+
+- you already have an approved implementation plan and want code changes
+- you need root-cause reproduction and evidence synthesis; use `investigate`
+- you need a formal implementation plan; use `plan`
+- you need review of a diff or PR; use `code-review`
+
+`instructor` is a side path, not a mandatory per-story phase and not a
+`goose-cycle` step. It may suggest commands for you to run, but it labels risk
+and must not run tests, builds, migrations, deploys, database changes, or file
+edits itself.
 
 ## HITL Cycle Helper
 
@@ -196,7 +233,13 @@ questions, and next-step recommendation.
 ### Task Planner
 
 Use `goose-orchestrate` after brainstorm when the work should become an Epic ->
-Story -> Task requirements breakdown.
+Story -> Task requirements breakdown. `task-planner` is non-implementation: it
+must not edit project code/content/config, run tests/builds, branch, commit, or
+deploy. Stories are the default lifecycle units. Lower-level tasks are Story
+checklist items by default, not independent PM items. After you approve the
+hierarchy, it may show a persistence preview and, after explicit approval,
+create or update Story-level lifecycle items in exactly one PM system: Jira or
+Taskwarrior. Choose memory/file only when you do not want PM items.
 
 This is usually a product decomposition step, not implementation planning. For
 large initiatives, the output may be 100+ stories. Stories should describe user
@@ -204,7 +247,10 @@ value, requirements, acceptance criteria, dependencies, and routing guidance.
 They should not try to prescribe low-level implementation details.
 
 Expected output: epics, story boundaries, story-level acceptance criteria,
-dependencies, and the recommended recipe route for each story or task.
+dependencies, recommended lifecycle route for each Story, and lower-level
+implementation checklist items embedded under each Story. A checklist item should
+only become an independent Jira issue, Jira subtask, or Taskwarrior task after
+explicit approval because that promotes it to its own plan/implement/test/review/learn lifecycle.
 
 ### Plan
 
@@ -225,6 +271,25 @@ boundaries, test strategy, risks, and implementation-ready steps.
 If a story is too large for a straightforward implementation plan, use a
 localized `goose-orchestrate` pass to break that story into smaller
 requirements-level work items. That should be the exception, not the default.
+
+### Instructor
+
+Use `goose-instructor` when the next artifact should be human understanding or
+a safe next-step recommendation. It is a HIGH-tier read-only mentor: it can
+inspect context, memories, docs, Jira/Confluence, visual sources, and repository
+evidence, then explain what you should do and why.
+
+Good inputs:
+
+- "Which recipe should I use for this issue?"
+- "Explain what this migration command would do before I run it"
+- "What should I check before closing this task?"
+- a memory, Jira key, file path, screenshot reference, or pasted context that
+  needs mentor-style interpretation
+
+Expected output: short answer, reasoning, evidence checked, what to avoid, and
+optional deeper paths. It does not implement, edit files, run tests/builds,
+start services, migrate data, deploy, or change external systems.
 
 ### Implement
 

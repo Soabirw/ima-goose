@@ -2,18 +2,20 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.5.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.5.0
+## What's New In v2.6.0
 
-
-- Added `investigate`, a HIGH-tier Sherlock-style troubleshooting recipe for
-  evidence-led, non-mutating root-cause analysis.
-- Added `goose-investigate [source]` and documented the workflow as a one-off
-  complex troubleshooting side path, not a goose-cycle or routine per-story
-  phase.
-- Changed the default installer profile to `chatgpt_codex`, keeping `openai`
-  available as the codex-acp fallback.
+- Added `instructor`, a HIGH-tier read-only mentoring recipe with the
+  `goose-instructor [source]` alias for context-aware guidance on what the
+  human should do next and why.
+- Updated `task-planner` so approved Epic→Story→Task hierarchies may be
+  persisted to exactly one PM system, Jira or Taskwarrior, after explicit
+  preview approval, with Stories as lifecycle units and lower-level Tasks as
+  embedded Story checklists by default.
+- Removed direct Serena, Qdrant, and Vestige extension entries from
+  `config-template.yaml`; those integrations now route through
+  `ima-mcp-gateway`.
 
 ---
 
@@ -303,8 +305,8 @@ goose configure
 # Toggle Extensions → enable the extensions from config-template.yaml
 ```
 
-This repo assumes the IMA MCP gateway is installed for stable CLI access to
-MCPs that cannot safely use Goose's typed SDK path. Install it from
+This repo assumes **ima-mcp-gateway 0.3.0 or newer** is installed for stable CLI
+access to MCPs that cannot safely use Goose's typed SDK path. Install it from
 [`ima-mcp-gateway`](https://gitea.theflccc.org/IMA/ima-mcp-gateway.git). The
 gateway's local installer copies runtime files to
 `~/.local/share/ima-mcp-gateway` and writes the stable launcher to
@@ -331,6 +333,7 @@ npm run install:local
 
 # Ensure ~/.local/bin is on PATH, then verify:
 command -v ima-mcp
+ima-mcp --version    # must be 0.3.0 or newer for expanded Serena commands
 ima-mcp --help
 ima-mcp doctor --project . --json
 ima-mcp mcp check --project . --json
@@ -348,13 +351,30 @@ Required MCPs / gateways for the primary IMA workflows:
 | Working memory + preferences | `mcp-vestige` skill, Vestige MCP, and `ima-mcp vestige` | Primary workflows load user preferences and task lifecycle memory from Vestige. Use `ima-mcp vestige`; never use `execute_typescript` / `Vestige.*`. |
 | Queue/status lifecycle | `mcp-taskwarrior` skill and local `task` CLI | `goose-cycle` uses Taskwarrior as the queue/status source for story phases. |
 
-Top recommended MCP installs:
+Top recommended MCP-backed services:
 
-- **Serena** ([`oraios/serena`](https://github.com/oraios/serena)) provides project memory and JetBrains-backed code navigation. Install `uvx`, install the Serena MCP JetBrains plugin when using the JetBrains backend, then use the `serena` extension in [`config-template.yaml`](config-template.yaml). The template launches Serena with `uvx --from git+https://github.com/oraios/serena serena start-mcp-server ...`.
-- **Vestige** ([`samvallad33/vestige`](https://github.com/samvallad33/vestige)) provides working memory, preferences, decisions, and task lifecycle continuity. Install its MCP server so `vestige-mcp` is on `PATH`, enable the `vestige` extension in [`config-template.yaml`](config-template.yaml), and access it through `ima-mcp vestige` for workflow reliability.
-- **Qdrant** ([`qdrant/qdrant`](https://github.com/qdrant/qdrant)) provides the vector database behind durable semantic knowledge. Run Qdrant locally (the template defaults to `http://localhost:6333`), install a compatible `qdrant-mcp` command such as IMA's [`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag), and enable the `qdrant-memory` extension.
+- **ima-mcp-gateway** 0.3.0+ provides the supported CLI path for Serena, Vestige,
+  and Qdrant operations. Recipes and skills use `ima-mcp serena`,
+  `ima-mcp vestige`, and `ima-mcp qdrant`; do not add removed direct
+  `serena`, `vestige`, or `qdrant-memory` extension blocks back to
+  `config-template.yaml` for the primary workflow.
+- **Serena** ([`oraios/serena`](https://github.com/oraios/serena)) provides
+  project memory and optional JetBrains-backed code navigation. Install `uvx`;
+  for JetBrains navigation, install the Serena MCP JetBrains plugin and keep the
+  project open in the IDE. Access Serena through `ima-mcp serena`.
+- **Vestige** ([`samvallad33/vestige`](https://github.com/samvallad33/vestige))
+  provides working memory, preferences, decisions, and task lifecycle
+  continuity. Install its MCP server so `vestige-mcp` is on `PATH`, then access
+  it through `ima-mcp vestige`.
+- **Qdrant** ([`qdrant/qdrant`](https://github.com/qdrant/qdrant)) provides the
+  vector database behind durable semantic knowledge. Run Qdrant locally (default
+  `http://localhost:6333`) and install a compatible MCP/RAG command such as
+  IMA's [`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag), then access it
+  through `ima-mcp qdrant`.
 
-Most other recommended MCPs are installed directly by Goose through `npx` or `uvx`; see [`config-template.yaml`](config-template.yaml) for copyable examples.
+Most other recommended MCPs are installed directly by Goose through `npx`,
+`uvx`, or remote endpoints; see [`config-template.yaml`](config-template.yaml)
+for copyable examples that remain direct Goose extensions.
 
 For `mcp-atlassian` REST helper scripts and workflow automation to fully work, set these environment variables in your shell or secrets manager before starting Goose:
 
@@ -372,7 +392,7 @@ Recommended MCPs for a fully capable development session:
 
 | Capability | Recommended MCP / skill | Typical use |
 |---|---|---|
-| Durable reference library | `mcp-qdrant` / `qdrant-memory` via [`ima-rag`](https://gitea.theflccc.org/IMA/ima-rag) | Long-lived architecture docs, standards, PRDs, research, and reusable patterns. |
+| Durable reference library | `mcp-qdrant` skill, Qdrant, `ima-rag`, and `ima-mcp qdrant` | Long-lived architecture docs, standards, PRDs, research, and reusable patterns. |
 | Library/API docs | `mcp-context7` | Current package docs before guessing APIs. |
 | Web/content fetch | `mcp-fetch` | Fetch specific URLs and source material. |
 | Web research | `mcp-tavily` | Current web research, when external sources are part of the task. |
@@ -555,13 +575,14 @@ only the auto-injected `summon` extension.
 | `ui-ux-designer` | Browser-based UI/UX review with Chrome DevTools, responsive checks, accessibility basics, and Bootstrap/IMA CSS guidance | HIGH |
 | `design-to-code` | Translate approved designs/screenshots into implementation prompts or code pipeline | HIGH |
 | `investigate` | Sherlock-style, evidence-led troubleshooting and non-mutating root-cause investigation | HIGH |
+| `instructor` | Context-aware read-only mentor that researches enough evidence to explain what the human should do next and why | HIGH |
 | `vision-handoff` | Read-only GPT-5.5 image analysis hand-off via `codex-acp` for screenshots, mockups, visual diffs, diagrams, scanned docs, and image attachments | Pinned |
 | `explore` | Fast read-only codebase exploration, sub-recipe oriented | LOW |
 | `test-writer` | TDD, test creation, debugging failures | MID |
 | `/architect` | Current-session architecture lens and technology selection command | Current session |
 | `software-development-cycle` | Flattened umbrella for brainstorm, plan, story implementation, tests, review, document/learn | HIGH |
 | `document-learn` | Terminal closeout recipe for docs and memory updates from completed artifacts | MID |
-| `task-planner` | Decomposition — Epic → Story → Task hierarchy for human-in-the-loop planning | HIGH |
+| `task-planner` | Decomposition — Epic → Story → Task hierarchy for HITL planning, with optional approved persistence to exactly one PM system | HIGH |
 | `/prompt-starter` | Current-session prompt builder for dedicated recipe sessions | Current session |
 | `/preflight` | Read-only Goose/MCP configuration canary and readiness report | LOW |
 | `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | HIGH |
@@ -575,23 +596,27 @@ only the auto-injected `summon` extension.
 
 `code-review` delegates to: `verify` (review-verify), `scorecard` when the user requests project/PR scoring, and `vision_handoff` when review evidence includes images or visual artifacts.
 
+`instructor` delegates to: `vision_handoff` for screenshots/diagrams/visual sources and `explore` for bounded read-only codebase discovery. It does not delegate to implementation, testing, review, or documentation recipes.
+
 `adversarial-review` delegates to: `claude_opus_adversary` (adversarial-review-claude), `gpt55_adversary` (adversarial-review-openai). These child recipes are pinned directly to `anthropic`/`claude-opus-4-7` and `codex-acp`/`gpt-5.5/high`, independent of installer profile tier rendering.
 
-Terminal/no-write-helper recipes: `task-planner`, `investigate`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`.
+Non-implementation helper recipes: `task-planner`, `investigate`, `instructor`, `explore`, `ui-ux-designer`, `goose-ship-it`, `scorecard`, `ima-researcher`, `patristic-researcher`, `adversarial-review-claude`, `adversarial-review-openai`. `task-planner` may write only approved hierarchy persistence to exactly one PM system (Jira or Taskwarrior) after preview approval; `instructor` may save teaching notes only after explicit approval; the others remain terminal/read-only unless their recipe says otherwise.
 
 Cycle helper terminals: `cycle-start`, `cycle-close`.
 
 Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap` (`/bootstrap-serena` alias), `/vestige-bootstrap` (`/bootstrap-vestige` alias), `/serena-memorize`.
 
-**Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
+**Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. After the hierarchy is reviewed, `task-planner` can optionally persist it to exactly one PM source of truth: Jira or Taskwarrior, never both. Story-level PM items are the default lifecycle units; lower-level tasks are embedded in Story descriptions, checklists, annotations, or acceptance criteria unless explicitly promoted. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 
 **Software development cycle.** `goose-cycle` is a local Node 24 helper installed to `~/.local/bin` by `scripts/install.ts`. It discovers Taskwarrior tasks, runs the existing top-level recipes as separate Goose sessions, uses Vestige as the lifecycle thread, and stops after `document-learn` for final human review before `goose-cycle close`. The older `software-development-cycle` umbrella recipe remains available through `goose-cycle-umbrella` for explicit orchestration experiments.
+
+**Mentoring side path.** `goose-instructor [source]` starts the HIGH-tier `instructor` recipe when the human wants guidance instead of an agent doing the work. It researches read-only evidence, explains what to do next and why, labels risks, and offers deeper help. It is not wired into `goose-cycle` and is not a routine per-story phase.
 
 ### P3 — Specialized
 
 | Recipe | Description |
 |--------|-------------|
-| `task-planner` | Epic > Story > Task decomposition |
+| `task-planner` | Epic > Story > Task decomposition with Story-level lifecycle persistence and lower-level checklist tasks by default |
 | `design-to-code` | Screenshot/design artifact to implementation prompt or code pipeline |
 | `scorecard` | Project, PR, or codebase quality scoring |
 

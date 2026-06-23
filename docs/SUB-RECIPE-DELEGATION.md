@@ -18,6 +18,9 @@ recipes.
 | `code-review` | review-verify, scorecard |
 | `design-to-code` | explore, wp-developer, test-writer, code-review |
 | `adversarial-review` | adversarial-review-claude, adversarial-review-openai |
+| `instructor` | vision-handoff, explore |
+
+`instructor` is a HIGH-tier read-only parent; its child briefs must remain evidence-gathering or visual-interpretation only, not implementation/testing/review/documentation work.
 
 ## Child Session Contract
 
