@@ -44,9 +44,13 @@ goose run --recipe scorecard --interactive
 goose run --recipe document-learn --interactive
 ```
 
-Artifacts move forward by memory name, file path, Jira key, PR URL, or pasted
-summary. Recipes should not assume a prior session exists unless the user
-provides a reference.
+Artifacts move forward by memory name, file path, Jira key, Taskwarrior
+project/task, PR URL, or pasted summary. Recipes should not assume a prior
+session exists unless the user provides a reference.
+
+`task-planner` can optionally persist an approved Epic -> Story -> Task hierarchy
+after a preview, but only to one PM source of truth: Jira or Taskwarrior. It does
+not implement, edit project files, run tests/builds, branch, commit, or deploy.
 
 ## Complex Troubleshooting Side Path
 
@@ -60,6 +64,22 @@ symptom / Jira / logs / URL -> investigate -> choose next workflow
 diagnostic tool for cases where the problem is not understood well enough to
 plan or implement safely. The resulting report may feed `plan`, `wp-developer`,
 `js-developer`, `implement`, `code-review`, or no code-change workflow at all.
+
+## Mentoring Side Path
+
+For questions where the human needs guidance rather than agent execution:
+
+```text
+question / task / memory / Jira / file / screenshot -> instructor -> human next step
+```
+
+`instructor` is not part of `goose-cycle` or the routine per-story delivery
+loop. It is a HIGH-tier read-only mentor that researches enough evidence to
+explain what the human should do next, why, what to avoid, and when to choose a
+deeper workflow such as `plan`, `investigate`, `implement`, or `code-review`.
+It may call `vision_handoff` for visual evidence and `explore` for bounded
+read-only codebase discovery, but it must not edit files, run tests/builds,
+migrate data, deploy, commit, or perform operational changes.
 
 ## Commands
 
@@ -109,4 +129,4 @@ the user requests that mode.
 `scorecard` is available both as a direct session and as a `code-review`
 sub-recipe when the user asks to score a project, PR, or codebase.
 
-`explore` is read-only and sub-recipe-oriented. `goose-ship-it` is direct-only.
+`explore` is read-only and sub-recipe-oriented. `instructor` is read-only and mentoring-oriented, delegating only to `vision_handoff` and `explore`. `goose-ship-it` is direct-only.

@@ -339,6 +339,25 @@ goose-investigate() {
   fi
 }
 
+goose-instructor() {
+  local source=""
+  local project=""
+  local task=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?Usage: goose-instructor [source] [--project <project> --task <task>]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-instructor [source] [--project <project> --task <task>]}"; shift 2 ;;
+      *) source="$1"; shift ;;
+    esac
+  done
+
+  local args=(run --recipe instructor --name "instructor-$(date +%Y%m%d-%H%M)" --interactive)
+  [ -n "$source" ] && args+=(--params "source=${source}")
+  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task" ] && args+=(--params "task=${task}")
+  _goose_high "${args[@]}"
+}
+
 goose-explore() {
   _goose_low run --recipe explore --name "explore-$(date +%Y%m%d-%H%M)" --interactive
 }
@@ -463,6 +482,7 @@ DIRECT RECIPES:
   goose-ui                      UI/UX review with Chrome DevTools + Bootstrap/IMA CSS guidance
   goose-design-to-code [source] Design/screenshot → implementation prompt or code pipeline
   goose-investigate [source]    Sherlock-style read-only troubleshooting/root-cause investigation
+  goose-instructor [source]     Context-aware read-only mentor: what to do next and why
   goose-explore                 Read-only codebase exploration
   goose-tests                   Write or debug tests
   goose-scorecard [target]      Project, PR, or codebase quality scorecard

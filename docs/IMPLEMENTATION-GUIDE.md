@@ -42,6 +42,7 @@ Use separate sessions when you want more control:
 goose run --recipe brainstorm --interactive
 goose run --recipe plan --interactive
 goose run --recipe task-planner --interactive
+goose run --recipe instructor --interactive
 goose run --recipe wp-developer --interactive
 goose run --recipe test-writer --interactive
 goose run --recipe code-review --interactive
@@ -51,6 +52,12 @@ goose run --recipe document-learn --interactive
 
 For non-WordPress code, use `implement` or `js-developer` instead of
 `wp-developer`.
+
+`task-planner` remains non-implementation. It can optionally persist an approved
+Epic -> Story -> Task hierarchy to exactly one PM system after a preview: Jira
+or Taskwarrior, never both. It must not make code/content/config/database,
+dependency, branch, commit, generated artifact, test/build, migration,
+deployment, or implementation changes.
 
 For design handoff, use `design-to-code` as its own HIGH-tier session. It can
 produce an implementation prompt, call the implementation pipeline, or run the
@@ -80,6 +87,7 @@ Current parents:
 | `wp-developer` | test-writer, code-review |
 | `js-developer` | test-writer, code-review |
 | `code-review` | review-verify, scorecard |
+| `instructor` | vision-handoff, explore |
 | `design-to-code` | explore, wp-developer, test-writer, code-review |
 | `brainstorm` / `plan` | explore |
 | `adversarial-review` | adversarial-review-claude, adversarial-review-openai |
@@ -92,6 +100,11 @@ reproduction analysis, and root-cause reporting. It remains non-mutating and is
 intended as a one-off tool for hairy troubleshooting, not a routine workflow
 phase.
 
+`instructor` is HIGH and owns context-aware mentoring: what the human should do
+next, why, what evidence supports it, and what to avoid. It remains
+non-mutating, may delegate only to `vision_handoff` and `explore`, and is a
+side path rather than a goose-cycle phase.
+
 `review-verify` is HIGH because it verifies critical review findings and should
 not be less capable than the original reviewer.
 
@@ -102,7 +115,8 @@ not be less capable than the original reviewer.
 | `brainstorm` | HIGH | Shape an idea into a feature set |
 | `plan` | HIGH | Turn a feature set into an implementation plan |
 | `investigate` | HIGH | Read-only Sherlock-style debugging and root-cause analysis |
-| `task-planner` | HIGH | Decompose a plan into Epic -> Story -> Task |
+| `instructor` | HIGH | Read-only context-aware mentor for what the human should do next and why |
+| `task-planner` | HIGH | Decompose a plan into Epic -> Story -> Task and optionally persist the approved hierarchy to Jira or Taskwarrior |
 | `wp-developer` | MID | Implement approved WordPress plans |
 | `implement` | MID | General implementation |
 | `js-developer` | MID | JavaScript/TypeScript implementation |
