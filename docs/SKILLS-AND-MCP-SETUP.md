@@ -18,7 +18,7 @@ You need both: the MCP extension provides the tools, the skill teaches the model
 
 Use `/preflight` after installation to run a read-only canary across recipes, skills, MCP endpoints, and supported Goose TypeScript SDK wrappers. See [`PREFLIGHT-CHECK.md`](PREFLIGHT-CHECK.md).
 
-For Goose API/typed-SDK harnesses, supported MCP tools are documented in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md). The SDK wrappers use namespaces such as `Tavily`, `Context7`, `Serena`, and `Vestige`; use only documented wrappers.
+For Goose API/typed-SDK harnesses, supported MCP tools are documented in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md). The SDK wrappers use namespaces such as `Tavily` and `Context7`; use only documented wrappers. Serena, Vestige, and Qdrant are gateway exceptions in the primary IMA workflows: use `ima-mcp serena`, `ima-mcp vestige`, and `ima-mcp qdrant` instead of Goose typed-SDK wrappers.
 
 ---
 
@@ -102,16 +102,45 @@ ls ~/.agents/skills/ | wc -l
 
 ## Step-by-Step: Configure MCP Extensions and API Keys
 
-### 1. Merge from the template
+### 1. Install and verify ima-mcp-gateway
+
+Serena, Vestige, and Qdrant route through `ima-mcp-gateway` in the primary IMA
+workflows. Install **ima-mcp-gateway 0.3.0 or newer** and keep `~/.local/bin` on
+`PATH`:
+
+```bash
+git clone https://gitea.theflccc.org/IMA/ima-mcp-gateway.git ~/IMA/dev/ima-mcp-gateway
+cd ~/IMA/dev/ima-mcp-gateway
+sfw npm install || npm install
+sfw npm run build || npm run build
+sfw npm test || npm test
+sfw npm run install:local || npm run install:local
+
+command -v ima-mcp
+ima-mcp --version    # must be 0.3.0 or newer for expanded Serena commands
+ima-mcp doctor --project . --json
+ima-mcp serena project status --project . --json
+ima-mcp vestige status --json
+ima-mcp qdrant status --json
+```
+
+If `ima-mcp --version` is older than 0.3.0 and a Serena command fails with
+`unknown command`, upgrade the gateway before relying on expanded Serena
+navigation or generic `tools` commands.
+
+### 2. Merge remaining direct Goose extensions from the template
 
 ```bash
 less config-template.yaml
 ```
 
-Use `config-template.yaml` as a reference and merge only the sections you need
-into `~/.config/goose/config.yaml`. Do not copy it over an existing config.
+Use `config-template.yaml` as a reference and merge only the direct Goose
+extensions you need into `~/.config/goose/config.yaml`. Do not copy it over an
+existing config. The removed direct `serena`, `vestige`, and `qdrant-memory`
+blocks should not be re-added for the primary workflow; use the `ima-mcp`
+gateway commands instead.
 
-### 2. Set API keys
+### 3. Set API keys
 
 Add to `~/.bashrc` or `~/.zshrc`:
 
@@ -131,7 +160,7 @@ export ATLASSIAN_API_TOKEN="..."         # https://id.atlassian.com/manage-profi
 
 Reload: `source ~/.bashrc`
 
-### 3. Configure Atlassian Rovo MCP
+### 4. Configure Atlassian Rovo MCP
 
 The old Atlassian MCP/SSE setup should be replaced. Atlassian says
 `https://mcp.atlassian.com/v1/sse` will no longer be supported after
@@ -204,20 +233,26 @@ Environment variables: No
 
 The fallback requires Node.js 18+.
 
-### 4. Configure Serena (if using JetBrains)
+### 5. Configure Serena, Vestige, and Qdrant gateway services
 
-Serena requires:
-- `uvx` installed: `pip install uv` or `brew install uv`
-- A JetBrains IDE (IntelliJ, WebStorm, PHPStorm) running
-- The [Serena MCP plugin](https://plugins.jetbrains.com/plugin/27337-serena-mcp) installed in the IDE
-- Your project open in the IDE
+Serena requires `uvx` installed (`pip install uv` or `brew install uv`).
+JetBrains-backed navigation additionally requires a running JetBrains IDE
+(IntelliJ, WebStorm, PHPStorm), the
+[Serena MCP plugin](https://plugins.jetbrains.com/plugin/27337-serena-mcp), and
+the project open in the IDE.
 
-The `serena` extension in `config-template.yaml` is pre-configured with the correct command. Just ensure `uvx` is on your PATH.
+Vestige requires `vestige-mcp` on `PATH`. Qdrant requires a running Qdrant
+service and a compatible MCP/RAG command such as IMA's `ima-rag`.
 
-Serena memory tools work without JetBrains. Keep Serena enabled when you want
-standard project memories, even if `jet_brains_*` code-navigation tools are not
-available. If you disable Serena, recipes lose the cross-harness project memory
-bootstrap. Serena-enabled recipes should activate the Serena project first
+Do not enable removed direct `serena`, `vestige`, or `qdrant-memory` extension
+blocks from `config-template.yaml`; they are no longer the source of truth for
+primary workflows. Use `ima-mcp serena`, `ima-mcp vestige`, and
+`ima-mcp qdrant`.
+
+Serena memory tools work without JetBrains. Keep the gateway available when you
+want standard project memories, even if `jet_brains_*` code-navigation tools are
+not available. If Serena is unavailable, recipes lose the cross-harness project
+memory bootstrap. Serena-enabled recipes should activate the Serena project first
 with the current project path or registered project name, then load standard
 memories as the first workstream at session start before greeting, Taskwarrior,
 Jira, Vestige, Qdrant, file discovery, browser inspection, or asking for local
@@ -277,11 +312,11 @@ standard Serena memory:
 | `tavily` | `TAVILY_API_KEY` | https://tavily.com |
 | `context7` | None | Free, no auth |
 | `sequential-thinking` | None | Free, no auth |
-| `serena` | None | Requires uvx + IDE |
+| Serena via `ima-mcp serena` | None | Requires `ima-mcp-gateway >= 0.3.0` and `uvx`; JetBrains navigation additionally requires IDE + plugin |
+| Vestige via `ima-mcp vestige` | None | Requires `ima-mcp-gateway >= 0.3.0` and `vestige-mcp` on `PATH` |
+| Qdrant via `ima-mcp qdrant` | None by default | Requires `ima-mcp-gateway >= 0.3.0`, Qdrant at `http://localhost:6333`, and compatible MCP/RAG command such as `ima-rag` |
 | `fetch` | None | Requires `uvx` |
 | `chrome-devtools` | None | Requires `npx`; Chrome/Chromium for browser debugging |
-| `qdrant-memory` | None by default | Requires `qdrant-mcp`; Qdrant at `http://localhost:6333` |
-| `vestige` | None | Requires `vestige-mcp`; use through `ima-mcp vestige`, not Goose typed SDK |
 | `atlassian-rovo` | Browser OAuth | Remote MCP via `https://mcp.atlassian.com/v1/mcp/authv2`; no static token needed for interactive use |
 | `mcp-atlassian` skill REST helper | `ATLASSIAN_BEARER_TOKEN`, `ATLASSIAN_CLOUD_ID`, `ATLASSIAN_DOMAIN`; fallback: `ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL` | Direct REST fallback for Jira/Confluence scripts and workflow updates |
 | `tom` | `GOOSE_MOIM_MESSAGE_TEXT` or `GOOSE_MOIM_MESSAGE_FILE` | Optional persistent instructions injected every turn |
@@ -291,8 +326,9 @@ MCP extensions expose tools directly to Goose. In API/typed-SDK harnesses,
 some supported MCP tools are also available through TypeScript namespace
 wrappers. Use the signatures in [`MCP-GOOSE-SDK-SIGNATURES.md`](MCP-GOOSE-SDK-SIGNATURES.md)
 and the `skills/mcp-*` guides; do not invent wrappers that are not exposed by
-the SDK. Vestige is an explicit exception: use `ima-mcp vestige`, not
-`execute_typescript` or `Vestige.*`, because Vestige can break SDK generation
+the SDK. Serena, Vestige, and Qdrant are explicit gateway exceptions in primary
+workflows: use `ima-mcp serena`, `ima-mcp vestige`, and `ima-mcp qdrant`, not
+`execute_typescript` or direct typed wrappers, because SDK generation can fail
 before any tool call runs.
 
 

@@ -1,6 +1,6 @@
 ---
 name: mcp-serena
-description: "Serena MCP — use ima-mcp serena CLI as the required path for project activation, initial instructions, status, and memories; do not use execute_typescript/Goose SDK for Serena bootstrap. Use native/direct Serena tools only for symbol-aware code navigation and edits when exposed and reliable. Triggers on: Serena, ima-mcp, project memory, .goosehints, CLAUDE.md, AGENTS.md, find function, find class, find references, rename symbol, refactor, search code, onboarding, initial_instructions."
+description: "Serena MCP — use ima-mcp serena CLI as the required path for project activation, initial instructions, status, memories, generic tools, known navigation/edit aliases, and safety-gated writes/commands; do not use execute_typescript/Goose SDK for Serena bootstrap. Use native/direct Serena tools only when the CLI is unavailable or a harness exposes a proven direct tool that the CLI does not cover. Triggers on: Serena, ima-mcp, project memory, .goosehints, CLAUDE.md, AGENTS.md, find function, find class, find references, rename symbol, refactor, search code, onboarding, initial_instructions."
 ---
 
 # Serena MCP - Code Navigation and Project Memory
@@ -14,11 +14,14 @@ Use Serena project memories as the cross-harness replacement for project-local c
 ## Required ima-mcp Gateway Path
 
 Use `ima-mcp serena` as **the required path** for Serena project activation,
-status, initial instructions, and memory reads in Goose/API harness sessions.
-Do not treat this as a preference or fallback. The Goose `execute_typescript`
-SDK path can fail before any Serena call runs because registered SDK type output
-may contain invalid TypeScript from unrelated tools. If a user asks for Serena
-bootstrap, `initial_instructions`, or project memories, go straight to the CLI.
+status, initial instructions, memory reads, generic runtime tool calls, known
+navigation aliases, and safety-gated writes/commands in Goose/API harness
+sessions. Do not treat this as a preference or fallback. The Goose
+`execute_typescript` SDK path can fail before any Serena call runs because
+registered SDK type output may contain invalid TypeScript from unrelated tools.
+If a user asks for Serena bootstrap, `initial_instructions`, project memories,
+code navigation, memory writes, symbol/text edits, rename/refactor, or generic
+Serena tool execution, go straight to the CLI.
 
 Canonical bootstrap:
 
@@ -43,14 +46,108 @@ ima-mcp serena project status --project . --json
 ima-mcp serena doctor --project . --json
 ```
 
+## Expanded ima-mcp Serena CLI Surface
+
+`ima-mcp-gateway` 0.3.0 expanded Serena from a project-memory subset into the
+preferred broad CLI gateway. Expanded commands below require
+`ima-mcp-gateway >= 0.3.0`; check with `ima-mcp --version`. If an older gateway
+reports `unknown command`, use only the bootstrap/memory subset that exists
+there or upgrade the gateway before continuing. Prefer explicit aliases when
+available; use generic `tools` fallback for runtime descriptors without a
+first-class alias.
+
+### Read-only and compatibility commands
+
+```bash
+# Compatibility/bootstrap
+ima-mcp serena project status --project . --json
+ima-mcp serena project activate . --json
+ima-mcp serena instructions --project . --json
+ima-mcp serena memory list --project . --json
+ima-mcp serena memory read core --project . --json
+ima-mcp serena doctor --project . --json
+
+# Direct Serena compatibility aliases
+ima-mcp serena activate_project --project . --json
+ima-mcp serena initial_instructions --project . --json
+ima-mcp serena get_current_config --project . --json
+ima-mcp serena list_memories --project . --json
+ima-mcp serena read_memory --memory_name core --project . --json
+ima-mcp serena prepare_for_new_conversation --project . --json
+
+# File/directory and pattern/symbol navigation
+ima-mcp serena list_dir --relative_path src --recursive --project . --json
+ima-mcp serena find_file --file_mask '*.ts' --relative_path src --project . --json
+ima-mcp serena read_file --relative_path src/commands/serena.ts --start_line 0 --end_line 40 --project . --json
+ima-mcp serena search_for_pattern --substring_pattern registerSerena --relative_path src --context_lines_before 2 --context_lines_after 2 --project . --json
+ima-mcp serena get_symbols_overview --relative_path src/commands/serena.ts --project . --json
+ima-mcp serena find_symbol --name_path registerSerenaCommands --relative_path src/commands/serena.ts --depth 1 --project . --json
+ima-mcp serena find_referencing_symbols --name_path registerSerenaCommands --relative_path src/commands/serena.ts --project . --json
+
+# Onboarding/thinking and JetBrains read-only navigation
+ima-mcp serena check_onboarding_performed --project . --json
+ima-mcp serena think_about_collected_information --project . --json
+ima-mcp serena think_about_task_adherence --project . --json
+ima-mcp serena think_about_whether_you_are_done --project . --json
+ima-mcp serena jet_brains_find_symbol --name_path_pattern registerSerenaCommands --relative_path src/commands/serena.ts --project . --json
+ima-mcp serena jet_brains_find_referencing_symbols --name_path registerSerenaCommands --relative_path src/commands/serena.ts --project . --json
+```
+
+### Generic runtime tools fallback
+
+```bash
+ima-mcp serena tools list --project . --json
+ima-mcp serena tools describe jet_brains_find_symbol --project . --json
+ima-mcp serena tools call jet_brains_find_symbol --project . --args-json '{"name_path":"registerSerenaCommands","relative_path":"src/commands/serena.ts"}' --json
+```
+
+`tools call` accepts either `--args-json '{...}'` or `--args-file <path>`.
+Arguments must be a JSON object; omitted args default to `{}`. Generic calls use
+exact runtime tool names. Describe/known-route resolution may use the approved
+candidate map, but generic execution does not perform fuzzy matching or silent
+symbol-to-JetBrains bridging.
+
+### Safety-gated writes, state, and commands
+
+```bash
+# Memory and code/text writes require --allow-write
+ima-mcp serena write_memory --memory_name core --content 'stable project fact' --project . --allow-write --json
+ima-mcp serena replace_symbol_body --name_path SomeSymbol --relative_path src/file.ts --body 'replacement text' --project . --allow-write --json
+ima-mcp serena insert_before_symbol --name_path SomeSymbol --relative_path src/file.ts --body-file /tmp/body.txt --project . --allow-write --json
+ima-mcp serena insert_after_symbol --name_path SomeSymbol --relative_path src/file.ts --body 'inserted text' --project . --allow-write --json
+ima-mcp serena create_text_file --relative_path notes/example.md --content 'text' --project . --allow-write --json
+ima-mcp serena insert_at_line --relative_path notes/example.md --line 1 --content 'text' --project . --allow-write --json
+ima-mcp serena delete_lines --relative_path notes/example.md --start_line 1 --end_line 2 --project . --allow-write --json
+ima-mcp serena replace_lines --relative_path notes/example.md --start_line 1 --end_line 2 --content 'text' --project . --allow-write --json
+ima-mcp serena replace_regex --relative_path src/file.ts --regex 'oldName' --replacement 'newName' --allow-multiple-occurrences --project . --allow-write --json
+ima-mcp serena switch_modes --mode editing --project . --allow-write --json
+ima-mcp serena restart_language_server --project . --allow-write --json
+ima-mcp serena rename_symbol --name_path OldName --relative_path src/file.ts --new_name NewName --project . --allow-write --json
+ima-mcp serena jet_brains_rename --name_path OldName --relative_path src/file.ts --new_name NewName --project . --allow-write --json
+
+# Command-classified tools require --allow-command; --allow-write is not enough.
+ima-mcp serena execute_shell_command --command 'pwd' --project . --allow-command --json
+ima-mcp serena tools call execute_shell_command --project . --args-json '{"command":"pwd"}' --allow-command --json
+```
+
+Safety policy:
+
+- Read-only commands need no approval flag.
+- Write, state-changing, and unknown generic calls require `--allow-write`.
+- Command/shell-classified calls require `--allow-command`; `--allow-write` does
+  not authorize shell execution.
+- There is no `allowState`, `--allow-state`, or `--allow-state-change` path.
+- Missing optional runtime descriptors should return `serena_tool_missing`.
+
 If `ima-mcp` is missing or the CLI reports Serena is unavailable, stop and
 report the blocker with the command output. Do not silently fall back to
 `execute_typescript` for Serena bootstrap.
 
-Use native/direct Serena MCP wrappers only for symbol-aware code navigation and
-edits when they are exposed and reliable in the active harness. The gateway is
-for stable project lifecycle, instructions, and memory operations; direct Serena
-still provides JetBrains-backed code intelligence when available.
+Use native/direct Serena MCP wrappers only when `ima-mcp serena` is missing,
+blocked, or a proven direct wrapper is needed for a runtime tool not covered by
+the CLI. The gateway is the stable default for project lifecycle, instructions,
+memories, navigation, editing, generic runtime calls, and safety gates; direct
+Serena remains useful documentation for harnesses that expose native tools.
 
 ## Tools
 
@@ -285,27 +382,27 @@ progress. Use Vestige for evolving task lifecycle state.
 
 ```
 Need to understand code structure?
-  → jet_brains_get_symbols_overview (NOT Read)
+  → ima-mcp serena get_symbols_overview or jet_brains_find_symbol (NOT Read)
 
 Need to find a function/class?
-  → jet_brains_find_symbol (NOT Grep)
+  → ima-mcp serena find_symbol or jet_brains_find_symbol (NOT Grep)
 
 Need to find all callers?
-  → jet_brains_find_referencing_symbols (NOT Grep)
+  → ima-mcp serena find_referencing_symbols or jet_brains_find_referencing_symbols (NOT Grep)
 
 Need project rules, commands, or local workflow?
   → ima-mcp serena project activate, instructions, memory list, memory read
      (NOT execute_typescript and NOT relying on .goosehints/CLAUDE.md injection)
 
 Need to migrate .goosehints or CLAUDE.md?
-  → scripts/migrate-context-to-serena.py, then write_memory
+  → scripts/migrate-context-to-serena.py, then ima-mcp serena write_memory --allow-write
 
 Need the function body to modify it?
-  → jet_brains_find_symbol with include_body: true
-     THEN Read only the specific file/lines
+  → ima-mcp serena find_symbol --include_body or jet_brains_find_symbol --include_body
+     THEN edit via explicit --allow-write route only after reviewing the exact target
 
 Renaming across codebase?
-  → jet_brains_rename (handles all references)
+  → ima-mcp serena rename_symbol or jet_brains_rename with --allow-write
 
 Non-code file (YAML, JSON, Markdown)?
   → Native Read tool (Serena/LSP doesn't index these)
@@ -319,48 +416,39 @@ Serena unavailable?
 
 ### Get file structure (before reading)
 
-```
-mcp__serena__jet_brains_get_symbols_overview
-  relative_path: "src/services/auth.ts"
-  depth: 1
+```bash
+ima-mcp serena get_symbols_overview --relative_path src/services/auth.ts --project . --json
+ima-mcp serena jet_brains_find_symbol --name_path_pattern AuthService --relative_path src/services/auth.ts --depth 2 --project . --json
 ```
 
-Returns all top-level symbols without reading the file. Use `depth: 2` to see methods inside classes.
+Returns top-level symbols without reading the file. Use `--depth 2` to see methods inside classes when the runtime supports it.
 
 ### Find a function
 
-```
-mcp__serena__jet_brains_find_symbol
-  name_path_pattern: "getUserById"
-  include_body: false
+```bash
+ima-mcp serena find_symbol --name_path getUserById --relative_path src/services/user.ts --project . --json
+ima-mcp serena jet_brains_find_symbol --name_path_pattern getUserById --relative_path src/services/user.ts --project . --json
 ```
 
-Set `include_body: true` only when you need to modify the implementation. Use `relative_path` to narrow scope.
+Set `--include_body` only when you need to inspect or modify the implementation. Use `--relative_path` to narrow scope.
 
 ### Find all callers
 
-```
-mcp__serena__jet_brains_find_referencing_symbols
-  name_path: "AuthService/validateToken"
-  relative_path: "src/services/auth.ts"
-  include_info: true
+```bash
+ima-mcp serena find_referencing_symbols --name_path 'AuthService/validateToken' --relative_path src/services/auth.ts --project . --json
+ima-mcp serena jet_brains_find_referencing_symbols --name_path 'AuthService/validateToken' --relative_path src/services/auth.ts --project . --json
 ```
 
 ### Replace a function body
 
-```
-mcp__serena__replace_symbol_body
-  symbol_name: "getUserById"
-  relative_path: "src/services/user.ts"
-  new_body: "{ return await db.users.findUnique({ where: { id } }); }"
+```bash
+ima-mcp serena replace_symbol_body --name_path getUserById --relative_path src/services/user.ts --body '{ return await db.users.findUnique({ where: { id } }); }' --project . --allow-write --json
 ```
 
 ### Write project context to memory
 
-```
-mcp__serena__write_memory
-  memory_name: "core"
-  content: "Auth uses JWT. Tokens validated in AuthService.validateToken. Refresh handled by /api/auth/refresh endpoint."
+```bash
+ima-mcp serena write_memory --memory_name core --content 'Auth uses JWT. Tokens validated in AuthService.validateToken. Refresh handled by /api/auth/refresh endpoint.' --project . --allow-write --json
 ```
 
 ### Read standard project memories

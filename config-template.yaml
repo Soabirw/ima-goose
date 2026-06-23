@@ -136,25 +136,6 @@ extensions:
     args: ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
     timeout: 300
 
-  # Serena — JetBrains-powered code navigation (saves 40-70% tokens vs reading files)
-  # Requires: JetBrains IDE running with Serena MCP plugin + uvx installed
-  # Plugin: https://plugins.jetbrains.com/plugin/27337-serena-mcp
-  serena:
-    enabled: true
-    name: serena
-    type: stdio
-    cmd: uvx
-    args:
-      - "--from"
-      - "git+https://github.com/oraios/serena"
-      - "serena"
-      - "start-mcp-server"
-      - "--context=claude-code"
-      - "--language-backend"
-      - "JetBrains"
-      - "--project-from-cwd"
-    timeout: 300
-
   # Fetch — retrieve and convert URL content for analysis
   fetch:
     enabled: true
@@ -171,29 +152,6 @@ extensions:
     type: stdio
     cmd: npx
     args: ["-y", "chrome-devtools-mcp@latest"]
-    timeout: 60
-
-  # Qdrant Memory — permanent semantic knowledge library
-  # Requires: qdrant-mcp on PATH and Qdrant running at QDRANT_URL
-  qdrant-memory:
-    enabled: true
-    name: qdrant-memory
-    type: stdio
-    cmd: qdrant-mcp
-    args: []
-    envs:
-      QDRANT_URL: "http://localhost:6333"
-      COLLECTION_NAME: "ima-knowledge"
-    timeout: 60
-
-  # Vestige — cognitive memory with search, decisions, preferences, and intentions
-  # Requires: vestige-mcp on PATH
-  vestige:
-    enabled: true
-    name: vestige
-    type: stdio
-    cmd: vestige-mcp
-    args: []
     timeout: 60
 
   # Atlassian — Jira, Confluence, Compass, and Rovo search
