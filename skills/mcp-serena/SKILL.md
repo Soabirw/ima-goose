@@ -91,6 +91,11 @@ ima-mcp serena think_about_task_adherence --project . --json
 ima-mcp serena think_about_whether_you_are_done --project . --json
 ima-mcp serena jet_brains_find_symbol --name_path_pattern registerSerenaCommands --relative_path src/commands/serena.ts --project . --json
 ima-mcp serena jet_brains_find_referencing_symbols --name_path registerSerenaCommands --relative_path src/commands/serena.ts --project . --json
+ima-mcp serena jet_brains_get_symbols_overview --relative_path src/commands/serena.ts --depth 1 --project . --json
+ima-mcp serena jet_brains_find_declaration --relative_path src/commands/serena.ts --regex 'registerSerenaCommands' --project . --json
+ima-mcp serena jet_brains_find_implementations --relative_path src/serena/SerenaBackend.ts --name_path SerenaBackend --project . --json
+ima-mcp serena jet_brains_type_hierarchy --relative_path src/serena/SerenaBackend.ts --name_path SerenaBackend --hierarchy_type both --project . --json
+ima-mcp serena jet_brains_list_inspections --language TypeScript --project . --json
 ```
 
 ### Generic runtime tools fallback
@@ -98,14 +103,21 @@ ima-mcp serena jet_brains_find_referencing_symbols --name_path registerSerenaCom
 ```bash
 ima-mcp serena tools list --project . --json
 ima-mcp serena tools describe jet_brains_find_symbol --project . --json
-ima-mcp serena tools call jet_brains_find_symbol --project . --args-json '{"name_path":"registerSerenaCommands","relative_path":"src/commands/serena.ts"}' --json
+ima-mcp serena tools call jet_brains_find_symbol --project . --args-json '{"name_path_pattern":"registerSerenaCommands","relative_path":"src/commands/serena.ts"}' --json
 ```
 
 `tools call` accepts either `--args-json '{...}'` or `--args-file <path>`.
-Arguments must be a JSON object; omitted args default to `{}`. Generic calls use
-exact runtime tool names. Describe/known-route resolution may use the approved
-candidate map, but generic execution does not perform fuzzy matching or silent
-symbol-to-JetBrains bridging.
+Arguments must be a JSON object; omitted args default to `{}`. Prefer direct
+aliases when their CLI schema covers the operation; use generic `tools call` for
+runtime descriptors without a first-class alias, for descriptor inspection, or
+when a direct alias intentionally does not bridge a schema mismatch. Generic
+calls use exact runtime tool names. Describe/known-route resolution may use the
+approved candidate map, but generic execution does not perform fuzzy matching or
+silent symbol-to-JetBrains bridging. The one approved semantic fallback is
+`get_symbols_overview`: it prefers the plain runtime tool and may fall back to
+schema-compatible `jet_brains_get_symbols_overview`; `find_symbol` does not
+silently fall back to `jet_brains_find_symbol` because `name_path` and
+`name_path_pattern` schemas differ.
 
 ### Safety-gated writes, state, and commands
 
@@ -132,7 +144,7 @@ ima-mcp serena tools call execute_shell_command --project . --args-json '{"comma
 
 Safety policy:
 
-- Read-only commands need no approval flag.
+- Read-only commands need no approval flag and do not require `--allow-write`.
 - Write, state-changing, and unknown generic calls require `--allow-write`.
 - Command/shell-classified calls require `--allow-command`; `--allow-write` does
   not authorize shell execution.
