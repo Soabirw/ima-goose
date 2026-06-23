@@ -495,7 +495,7 @@ extensions:
       - "git+https://github.com/oraios/serena"
       - "serena"
       - "start-mcp-server"
-      - "--context=claude-code"
+      - "--context=desktop-app"
       - "--language-backend"
       - "JetBrains"
       - "--project-from-cwd"
