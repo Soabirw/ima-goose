@@ -249,6 +249,23 @@ GOOSE_MODEL: "gpt-5.5/medium"
 # Installer profile: anthropic. Renders HIGH/MID/LOW to full claude-* IDs.
 # Add ANTHROPIC_API_KEY to your shell profile.
 
+# Option E: Sakana API (OpenAI-compatible Responses endpoint)
+# Configure a Goose model provider named `sakana` with:
+# [model_providers.sakana]
+# name = "Sakana API"
+# base_url = "https://api.sakana.ai/v1"
+# env_key = "SAKANA_API_KEY"
+# wire_api = "responses"
+# stream_idle_timeout_ms = 7200000
+# stream_max_retries = 5
+# request_max_retries = 4
+#
+# GOOSE_PROVIDER: sakana
+# GOOSE_MODEL: "fugu"
+# GOOSE_THINKING_EFFORT: "xhigh"
+# Installer profile: sakana. Renders HIGH/MID/LOW to fugu and uses alias-scoped
+# efforts HIGH→xhigh, MID→high, LOW→high. Add SAKANA_API_KEY to your shell profile.
+
 # Option E: OpenRouter (multi-provider gateway — ~$0.003/session for Claude Sonnet)
 # GOOSE_PROVIDER: openrouter
 # GOOSE_MODEL: "anthropic/claude-sonnet-4-5"

@@ -1,0 +1,21 @@
+# Sakana API profile
+# Uses Goose provider name "sakana" configured as an OpenAI-compatible Responses endpoint.
+# Sakana fugu accepts reasoning effort high and xhigh/max only.
+
+tiers:
+  high: fugu
+  mid: fugu
+  low: fugu
+
+providers:
+  high: sakana
+  mid: sakana
+  low: sakana
+
+env:
+  high:
+    GOOSE_THINKING_EFFORT: xhigh
+  mid:
+    GOOSE_THINKING_EFFORT: high
+  low:
+    GOOSE_THINKING_EFFORT: high

@@ -58,6 +58,7 @@ node scripts/install.ts --profile openai
 node scripts/install.ts --profile hybrid
 node scripts/install.ts --profile anthropic
 node scripts/install.ts --profile claude-acp
+node scripts/install.ts --profile sakana
 ```
 
 See `docs/MODEL-TIERS.md`. Because the default `chatgpt_codex` profile uses alias-scoped effort, copy or merge

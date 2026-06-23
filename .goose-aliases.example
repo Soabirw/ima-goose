@@ -21,7 +21,8 @@
 # ────────
 # When recipes change, re-run install.ts to refresh ~/.config/goose/recipes/.
 # When profile thinking effort/runtime env changes, copy or merge this file to
-# ~/.goose-aliases again. chatgpt_codex uses alias-scoped GOOSE_THINKING_EFFORT.
+# ~/.goose-aliases again. chatgpt_codex and sakana use alias-scoped
+# GOOSE_THINKING_EFFORT.
 
 # Opt-in: inject the Practitioner persona into every Goose turn.
 # Uncomment to enable globally (applies to ALL goose sessions, not just IMA recipes).
@@ -29,17 +30,19 @@
 
 
 # Profile runtime env helpers. codex-acp encodes effort in the model ID;
-# chatgpt_codex reads GOOSE_THINKING_EFFORT from the command environment.
-# These scoped prefixes are harmless for providers that ignore the variable.
-_goose_high() { GOOSE_THINKING_EFFORT=high goose "$@"; }
-_goose_mid() { GOOSE_THINKING_EFFORT=medium goose "$@"; }
-_goose_low() { GOOSE_THINKING_EFFORT=low goose "$@"; }
+# chatgpt_codex and sakana read GOOSE_THINKING_EFFORT from the command environment.
+# Override GOOSE_*_THINKING_EFFORT when a profile accepts a different effort set
+# (for sakana: high=xhigh, mid=high, low=high). These scoped prefixes are
+# harmless for providers that ignore the variable.
+_goose_high() { GOOSE_THINKING_EFFORT="${GOOSE_HIGH_THINKING_EFFORT:-high}" goose "$@"; }
+_goose_mid() { GOOSE_THINKING_EFFORT="${GOOSE_MID_THINKING_EFFORT:-medium}" goose "$@"; }
+_goose_low() { GOOSE_THINKING_EFFORT="${GOOSE_LOW_THINKING_EFFORT:-low}" goose "$@"; }
 
 # Goose Desktop tier wrappers. The .desktop Exec field may show
 # "/usr/lib/goose/Goose %U"; in shell, call the binary and pass URLs/files as args.
-_goose_desktop_high() { GOOSE_THINKING_EFFORT=high "/usr/lib/goose/Goose" "$@"; }
-_goose_desktop_mid() { GOOSE_THINKING_EFFORT=medium "/usr/lib/goose/Goose" "$@"; }
-_goose_desktop_low() { GOOSE_THINKING_EFFORT=low "/usr/lib/goose/Goose" "$@"; }
+_goose_desktop_high() { GOOSE_THINKING_EFFORT="${GOOSE_HIGH_THINKING_EFFORT:-high}" "/usr/lib/goose/Goose" "$@"; }
+_goose_desktop_mid() { GOOSE_THINKING_EFFORT="${GOOSE_MID_THINKING_EFFORT:-medium}" "/usr/lib/goose/Goose" "$@"; }
+_goose_desktop_low() { GOOSE_THINKING_EFFORT="${GOOSE_LOW_THINKING_EFFORT:-low}" "/usr/lib/goose/Goose" "$@"; }
 
 goose-desktop-high() { _goose_desktop_high "$@"; }
 goose-desktop-mid() { _goose_desktop_mid "$@"; }
@@ -267,6 +270,7 @@ goose-learn() {
 #   hybrid        — HIGH via codex-acp, MID/LOW via claude-acp.
 #   anthropic     — Direct Anthropic API. HIGH/MID/LOW → full claude-* model IDs.
 #   claude-acp    — Claude friendly shortnames, if working locally.
+#   sakana        — Sakana API. HIGH/MID/LOW → fugu; efforts xhigh/high/high.
 #
 # Switching profiles only rewrites recipes. You also need to update
 # ~/.config/goose/config.yaml GOOSE_PROVIDER and auth env vars for the new provider.
@@ -278,16 +282,30 @@ goose-learn() {
 #   goose-profile hybrid
 #   goose-profile anthropic
 #   goose-profile claude-acp
+#   goose-profile sakana
+#
+# For sakana after switching, set these in ~/.goose-aliases or your shell:
+#   export GOOSE_HIGH_THINKING_EFFORT=xhigh
+#   export GOOSE_MID_THINKING_EFFORT=high
+#   export GOOSE_LOW_THINKING_EFFORT=high
 goose-profile() {
   local profile="${1:-}"
   local script="$HOME/IMA/dev/ima-goose/scripts/install.ts"
   if [ -z "$profile" ]; then
-    echo "Available profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp"
+    echo "Available profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp, sakana"
     echo "Deployed recipes (first 5):"
     grep -h "^  goose_model:" "$HOME/.config/goose/recipes/"*.yaml 2>/dev/null | sort -u | head -5
     return 0
   fi
   node "$script" --profile "$profile"
+  if [ "$profile" = "sakana" ]; then
+    cat <<'EOF'
+Sakana profile selected. Add these to ~/.goose-aliases or your shell before using tiered aliases:
+  export GOOSE_HIGH_THINKING_EFFORT=xhigh
+  export GOOSE_MID_THINKING_EFFORT=high
+  export GOOSE_LOW_THINKING_EFFORT=high
+EOF
+  fi
   echo "Reminder: copy or merge .goose-aliases.example to ~/.goose-aliases when profile thinking effort/runtime env changes."
 }
 
@@ -498,6 +516,7 @@ UPDATING RECIPES:
   goose-profile openai                          Switch recipes to codex-acp fallback GPT-5.5 profile
   goose-profile hybrid                          Switch HIGH to GPT-5.5, MID/LOW to Claude ACP
   goose-profile claude-acp                      Switch recipes to Claude ACP shortnames
+  goose-profile sakana                          Switch recipes to Sakana fugu profile
 
 DOCS:
 

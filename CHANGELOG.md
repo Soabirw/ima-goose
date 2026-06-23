@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Added `sakana` provider profile for Sakana API's OpenAI-compatible Responses
+  endpoint, using `fugu` for all tiers with reasoning efforts HIGH→`xhigh`,
+  MID→`high`, and LOW→`high`.
+
 ### Changed
 
 - Updated `task-planner` persistence guidance so Stories are the default Jira and
@@ -17,7 +23,7 @@
 ### Validation
 
 - Ran targeted stale wording scans for old task-planner granularity language.
-- Rendered and validated recipes with `node scripts/install.ts --validate --dest <tmp> --profile chatgpt_codex`.
+- Rendered and validated recipes with `node scripts/install.ts --validate --dest <tmp> --profile chatgpt_codex` and `--profile sakana`.
 - Ran `npm test`.
 - Ran `git diff --check`.
 

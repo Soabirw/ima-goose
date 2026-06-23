@@ -16,9 +16,12 @@ The default profile is `chatgpt_codex`, which renders recipes through Goose's na
 - LOW: `gpt-5.5` with alias-scoped `GOOSE_THINKING_EFFORT=low`
 
 Use `--profile openai`, `--profile hybrid`, `--profile anthropic`,
-or `--profile claude-acp` only when those providers are configured locally.
-For `chatgpt_codex`, copy or merge `.goose-aliases.example` after profile
-changes because aliases set command-scoped `GOOSE_THINKING_EFFORT`.
+`--profile claude-acp`, or `--profile sakana` only when those providers are
+configured locally.
+For `chatgpt_codex` and `sakana`, copy or merge `.goose-aliases.example` after
+profile changes because aliases set command-scoped `GOOSE_THINKING_EFFORT`.
+Sakana uses `fugu` for all tiers with efforts HIGH→`xhigh`, MID→`high`,
+LOW→`high`.
 
 ## Primary Workflow
 

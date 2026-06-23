@@ -96,6 +96,9 @@ Provider effort handling differs by path:
   `gpt-5.5/medium`, or `gpt-5.5/high` for `chatgpt_codex`.
 - `codex-acp` does **not** read `GOOSE_THINKING_EFFORT`; effort must be part of
   the model name, such as `gpt-5.5/high`.
+- `sakana` uses the bare model name (`fugu`) and reads effort from
+  `GOOSE_THINKING_EFFORT`. Sakana only accepts `high` and `xhigh`/`max`; the
+  Sakana profile uses HIGH→`xhigh`, MID→`high`, LOW→`high`.
 
 The profile system handles this split when rendering recipes and aliases. `node scripts/install.ts` defaults to the recommended `chatgpt_codex` OAuth
 path. Use another profile only when that provider is configured locally. See
@@ -226,6 +229,9 @@ Provider effort handling differs by path:
   `gpt-5.5/medium`, or `gpt-5.5/high` for `chatgpt_codex`.
 - `codex-acp` does **not** read `GOOSE_THINKING_EFFORT`; effort must be part of
   the model name, such as `gpt-5.5/high`.
+- `sakana` uses the bare model name (`fugu`) and reads effort from
+  `GOOSE_THINKING_EFFORT`. Sakana only accepts `high` and `xhigh`/`max`; the
+  Sakana profile uses HIGH→`xhigh`, MID→`high`, LOW→`high`.
 - `claude-acp` is no longer recommended for the team default because of metered
   billing. Use it only when you intentionally want that provider and understand
   the cost model.
@@ -260,6 +266,13 @@ GOOSE_PROVIDER: "openai"
 OPENAI_HOST: "http://localhost:11434/v1"
 OPENAI_API_KEY: "ollama"
 GOOSE_MODEL: "qwen3-coder:latest"
+
+# Sakana API profile provider
+# Configure a Goose model provider named `sakana` with base_url https://api.sakana.ai/v1,
+# env_key SAKANA_API_KEY, wire_api responses, and the stream/retry settings from config-template.yaml.
+GOOSE_PROVIDER: "sakana"
+GOOSE_MODEL: "fugu"
+GOOSE_THINKING_EFFORT: "xhigh"
 ```
 
 Recipes declare `HIGH`, `MID`, or `LOW` by rendering the whole per-tier profile
@@ -273,6 +286,7 @@ node scripts/install.ts --profile openai        # codex-acp fallback → gpt-5.5
 node scripts/install.ts --profile hybrid        # HIGH→codex-acp, MID/LOW→claude-acp
 node scripts/install.ts --profile anthropic     # direct Anthropic API model IDs
 node scripts/install.ts --profile claude-acp    # explicit Claude ACP opt-in
+node scripts/install.ts --profile sakana        # Sakana API fugu profile
 ```
 
 See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md) for the per-tier mapping
@@ -638,7 +652,7 @@ Planned recipe dirs are harmless empty dirs signaling future scope. Convert when
 ## Model Profiles
 
 Recipes use `HIGH`, `MID`, and `LOW` tiers rendered from `profiles/*.yaml`.
-`chatgpt_codex` is the default profile for Goose's native ChatGPT Codex provider. Use `openai` only as the codex-acp fallback. For `chatgpt_codex`, aliases scope `GOOSE_THINKING_EFFORT` per command. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
+`chatgpt_codex` is the default profile for Goose's native ChatGPT Codex provider. Use `openai` only as the codex-acp fallback. For `chatgpt_codex` and `sakana`, aliases scope `GOOSE_THINKING_EFFORT` per command. See [`docs/MODEL-TIERS.md`](docs/MODEL-TIERS.md).
 
 ---
 

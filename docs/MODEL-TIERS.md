@@ -80,6 +80,21 @@ Use only when Claude ACP access is working locally.
 
 Kept for users with working Claude ACP access. It is no longer the default.
 
+### Sakana API
+
+| Tier | Provider | Model | Runtime effort |
+|---|---|---|---|
+| `HIGH` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=xhigh` |
+| `MID` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
+| `LOW` | `sakana` | `fugu` | `GOOSE_THINKING_EFFORT=high` |
+
+Use `--profile sakana` when Goose is configured with a model provider named
+`sakana` pointing at `https://api.sakana.ai/v1` with `wire_api = "responses"`
+and `SAKANA_API_KEY`. Sakana accepts only `high` and `xhigh`/`max` reasoning
+efforts, so this profile deliberately does not use `medium` or `low`. When using
+`.goose-aliases.example`, set `GOOSE_HIGH_THINKING_EFFORT=xhigh`,
+`GOOSE_MID_THINKING_EFFORT=high`, and `GOOSE_LOW_THINKING_EFFORT=high`.
+
 ## Recipe Assignments
 
 | Recipe | Tier |
@@ -132,6 +147,7 @@ node ~/IMA/dev/ima-goose/scripts/install.ts --profile chatgpt_codex
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile hybrid
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile anthropic
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile claude-acp
+node ~/IMA/dev/ima-goose/scripts/install.ts --profile sakana
 ```
 
 Switching profiles renders recipes into `~/.config/goose/recipes/*.yaml` with
