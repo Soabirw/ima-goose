@@ -42,6 +42,15 @@ Taskwarrior scoping (`project:<name>` filters and `task context`) instead of
 inventing project-local `TASKRC`/`TASKDATA` wrappers. Only use alternate
 `TASKRC`/`TASKDATA` when a project explicitly documents an exception.
 
+## Goose-cycle lifecycle granularity
+
+When Taskwarrior is used as a goose-cycle queue, each pending ready Taskwarrior
+task is a delivery lifecycle unit. For task-planner persistence, create one
+Taskwarrior task per Story by default and embed lower-level implementation tasks
+as annotations/checklists/acceptance criteria on the Story task. Do not create
+separate Taskwarrior tasks for subtasks/checklist items unless the user
+explicitly approves independent lifecycle expansion.
+
 If `task diagnostics` says `Cannot proceed without rc file`, Taskwarrior is installed but not initialized for the default user environment. In non-Serena sessions, ask whether to create/configure `~/.taskrc`, or use an isolated temp setup for testing:
 
 ```bash
