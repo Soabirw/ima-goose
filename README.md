@@ -2,20 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.6.0**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.6.0
+## What's New In v2.6.1
 
-- Added `instructor`, a HIGH-tier read-only mentoring recipe with the
-  `goose-instructor [source]` alias for context-aware guidance on what the
-  human should do next and why.
-- Updated `task-planner` so approved Epic→Story→Task hierarchies may be
-  persisted to exactly one PM system, Jira or Taskwarrior, after explicit
-  preview approval, with Stories as lifecycle units and lower-level Tasks as
-  embedded Story checklists by default.
-- Removed direct Serena, Qdrant, and Vestige extension entries from
-  `config-template.yaml`; those integrations now route through
-  `ima-mcp-gateway`.
+- Added the `sakana` profile for Sakana API's OpenAI-compatible Responses
+  endpoint, using `custom_sakana` / `fugu` with valid Sakana reasoning efforts.
+- Updated `task-planner` persistence so Stories are lifecycle units by default
+  and lower-level Tasks are embedded Story checklists unless explicitly promoted.
+- Clarified the v2.6 MCP gateway transition docs around `ima-mcp-gateway >= 0.3.0`
+  for Serena, Vestige, and Qdrant.
 
 ---
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+_No unreleased changes._
+
+## v2.6.1 - 2026-06-23
+
 ### Added
 
 - Added `sakana` provider profile for Sakana API's OpenAI-compatible Responses
