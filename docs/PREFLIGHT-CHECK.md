@@ -33,13 +33,24 @@ goose run --recipe preflight-check
 - Temporary recipe rendering and validation in `/tmp` so the real user config is
   not mutated.
 - Installed skill directories and expected `mcp-*` skills.
-- Serena memory tools and optional JetBrains capability classification.
-- Vestige through `ima-mcp vestige`; Qdrant, Context7, Sequential Thinking, Fetch, Tavily, Chrome DevTools,
-  and Atlassian Rovo when available and in scope.
+- `ima-mcp` gateway fleet health (`ima-mcp doctor`, `ima-mcp mcp servers`,
+  `ima-mcp mcp doctor`).
+- Serena, Vestige, and Qdrant through the `ima-mcp` gateway, not the Goose
+  TypeScript SDK.
+- Non-gateway MCP extensions via SDK when available and in scope: Context7 and
+  Sequential Thinking (quick); Tavily, Chrome DevTools, and Atlassian Rovo
+  (full).
 - Taskwarrior through the CLI, because no Goose TypeScript SDK wrapper is
   currently exposed for Taskwarrior.
-- Subrecipe spawning via a child recipe marker:
+- Subrecipe delegation via a child recipe marker:
   `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK`.
+
+## Gateway-First MCPs
+
+Serena, Vestige, and Qdrant are checked with the `ima-mcp` gateway as the source
+of truth, not through SDK probes. This avoids false-positive failures from
+SDK-generation issues and keeps the three gateway MCPs aligned with their actual
+health.
 
 ## Statuses
 
@@ -52,5 +63,23 @@ goose run --recipe preflight-check
 | `SKIP` | Intentionally skipped by scope. |
 | `NOT_CONFIGURED` | Extension, env var, or executable is absent by design. |
 
-The preflight recipe does not fix problems. It reports evidence and recommends
+## Expected WARNs
+
+These are normal warnings, not failures:
+
+- Qdrant WARN only when the local Qdrant service is unreachable or its
+  collections are missing.
+- Atlassian Rovo unauthenticated.
+- Chrome DevTools with no running browser or open page.
+- Tavily missing its API key.
+
+`configured: false` for Serena, Vestige, or Qdrant in `mcp servers` is EXPECTED
+and PASS — they are gateway-managed by `ima-mcp` by design, not direct Goose
+extensions. Health comes from `ima-mcp <svc> status/doctor`, not the
+`configured`/`enabled` flags. Do not register these as direct Goose extensions.
+
+## What It Does Not Mutate
+
+The preflight check is read-only. It does not edit configuration, write
+memories, change Jira, or run OAuth setup. It reports evidence and recommends
 safe next actions.

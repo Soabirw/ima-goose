@@ -2,16 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.6.1**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.6.1
+## What's New In v2.6.2
 
-- Added the `sakana` profile for Sakana API's OpenAI-compatible Responses
-  endpoint, using `custom_sakana` / `fugu` with valid Sakana reasoning efforts.
-- Updated `task-planner` persistence so Stories are lifecycle units by default
-  and lower-level Tasks are embedded Story checklists unless explicitly promoted.
-- Clarified the v2.6 MCP gateway transition docs around `ima-mcp-gateway >= 0.3.0`
-  for Serena, Vestige, and Qdrant.
+- Updated `preflight-check` to use `ima-mcp` gateway diagnostics as the source of
+  truth for Serena, Vestige, and Qdrant health checks.
+- Refreshed the `goose-preflight` skill and preflight docs for current Context7,
+  Tavily, Atlassian Rovo, Sequential Thinking, and Chrome DevTools probes.
+- Clarified that the `preflight_probe` subrecipe is the delegation canary
+  requiring the `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK` marker.
 
 ---
 

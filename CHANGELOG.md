@@ -4,6 +4,30 @@
 
 _No unreleased changes._
 
+## v2.6.2 - 2026-06-25
+
+### Changed
+
+- Updated `preflight-check` to use `ima-mcp` gateway diagnostics as the source of
+  truth for Serena, Vestige, and Qdrant health checks.
+- Refreshed `goose-preflight` guidance and preflight docs for current Context7,
+  Tavily, Atlassian Rovo, Sequential Thinking, and Chrome DevTools probe signatures.
+
+### Fixed
+
+- Removed outdated Serena, Vestige, Qdrant, and Fetch SDK preflight probing to
+  avoid false-positive failures after the `ima-mcp` gateway migration.
+- Clarified that the `preflight_probe` subrecipe is the delegation canary and
+  requires the `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK` marker.
+
+### Validation
+
+- Rendered and validated all recipe templates with
+  `node scripts/install.ts --validate --dest <tmp> --profile openai`, including
+  the rendered `preflight-check.yaml` and `preflight-probe.yaml`.
+- Ran `npm test`.
+- Ran `git diff --check`.
+
 ## v2.6.1 - 2026-06-23
 
 ### Added

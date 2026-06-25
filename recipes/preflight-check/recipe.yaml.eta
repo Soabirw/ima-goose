@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.1.0"
 title: "Preflight Check"
 description: "Run a read-only Goose/MCP/tooling preflight and report what is configured, reachable, or failing."
 
@@ -61,33 +61,63 @@ instructions: |
 
   3. Check expected skill directories under `skills/` and, when present,
      `~/.agents/skills/`.
-  4. Call the `preflight_probe` subrecipe and require the marker
-     `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK` for a subrecipe PASS.
+  4. Call the `preflight_probe` subrecipe in every scope (`offline`, `quick`,
+     and `full`). The subrecipe/delegation check PASSes only if the child
+     response includes `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK`. If the call errors,
+     times out, or returns without the marker, classify the subrecipe/delegation
+     check as FAIL.
 
-  ## MCP / SDK Probes
+  ## MCP Gateway / SDK Probes
 
-  When Goose TypeScript SDK wrappers are available, batch probes that are safe for
-  the SDK in one execution and catch errors per probe. Do not include Serena or
-  Vestige in SDK probes. Results are already parsed
-  JavaScript values; do not `JSON.parse` whole results unless a specific string
-  field is documented as JSON.
+  Use `ima-mcp` as the source of truth for gateway-managed MCPs. Serena, Vestige,
+  and Qdrant are gateway probes only; SDK probes must not include `Serena.*`,
+  `Vestige.*`, or `QdrantMemory.*`.
 
-  Quick/full should attempt these read-only probes when the corresponding tools
-  are available:
+  Quick/full should attempt these read-only gateway probes:
 
-  - Serena memory: use the CLI gateway, not `execute_typescript`:
-    `command -v ima-mcp`, `ima-mcp serena project activate "$project" --json`,
-    `ima-mcp serena instructions --project "$project" --json`,
-    `ima-mcp serena memory list --project "$project" --json`, and optionally
-    `ima-mcp serena memory read core --project "$project" --json`.
-    JetBrains-specific failures are WARN unless symbol navigation is required.
-  - Vestige: use the CLI gateway, not `execute_typescript` or `Vestige.*`: `command -v ima-mcp`, `ima-mcp vestige status --json`, `ima-mcp vestige doctor --json`, and optionally `ima-mcp vestige search "preflight" --json`.
-  - Qdrant: `QdrantMemory.qdrantFind({ query: "preflight", limit: 1 })` and/or
-    local `curl http://localhost:6333/health` when Qdrant is expected.
+  ```bash
+  project="${PWD}"
+  command -v ima-mcp
+  ima-mcp --version
+  ima-mcp doctor --project "$project" --json
+  ima-mcp mcp servers --json
+  ima-mcp mcp doctor --project "$project" --json
+  ima-mcp serena doctor --project "$project" --json
+  ima-mcp vestige status --json
+  ima-mcp vestige doctor --json
+  ima-mcp qdrant status --json
+  ima-mcp qdrant doctor --json
+  ima-mcp qdrant collections --json
+  ```
+
+  For Serena project/memory evidence, use bootstrap-style gateway probes:
+
+  ```bash
+  ima-mcp serena project activate "$project" --json
+  ima-mcp serena instructions --project "$project" --json
+  ima-mcp serena memory list --project "$project" --json
+  ima-mcp serena memory read core --project "$project" --json
+  ```
+
+  When Goose TypeScript SDK wrappers are available, batch probes for non-gateway
+  Goose extensions in one execution and catch errors per probe. Results are
+  already parsed JavaScript values; do not `JSON.parse` whole results unless a
+  specific string field is documented as JSON.
+
+  Quick/full should attempt these read-only SDK probes when the corresponding
+  tools are available:
+
   - Context7: `Context7.resolveLibraryId({ libraryName: "React", query: "React documentation" })`.
-  - Sequential Thinking: a one-step `SequentialThinking.sequentialthinking` call.
-  - Fetch: `Fetch.fetch({ url: "https://example.com", max_length: 500 })` unless
-    `scope=offline`.
+  - Sequential Thinking:
+
+    ```ts
+    SequentialThinking.sequentialthinking({
+      thought: "Preflight one-step reasoning probe.",
+      nextThoughtNeeded: false,
+      thoughtNumber: 1,
+      totalThoughts: 1,
+    })
+    ```
 
   Full mode should also attempt:
 
@@ -111,6 +141,26 @@ instructions: |
   Overall status:
   - `FAIL` if any required local install/render, recipe validation, or requested
     required endpoint fails.
+  - `FAIL` for quick/full if `ima-mcp` is missing, because Serena/Vestige
+    bootstrap depends on it.
+  - `FAIL` if `ima-mcp mcp doctor` reports required MCP failure for Serena or
+    Vestige.
+  - For gateway-managed MCPs (Serena, Vestige, Qdrant), health is determined
+    ONLY by `ima-mcp <svc> status/doctor` (`ok`, `backendStatus`/`serviceStatus`).
+    The `configured: false` / `enabled: false` fields from `ima-mcp mcp servers`
+    are the EXPECTED, correct state: these MCPs are intentionally brokered by
+    `ima-mcp` and must NOT be registered as direct Goose extensions. Never treat
+    `configured: false` alone as WARN/FAIL/degraded, and never recommend
+    registering them in `~/.config/goose/config.yaml`.
+  - `PASS` Qdrant if `ima-mcp qdrant status/doctor` returns `ok` and the
+    service/collections are reachable, even when `configured: false`.
+  - `WARN` Qdrant only if the Qdrant service is unreachable or its collections
+    are missing (`serviceStatus` not ready), unless the workflow requires durable
+    knowledge search (then `FAIL`).
+  - `WARN` for Context7 or Sequential Thinking quick failures unless the scope
+    marks all enabled extensions required.
+  - `WARN` for Tavily, Atlassian Rovo, or Chrome DevTools full failures by
+    default because auth, browser, and network availability are workflow-specific.
   - `WARN` if required basics pass but optional MCP/auth/browser capability is
     missing, timed out, or unauthenticated.
   - `PASS` only if all probes selected by scope pass or are explicitly skipped as
