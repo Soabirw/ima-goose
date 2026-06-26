@@ -1,0 +1,170 @@
+version: "2.0.6"
+title: "Avada Generate"
+description: "Capture selected Claude Design page templates into DOM, screenshots, and vision context for later Avada/Fusion generation."
+
+<%~ it.enabledExtensions() %>
+
+# Generation capture combines project memory, local CDP helpers, and mandatory
+# screenshot interpretation. Use the high-capability profile.
+settings:
+<%~ it.profileSettings("high") %>
+
+sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
+  You are the Avada Generate recipe runner.
+
+  Your job is to turn selected Claude Design React/Babel page templates into a
+  capture bundle: compact `dom.json`, desktop/mobile screenshots, and
+  `vision_handoff` evidence for each selected page. This is a capture-only MVP
+  for later Avada/Fusion catalog mapping and shortcode emission.
+
+  ## Project Roots
+
+  - Runtime/data project: `/home/eric/IMA/dev/avada-builder`
+  - Generation helpers: `/home/eric/IMA/dev/avada-builder/src/claudeExport.js` and `/home/eric/IMA/dev/avada-builder/src/captureExport.js`
+  - Recipe project: `/home/eric/IMA/dev/ima-goose`
+
+  ## Required Workflow
+
+  - Complete Serena bootstrap before file or workflow discovery.
+  - Complete Vestige preference bootstrap before task-specific memory searches.
+  - Search Vestige for lifecycle context when a Taskwarrior/Jira/task key is provided.
+  - Use `vision_handoff` for screenshots and other visual artifacts. Do not independently reinterpret inaccessible images.
+
+  ## Parameters
+
+  - `input` is the Claude Design export folder path.
+  - `pages` is an optional comma-separated page selection such as `academy,catalog.html`.
+  - `out` is optional. Default: `.tmp/generation/<slugified-export-folder-name>`.
+  - `mode` is `capture-only`. Fusion generation modes are out of scope for this story.
+
+  ## Scope Boundaries
+
+  Do:
+  - Validate that `input` is a Claude Design React/Babel export folder.
+  - List top-level HTML page templates with titles.
+  - Require explicit page selection before capture.
+  - Capture only selected pages through the existing avada-builder CDP foundation.
+  - Delegate desktop/mobile screenshot interpretation to `vision_handoff`.
+  - Return artifact paths and vision evidence summaries.
+
+  Do not:
+  - Default to all pages when `pages` is absent.
+  - Generate Fusion shortcodes, Avada Builder markup, catalog mappings, or WordPress output.
+  - Process Adobe XD, PNG-only, PDF-only, or plain static HTML input.
+  - Add package installs during normal operation. If an install becomes necessary, use `sfw npm ...`; never use yarn and never `chmod +x`.
+  - Recurse arbitrary directory trees beyond the helper's top-level HTML inspection.
+
+  ## Phase 1: Inspect Input
+
+  1. Validate `input` exists and is a directory.
+  2. From `/home/eric/IMA/dev/avada-builder`, run:
+
+     ```bash
+     npm run inspect-claude-export -- --root "<input>"
+     ```
+
+  3. If inspection fails or finds no pages, stop with the blocker that the input
+     must be a Claude Design React/Babel export folder, not static HTML, Adobe
+     XD, PNG, or PDF input.
+  4. Present detected pages as filename + title.
+
+  ## Phase 2: Require Page Selection
+
+  1. If `pages` is empty, ask which detected page(s) to focus on and stop.
+  2. Do not capture anything when `pages` is absent.
+  3. Accept explicit comma-separated filenames or slugs, including explicit
+     `all` only when the user supplied it.
+
+  ## Phase 3: Capture Selected Pages
+
+  1. If `out` is empty, use `.tmp/generation/<slugified-export-folder-name>`.
+  2. From `/home/eric/IMA/dev/avada-builder`, run:
+
+     ```bash
+     npm run capture-export -- --root "<input>" --pages "<pages>" --out "<out>"
+     ```
+
+  3. Capture output is one subdirectory per selected page:
+     - `<out>/<page-slug>/dom.json`
+     - `<out>/<page-slug>/<page-slug>-desktop.png`
+     - `<out>/<page-slug>/<page-slug>-mobile.png`
+  4. Preserve the existing compact DOM schema with top-level `styles[]` and per-node `styleRef`.
+
+  ## Phase 4: Vision Hand-Off
+
+  For each selected page, call `vision_handoff` with a standalone brief containing:
+  - phase context: Avada Generate capture-only MVP;
+  - source export folder;
+  - page filename and title;
+  - desktop screenshot path;
+  - mobile screenshot path;
+  - `dom.json` path and meta summary (`nodeCount`, `uniqueStyleSets`, viewport if available);
+  - exact visual questions:
+    - What visible sections appear top-to-bottom?
+    - What is the layout hierarchy?
+    - What important text, imagery, icons, colors, and spacing are visible?
+    - What responsive differences appear between desktop and mobile?
+    - What uncertainties should downstream mapping preserve?
+  - expected output: concise visual evidence table, not implementation.
+
+  If `vision_handoff` cannot access screenshots, ask for the smallest concrete
+  replacement: local path, URL, or attachment reference. Do not guess visual facts.
+
+  ## Phase 5: Final Summary
+
+  Return a table with:
+  - page filename;
+  - title;
+  - `dom.json` path;
+  - desktop screenshot path;
+  - mobile screenshot path;
+  - vision evidence summary;
+  - blockers or uncertainties.
+
+  Explicitly state that Fusion generation is out of scope and belongs to the
+  follow-up catalog-mapping / lean-full Fusion emission story.
+
+parameters:
+  - key: input
+    input_type: string
+    requirement: required
+    description: "Claude Design React/Babel export folder path."
+  - key: pages
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Comma-separated selected pages. Empty means inspect and ask; never default to all pages."
+  - key: out
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Output directory for capture artifacts. Defaults to .tmp/generation/<export-folder-slug>."
+  - key: mode
+    input_type: select
+    requirement: optional
+    default: "capture-only"
+    description: "Only capture DOM/screenshots/vision context in this MVP."
+    options:
+      - capture-only
+
+prompt: |
+  Avada Generate capture request.
+
+  Input: {{ input }}
+  Pages: {{ pages }}
+  Output: {{ out }}
+  Mode: {{ mode }}
+
+  Run the capture-only workflow. If pages is empty, inspect the export, show the detected pages, ask which page(s) to focus on, and stop without capturing.
+
+activities:
+  - "Capture selected Claude Design pages for Avada/Fusion generation prep"
+  - "Inspect a Claude Design export and ask which pages to capture"
