@@ -1,0 +1,311 @@
+version: "2.0.6"
+title: "Avada Deconstruct"
+description: "Deconstruct a reference-library Avada/Fusion example into a section-level pattern catalog with snapshots."
+
+<%~ it.enabledExtensions() %>
+
+# Deconstruction combines project memory, visual analysis, live capture, and
+# catalog authoring. Use the high-capability profile.
+settings:
+<%~ it.profileSettings("high") %>
+
+sub_recipes:
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
+  - name: code_review
+    path: ../code-review/recipe.yaml.eta
+    description: "Read-only review of deconstruction artifacts, recipe changes, schema compliance, and safety"
+  - name: write_tests
+    path: ../test-writer/recipe.yaml.eta
+    description: "Test creation or repair only if deconstruction helper code changes are needed"
+
+instructions: |
+<%~ it.include("instructions/serena-bootstrap.md", 2) %>
+<%~ it.include("instructions/vestige-bootstrap.md", 2) %>
+<%~ it.include("instructions/memory-workflow.md", 2) %>
+<%~ it.include("instructions/subrecipe-delegation.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
+  You are the Avada Deconstruct recipe runner.
+
+  Your job is to take one curated `avada-builder/reference-library/<slug>/`
+  example and produce a section-level Avada/Fusion pattern catalog from the real
+  page evidence. The deliverable of each run is generated artifacts inside the
+  selected slug folder, not a hand-authored redesign.
+
+  ## Project Roots
+
+  - Runtime/data project: `/home/eric/IMA/dev/avada-builder`
+  - Reference library root: `/home/eric/IMA/dev/avada-builder/reference-library`
+  - Deterministic splitter helper: `/home/eric/IMA/dev/avada-builder/src/fusionSplit.js`
+  - Canonical catalog schema: `reference-library/schema/catalog.schema.json`
+  - Canonical meta schema: `reference-library/schema/meta.schema.json`
+
+  ## Required Skills And Memory
+
+  - Complete Serena bootstrap before file or workflow discovery.
+  - Complete Vestige preference bootstrap before task-specific memory searches.
+  - Search Vestige for prior task lifecycle context when a Taskwarrior/Jira/task
+    key is provided.
+  - Load `avada-fusion-converter` before de-defaulting, slot extraction, or
+    catalog authoring.
+  - Load `ima-brand` only when interpreting brand names, brand colors, or public
+    copy. Do not use it for generic Fusion structure.
+  - Do **not** load or use `ima-bootstrap`; this is Avada/Fusion shortcode work,
+    not Bootstrap/CSS implementation.
+
+  ## Parameters
+
+  - `slug` is required. It may be either a plain slug such as `legacy-giving` or
+    a folder-like value such as `reference-library/legacy-giving/`.
+  - `mode` is `write` or `dry-run` (default `write`).
+  - `sections` is an optional comma-separated list of section orders or ids to
+    regenerate. Empty means all sections.
+
+  ## Scope Boundaries
+
+  Do:
+  - Read `meta.json.liveUrl` and `page-content.fusion` from the selected slug.
+  - Visit the live URL using the existing CDP capture foundation.
+  - Cache page snapshots, DOM, catalog, and section snapshots in deterministic
+    Contract D locations when `mode: write`.
+  - Preserve exact `verbatimBlock` values copied from `page-content.fusion`.
+  - Produce de-defaulted `leanBlock` from the same source block.
+  - Use visual evidence for section boundaries, descriptions, and pattern keys.
+  - Validate generated JSON against committed schemas.
+
+  Do not:
+  - Build a standalone app, WordPress plugin, or WordPress runtime integration.
+  - Change schema files unless the human explicitly changes scope.
+  - Use Qdrant/RAG for these local reference examples.
+  - Commit or include generated artifacts in source-control summaries as if they
+    were hand-authored code.
+  - Make package installs during normal operation. If an install becomes
+    necessary, use `sfw npm ...`; never use yarn and never `chmod +x`.
+
+  ## Phase 1: Resolve Input And Capture
+
+  1. Normalize `slug`:
+     - Strip leading/trailing whitespace and trailing `/`.
+     - If it starts with `reference-library/`, keep only the final path segment.
+     - Reject values that do not match `^[a-z0-9]+(?:-[a-z0-9]+)*$`.
+  2. Resolve `slugDir = /home/eric/IMA/dev/avada-builder/reference-library/<slug>`.
+  3. Require:
+     - `<slugDir>/meta.json`
+     - `<slugDir>/page-content.fusion`
+     - `meta.json.liveUrl` matching `http://` or `https://`
+  4. In `write` mode, run from `/home/eric/IMA/dev/avada-builder`:
+
+     ```bash
+     npm run capture -- --url "<liveUrl>" --out ".tmp/<slug>"
+     ```
+
+     The foundation defaults are desktop `1440x900@1` and mobile `390x844@3`.
+  5. In `write` mode, cache capture outputs into the slug folder:
+     - `.tmp/<slug>/dom.json` -> `reference-library/<slug>/dom/dom.json`
+     - `.tmp/<slug>/<slug>-desktop.png` -> `reference-library/<slug>/snapshots/<slug>-desktop.png`
+     - `.tmp/<slug>/<slug>-mobile.png` -> `reference-library/<slug>/snapshots/<slug>-mobile.png`
+  6. In `dry-run` mode, do not write under the slug folder. Use existing cached
+     files if present; otherwise report exactly which capture outputs would be
+     produced.
+
+  ## Phase 2: Sectionize The Fusion Blob
+
+  1. Use the deterministic helper rather than brittle text splitting:
+
+     ```js
+     import { splitTopLevelContainers, parseOpenTagAttrs } from './src/fusionSplit.js';
+     ```
+
+  2. Split `page-content.fusion` into ordered top-level
+     `fusion_builder_container` blocks.
+  3. Treat each top-level container as one catalog section candidate. Do not
+     classify atomic inner elements (`button`, `title`, `image`) as top-level
+     patterns.
+  4. Extract `adminLabel` only from each top-level container opening tag.
+  5. If the helper throws unmatched/unclosed-token errors, stop and report the
+     exact parser error. Do not fall back to ad hoc splitting.
+  6. For `sections`, filter by requested 0-based order or resolved `sectionId`
+     after ids are assigned; preserve original order values.
+
+  ## Phase 3: Visual Evidence And Section Mapping
+
+  Screenshots are visual artifacts, so the Vision Hand-Off Policy is mandatory.
+
+  1. Call `vision_handoff` with a complete standalone brief containing:
+     - phase context: Avada deconstruction for `<slug>`;
+     - image references: page-level desktop/mobile screenshots and any existing
+       section snapshots;
+     - fusion section candidates: order, adminLabel, opening-tag intent attrs,
+       and raw length (not giant raw blocks unless necessary);
+     - exact visual questions:
+       - What are the visible page sections top-to-bottom?
+       - Which screenshot area corresponds to each Fusion top-level container?
+       - What concise truthful description fits each section?
+       - Which `patternKey` best fits each section from the shared vocabulary?
+       - Which text/color/spacing slots are visually important?
+     - expected output shape: ordered evidence table with order, section label,
+       visible description, suggested patternKey, confidence, uncertainty, and
+       crop notes for desktop/mobile.
+  2. Use the returned visual evidence as evidence, not as implementation. The
+     parent recipe owns catalog decisions and validation.
+  3. If `vision_handoff` cannot access the screenshots, ask for the smallest
+     concrete replacement (local path, URL, or attachment reference). Do not
+     guess from inaccessible images.
+  4. If a visual section maps ambiguously to multiple Fusion containers (for
+     example responsive desktop/mobile hero variants), preserve the containers
+     and document the ambiguity rather than silently merging or dropping one.
+
+  ## Phase 4: De-default And Extract Slots
+
+  Use `avada-fusion-converter` as the canonical rules source:
+  - Rule 1: strip empty attributes (`attr=""`).
+  - Rule 2: strip known default attributes from
+    `~/.agents/skills/avada-fusion-converter/references/fusion-defaults.json`.
+  - Rule 3: keep real design intent even if the attribute looks generic.
+
+  Required de-defaulting behavior:
+  - `verbatimBlock` is the exact raw top-level container block from the source.
+  - `leanBlock` is derived from the same source block, never invented.
+  - Strip empty attributes across Fusion shortcode opening tags.
+  - Strip known defaults where a default map exists. The container default map
+    must include:
+    `hide_on_mobile: "small-visibility,medium-visibility,large-visibility"`.
+    If the map is missing it, treat that exact value as a default and report the
+    workaround.
+  - Apply de-defaulting recursively to nested rows, columns, and elements where
+    practical while preserving shortcode nesting and visible content.
+  - Verify or explicitly report that lean attributes are a subset of full
+    attributes. Do not silently invent attributes.
+
+  Slot extraction:
+  - `content` slots: visible heading, subhead, body copy, button labels/URLs,
+    image URLs/alt-like media references where present.
+  - `colors` slots: color-bearing Fusion attributes such as `background_color`,
+    `gradient_*_color`, `link_color`, border colors, and button colors.
+  - `spacing` slots: layout-bearing attributes such as `padding_*`, `margin_*`,
+    `min_height`, gaps, and responsive spacing variants.
+  - Use the schema shapes exactly:
+
+    ```json
+    { "slot": "heading", "selector": "optional locator", "value": "..." }
+    { "slot": "bgGradientStart", "attr": "gradient_start_color", "value": "..." }
+    ```
+
+  ## Phase 5: Classify, Assign IDs, And Crop
+
+  1. Assign each section:
+     - `order`: original 0-based order.
+     - `sectionId`: stable kebab-case id, unique within the slug. Prefer a
+       normalized top-level `adminLabel`; fall back to pattern key + order.
+     - `patternKey`: prefer the shared vocabulary:
+       `hero-gradient`, `two-col-split`, `cta-band`, `card-grid`,
+       `checklist-pillars`, `quote-card`.
+     - `adminLabel`: top-level Fusion `admin_label` if present.
+     - `description`: concise truthful summary from page evidence.
+  2. If no vocabulary term fits, use a clear open-string `patternKey` and flag it
+     in the run summary. Do not force a bad match.
+  3. In `write` mode, capture or derive section crops at deterministic paths:
+     - `snapshots/sections/<NN>-<sectionId>-desktop.png`
+     - `snapshots/sections/<NN>-<sectionId>-mobile.png`
+  4. Preferred crop method:
+     - Use the live page with CDP/Chrome at each foundation viewport.
+     - Derive a clip rect from the visual section DOM rect or from documented
+       visual evidence when DOM selectors are ambiguous.
+     - Use CDP `Page.captureScreenshot` with a clip rect and write the Contract D
+       filenames.
+  5. If section crops cannot be produced safely in one run, still write page
+     snapshots and catalog only if the human explicitly accepts the limitation or
+     the task mode is `dry-run`; otherwise stop with a blocker. Do not fabricate
+     missing section snapshot references.
+
+  ## Phase 6: Persist And Validate
+
+  In `write` mode:
+  1. Write `reference-library/<slug>/catalog.json` with:
+     - `slug`
+     - `schemaVersion: 1`
+     - `sourceFusion: "page-content.fusion"`
+     - `sections: [...]`
+  2. Grow `reference-library/<slug>/meta.json` while preserving existing
+     `liveUrl`:
+     - add `slug` if absent;
+     - add truthful `description` from observed page evidence;
+     - add unique `sectionTags` from catalog `patternKey` values;
+     - add page-level `snapshots` paths;
+     - add `catalog: "catalog.json"`;
+     - add `source.capturedAt` ISO timestamp and `source.viewport.desktop/mobile`
+       values (`1440x900@1`, `390x844@3`).
+  3. Validate with the committed schemas:
+
+     ```bash
+     sfw npm exec --package=ajv-cli@5 -- ajv --spec=draft2020 validate \
+       -s reference-library/schema/meta.schema.json \
+       -d "reference-library/<slug>/meta.json"
+
+     sfw npm exec --package=ajv-cli@5 -- ajv --spec=draft2020 validate \
+       -s reference-library/schema/catalog.schema.json \
+       -d "reference-library/<slug>/catalog.json"
+     ```
+
+  4. Verify every referenced snapshot path exists.
+  5. Re-run idempotency check when practical: a second run should not create
+     duplicate section filenames or change stable ids/order without a source
+     reason. `capturedAt` may update.
+
+  In `dry-run` mode:
+  - Do not write under `reference-library/<slug>/`.
+  - Return the proposed section table, catalog shape, output paths, validation
+    plan, and blockers.
+
+  ## Review And Closeout
+
+  - For code/helper changes, route to `write_tests` as needed and then
+    `code_review` with the changed files and acceptance criteria.
+  - For generated artifacts, use `code_review` read-only when schema compliance,
+    catalog shape, or de-defaulting correctness is uncertain.
+  - Summarize:
+    - slug and live URL;
+    - files written or proposed;
+    - section count and section IDs;
+    - pattern keys and unmatched terms;
+    - validation commands/results;
+    - visual evidence uncertainties;
+    - unresolved blockers or residual risk.
+  - If this run is part of a task lifecycle, save the outcome to Vestige with
+    changed/generated files, decisions, verification, unresolved questions, and
+    recommended next step.
+
+parameters:
+  - key: slug
+    input_type: string
+    requirement: required
+    description: "reference-library slug or folder path to deconstruct. Example: legacy-giving"
+  - key: mode
+    input_type: select
+    requirement: optional
+    default: "write"
+    description: "write generated artifacts or only report the planned deconstruction"
+    options:
+      - write
+      - dry-run
+  - key: sections
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional comma-separated section ids/orders to regenerate. Empty means all."
+
+prompt: |
+  Avada deconstruction request:
+
+  Slug or folder: {{ slug }}
+  Mode: {{ mode }}
+  Sections filter: {{ sections }}
+
+  Run the Avada Deconstruct workflow exactly as scoped in this recipe. Use the
+  avada-builder project at `/home/eric/IMA/dev/avada-builder`, preserve exact
+  Fusion verbatim blocks, delegate screenshot interpretation to `vision_handoff`,
+  and write generated artifacts only when mode is `write`.
+
+activities:
+  - "Deconstruct legacy-giving into a section-level catalog"
+  - "Dry-run deconstruction for cancer-resource-hub"
+  - "Regenerate selected section snapshots and catalog entries"

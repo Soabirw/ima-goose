@@ -597,6 +597,7 @@ only the auto-injected `summon` extension.
 | `/preflight` | Read-only Goose/MCP configuration canary and readiness report | LOW |
 | `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | HIGH |
 | `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | HIGH |
+| `avada-deconstruct` | Specialized Avada/Fusion reference-library deconstruction recipe that produces section-level catalog + snapshot artifacts for a selected slug | HIGH |
 
 ### Sub-Recipe Wiring
 
