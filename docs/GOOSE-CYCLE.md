@@ -90,11 +90,26 @@ goose-cycle implement --project ima-mcp-gateway --task S01
 goose-cycle test --project ima-mcp-gateway --task S01
 goose-cycle review --project ima-mcp-gateway --task S01
 goose-cycle learn --project ima-mcp-gateway --task S01
+goose-cycle resolve-review --project ima-mcp-gateway --task S01
+goose-cycle rereview --project ima-mcp-gateway --task S01
 ```
 
-The conductor passes only the lifecycle identifiers. The recipes are
-responsible for loading Taskwarrior, searching Vestige, doing phase-specific
-work, and updating phase outcomes.
+Manual phase names are operator-facing aliases. The conductor maps each alias to
+the concrete Goose recipe and phase-specific handoff parameters:
+
+| Manual phase | Goose recipe | Phase-specific parameters |
+|---|---|---|
+| `plan` | `plan` | none |
+| `implement` | `implement` | `implementation_source=Vestige lifecycle thread for project <project>, task <task>` |
+| `test` | `test-writer` | `test_source=Vestige lifecycle thread for project <project>, task <task>` |
+| `review` | `code-review` | `target=Vestige lifecycle thread for project <project>, task <task>` |
+| `learn` | `document-learn` | `artifact_bundle=Vestige lifecycle thread for project <project>, task <task>` |
+| `resolve-review` | `implement` | `cycle_phase=resolve-review`, `implementation_source=Resolve review findings from Vestige lifecycle thread for project <project>, task <task>` |
+| `rereview` | `code-review` | `cycle_phase=rereview`, `target=Rereview resolved findings from Vestige lifecycle thread for project <project>, task <task>` |
+
+The conductor passes lifecycle identifiers and the alias-specific handoff. The
+recipes are responsible for loading Taskwarrior, searching Vestige, doing
+phase-specific work, and updating phase outcomes.
 
 ## Local State
 

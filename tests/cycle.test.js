@@ -131,6 +131,142 @@ test("manual test phase wires the Vestige lifecycle handoff into test-writer", (
   assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
 });
 
+test("manual phase aliases map to the concrete Goose recipes", () => {
+  const expectedRecipes = [
+    ["plan", "plan"],
+    ["implement", "implement"],
+    ["test", "test-writer"],
+    ["review", "code-review"],
+    ["learn", "document-learn"],
+    ["resolve-review", "implement"],
+    ["rereview", "code-review"],
+  ];
+
+  for (const [phase, recipe] of expectedRecipes) {
+    const harness = makeHarness([
+      {
+        id: 13,
+        uuid: "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+        description: "S03 verify manual mapping",
+        project: "ima-goose",
+        status: "pending",
+      },
+    ]);
+
+    const result = runCycle(harness, [phase, "--project", "ima-goose", "--task", "S03", "--dry-run"]);
+
+    assert.equal(result.status, 0, `${phase}: ${result.stderr}`);
+    assert.match(result.stdout, new RegExp(`goose run --recipe ${recipe}`), phase);
+    assert.match(result.stdout, new RegExp(`--name ${recipe}-\\d{12}`), phase);
+    assert.match(result.stdout, /--params task=bbbbbbbb-cccc-dddd-eeee-ffffffffffff/, phase);
+    assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false, phase);
+  }
+});
+
+test("manual implement phase maps to implement with a Vestige implementation source", () => {
+  const harness = makeHarness([
+    {
+      id: 14,
+      uuid: "cccccccc-dddd-eeee-ffff-000000000000",
+      description: "S04 implement mapping",
+      project: "ima-goose",
+      status: "pending",
+    },
+  ]);
+
+  const result = runCycle(harness, ["implement", "--project", "ima-goose", "--task", "S04", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /goose run --recipe implement/);
+  assert.match(result.stdout, /--params project=ima-goose/);
+  assert.match(result.stdout, /--params task=cccccccc-dddd-eeee-ffff-000000000000/);
+  assert.match(result.stdout, /--params 'implementation_source=Vestige lifecycle thread for project ima-goose, task cccccccc-dddd-eeee-ffff-000000000000'/);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
+test("manual review phase maps to code-review with a Vestige target", () => {
+  const harness = makeHarness([
+    {
+      id: 15,
+      uuid: "dddddddd-eeee-ffff-0000-111111111111",
+      description: "S05 review mapping",
+      project: "ima-goose",
+      status: "pending",
+    },
+  ]);
+
+  const result = runCycle(harness, ["review", "--project", "ima-goose", "--task", "S05", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /goose run --recipe code-review/);
+  assert.doesNotMatch(result.stdout, /goose run --recipe review/);
+  assert.match(result.stdout, /--params project=ima-goose/);
+  assert.match(result.stdout, /--params task=dddddddd-eeee-ffff-0000-111111111111/);
+  assert.match(result.stdout, /--params 'target=Vestige lifecycle thread for project ima-goose, task dddddddd-eeee-ffff-0000-111111111111'/);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
+test("manual learn phase maps to document-learn with a Vestige artifact bundle", () => {
+  const harness = makeHarness([
+    {
+      id: 16,
+      uuid: "eeeeeeee-ffff-0000-1111-222222222222",
+      description: "S06 learn mapping",
+      project: "ima-goose",
+      status: "pending",
+    },
+  ]);
+
+  const result = runCycle(harness, ["learn", "--project", "ima-goose", "--task", "S06", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /goose run --recipe document-learn/);
+  assert.match(result.stdout, /--params project=ima-goose/);
+  assert.match(result.stdout, /--params task=eeeeeeee-ffff-0000-1111-222222222222/);
+  assert.match(result.stdout, /--params 'artifact_bundle=Vestige lifecycle thread for project ima-goose, task eeeeeeee-ffff-0000-1111-222222222222'/);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
+test("manual rereview phase maps to code-review with rereview parameters", () => {
+  const harness = makeHarness([
+    {
+      id: 17,
+      uuid: "ffffffff-0000-1111-2222-333333333333",
+      description: "S07 rereview mapping",
+      project: "ima-goose",
+      status: "pending",
+    },
+  ]);
+
+  const result = runCycle(harness, ["rereview", "--project", "ima-goose", "--task", "S07", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /goose run --recipe code-review/);
+  assert.match(result.stdout, /--params cycle_phase=rereview/);
+  assert.match(result.stdout, /--params 'target=Rereview resolved findings from Vestige lifecycle thread for project ima-goose, task ffffffff-0000-1111-2222-333333333333'/);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
+test("manual resolve-review phase maps to implement with resolve parameters", () => {
+  const harness = makeHarness([
+    {
+      id: 18,
+      uuid: "00000000-1111-2222-3333-444444444444",
+      description: "S08 resolve review mapping",
+      project: "ima-goose",
+      status: "pending",
+    },
+  ]);
+
+  const result = runCycle(harness, ["resolve-review", "--project", "ima-goose", "--task", "S08", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /goose run --recipe implement/);
+  assert.match(result.stdout, /--params cycle_phase=resolve-review/);
+  assert.match(result.stdout, /--params 'implementation_source=Resolve review findings from Vestige lifecycle thread for project ima-goose, task 00000000-1111-2222-3333-444444444444'/);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
 test("ambiguous fuzzy task references fail instead of selecting the first match", () => {
   const harness = makeHarness([
     {

@@ -2,16 +2,16 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.6.2**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.3**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.6.2
+## What's New In v2.6.3
 
-- Updated `preflight-check` to use `ima-mcp` gateway diagnostics as the source of
-  truth for Serena, Vestige, and Qdrant health checks.
-- Refreshed the `goose-preflight` skill and preflight docs for current Context7,
-  Tavily, Atlassian Rovo, Sequential Thinking, and Chrome DevTools probes.
-- Clarified that the `preflight_probe` subrecipe is the delegation canary
-  requiring the `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK` marker.
+- Added the Avada deconstruction recipe for guided analysis of Avada Builder pages.
+- Fixed `goose-cycle` manual phase aliases so `review` and `rereview` dispatch
+  to `code-review`, `resolve-review` dispatches to `implement`, and existing
+  `test`/`learn` recipe mappings remain protected.
+- Documented manual `goose-cycle` alias-to-recipe mappings and release-tested
+  the conductor regression suite.
 
 ---
 
@@ -619,7 +619,7 @@ Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap` (
 
 **Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. After the hierarchy is reviewed, `task-planner` can optionally persist it to exactly one PM source of truth: Jira or Taskwarrior, never both. Story-level PM items are the default lifecycle units; lower-level tasks are embedded in Story descriptions, checklists, annotations, or acceptance criteria unless explicitly promoted. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 
-**Software development cycle.** `goose-cycle` is a local Node 24 helper installed to `~/.local/bin` by `scripts/install.ts`. It discovers Taskwarrior tasks, runs the existing top-level recipes as separate Goose sessions, uses Vestige as the lifecycle thread, and stops after `document-learn` for final human review before `goose-cycle close`. The older `software-development-cycle` umbrella recipe remains available through `goose-cycle-umbrella` for explicit orchestration experiments.
+**Software development cycle.** `goose-cycle` is a local Node 24 helper installed to `~/.local/bin` by `scripts/install.ts`. It discovers Taskwarrior tasks, runs the existing top-level recipes as separate Goose sessions, uses Vestige as the lifecycle thread, and stops after `document-learn` for final human review before `goose-cycle close`. Manual phase commands are operator aliases mapped to concrete recipes: `test` → `test-writer`, `review`/`rereview` → `code-review`, `learn` → `document-learn`, and `resolve-review` → `implement`. The older `software-development-cycle` umbrella recipe remains available through `goose-cycle-umbrella` for explicit orchestration experiments.
 
 **Mentoring side path.** `goose-instructor [source]` starts the HIGH-tier `instructor` recipe when the human wants guidance instead of an agent doing the work. It researches read-only evidence, explains what to do next and why, labels risks, and offers deeper help. It is not wired into `goose-cycle` and is not a routine per-story phase.
 

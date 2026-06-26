@@ -4,6 +4,34 @@
 
 _No unreleased changes._
 
+## v2.6.3 - 2026-06-26
+
+### Added
+
+- Added the Avada deconstruction recipe for guided Avada Builder page analysis.
+- Added `goose-cycle resolve-review` and `goose-cycle rereview` as first-class
+  manual phase commands.
+
+### Changed
+
+- Documented `goose-cycle` manual phase aliases and their concrete recipe
+  mappings in the README and cycle guide.
+- Bumped the package, lockfile, and README release metadata to v2.6.3.
+
+### Fixed
+
+- Fixed manual `goose-cycle review` dispatch to run the existing `code-review`
+  recipe instead of the non-existent raw `review` recipe.
+- Protected manual phase mappings for `test`, `learn`, `resolve-review`, and
+  `rereview` with regression coverage.
+
+### Validation
+
+- Ran `node --test tests/cycle.test.js`.
+- Ran `npm test`.
+- Ran `node scripts/install.ts --validate`.
+- Ran `git diff --check`.
+
 ## v2.6.2 - 2026-06-25
 
 ### Changed

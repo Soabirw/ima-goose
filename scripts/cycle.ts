@@ -5,16 +5,18 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-type CommandName =
-  | "start"
-  | "next"
-  | "status"
-  | "close"
+type LifecycleCommandName = "start" | "next" | "status" | "close";
+
+type ManualPhaseName =
   | "plan"
   | "implement"
   | "test"
   | "review"
-  | "learn";
+  | "learn"
+  | "resolve-review"
+  | "rereview";
+
+type CommandName = LifecycleCommandName | ManualPhaseName;
 
 type CliArgs = {
   command: CommandName;
@@ -47,6 +49,20 @@ type ActiveState = {
 
 const lifecycleTags = ["planned", "implemented", "tested", "reviewed", "needs-fix", "approved", "learned"];
 
+const manualPhaseNames = new Set<string>([
+  "plan",
+  "implement",
+  "test",
+  "review",
+  "learn",
+  "resolve-review",
+  "rereview",
+]);
+
+function isManualPhase(command: CommandName): command is ManualPhaseName {
+  return manualPhaseNames.has(command);
+}
+
 function usage(): never {
   console.error(`Usage:
   goose-cycle start --project <project> [--task <task-key-or-uuid>] [--dry-run]
@@ -55,7 +71,7 @@ function usage(): never {
   goose-cycle close --project <project> [--task <task-key-or-uuid>] [--commit] [--dry-run]
 
 Manual phases:
-  goose-cycle plan|implement|test|review|learn --project <project> --task <task> [--dry-run]
+  goose-cycle plan|implement|test|review|learn|resolve-review|rereview --project <project> --task <task> [--dry-run]
 
 Options:
   --mode guided|autonomous
@@ -66,16 +82,12 @@ Options:
 function parseArgs(): CliArgs {
   const raw = process.argv.slice(2);
   const command = raw.shift() as CommandName | undefined;
-  const commands = new Set([
+  const commands = new Set<string>([
     "start",
     "next",
     "status",
     "close",
-    "plan",
-    "implement",
-    "test",
-    "review",
-    "learn",
+    ...manualPhaseNames,
   ]);
 
   if (!command || !commands.has(command)) usage();
@@ -114,7 +126,7 @@ function parseArgs(): CliArgs {
   }
 
   if (!parsed.project) usage();
-  if (["plan", "implement", "test", "review", "learn"].includes(command) && !parsed.task) usage();
+  if (isManualPhase(command) && !parsed.task) usage();
   return parsed;
 }
 
@@ -301,30 +313,76 @@ function phaseParams(args: CliArgs, task: TaskwarriorTask, extras: Record<string
   };
 }
 
-function phaseRecipe(phase: CommandName): string {
-  if (phase === "test") return "test-writer";
-  if (phase === "learn") return "document-learn";
-  return phase;
-}
+type ManualPhaseSpec = {
+  recipe: string;
+  status: string;
+  params: (args: CliArgs, task: TaskwarriorTask) => Record<string, string | boolean>;
+};
+
+const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
+  plan: {
+    recipe: "plan",
+    status: "plan",
+    params: () => ({}),
+  },
+  implement: {
+    recipe: "implement",
+    status: "implement",
+    params: (args, task) => ({
+      implementation_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+  test: {
+    recipe: "test-writer",
+    status: "test",
+    params: (args, task) => ({
+      test_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+  review: {
+    recipe: "code-review",
+    status: "review",
+    params: (args, task) => ({
+      target: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+  learn: {
+    recipe: "document-learn",
+    status: "learn",
+    params: (args, task) => ({
+      artifact_bundle: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+  "resolve-review": {
+    recipe: "implement",
+    status: "resolve-review",
+    params: (args, task) => ({
+      cycle_phase: "resolve-review",
+      implementation_source: `Resolve review findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+  rereview: {
+    recipe: "code-review",
+    status: "rereview",
+    params: (args, task) => ({
+      cycle_phase: "rereview",
+      target: `Rereview resolved findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    }),
+  },
+};
 
 function runManualPhase(args: CliArgs): void {
   const task = resolveTask(args.project, args.task);
-  const extras =
-    args.command === "implement"
-      ? { implementation_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}` }
-      : args.command === "test"
-        ? { test_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}` }
-        : args.command === "review"
-          ? { target: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}` }
-          : args.command === "learn"
-            ? { artifact_bundle: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}` }
-            : {};
-  runRecipe(phaseRecipe(args.command), phaseParams(args, task, extras), args.dryRun);
+  if (!isManualPhase(args.command)) {
+    throw new Error(`Unsupported manual phase '${args.command}'.`);
+  }
+  const spec = manualPhaseSpecs[args.command];
+  runRecipe(spec.recipe, phaseParams(args, task, spec.params(args, task)), args.dryRun);
   writeActiveState({
     project: args.project,
     task: taskIdentity(task),
     taskwarriorUuid: task.uuid,
-    status: args.command,
+    status: spec.status,
     updatedAt: new Date().toISOString(),
   }, args.dryRun);
 }
