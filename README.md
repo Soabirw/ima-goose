@@ -598,7 +598,7 @@ only the auto-injected `summon` extension.
 | `patristic-researcher` | Early Church research through Augustine using the Qdrant theology corpus and primary-source verification | HIGH |
 | `ima-researcher` | Evidence-driven IMA medical research using the future `ima-research` corpus and current primary-source verification | HIGH |
 | `avada-deconstruct` | Specialized Avada/Fusion reference-library deconstruction recipe that produces section-level catalog + snapshot artifacts for a selected slug | HIGH |
-| `avada-generate` | Capture-only Avada/Fusion generation prep: selected Claude Design pages -> DOM, desktop/mobile screenshots, and vision handoff context | HIGH |
+| `avada-generate` | Avada/Fusion generation recipe: selected Claude Design pages -> DOM/screenshots/vision context, catalog section mapping, lean/full A/B validation, and optional lean-only emission | HIGH |
 
 ### Sub-Recipe Wiring
 

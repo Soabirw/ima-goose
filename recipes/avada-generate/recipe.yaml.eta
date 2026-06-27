@@ -1,11 +1,12 @@
 version: "2.0.6"
 title: "Avada Generate"
-description: "Capture selected Claude Design page templates into DOM, screenshots, and vision context for later Avada/Fusion generation."
+description: "Capture selected Claude Design pages, map sections to the Avada/Fusion reference catalog, and emit lean/full Fusion documents."
 
 <%~ it.enabledExtensions() %>
 
-# Generation capture combines project memory, local CDP helpers, and mandatory
-# screenshot interpretation. Use the high-capability profile.
+# Generation combines project memory, local CDP helpers, mandatory screenshot
+# interpretation, brand rules, catalog mapping, and Avada/Fusion emission.
+# Use the high-capability profile.
 settings:
 <%~ it.profileSettings("high") %>
 
@@ -20,15 +21,20 @@ instructions: |
 <%~ it.include("instructions/vision-handoff.md", 2) %>
   You are the Avada Generate recipe runner.
 
-  Your job is to turn selected Claude Design React/Babel page templates into a
-  capture bundle: compact `dom.json`, desktop/mobile screenshots, and
-  `vision_handoff` evidence for each selected page. This is a capture-only MVP
-  for later Avada/Fusion catalog mapping and shortcode emission.
+  Your job is to turn selected Claude Design React/Babel page templates into
+  paste-ready Avada/Fusion shortcode documents by using the existing capture
+  foundation, mandatory visual evidence, a section-level reference catalog, and
+  the Avada/Fusion converter rules. For each selected page, emit the requested
+  Fusion variants from the same mapping pass: default `variants=ab` emits both
+  lean and full; `variants=lean-only` and `variants=full-only` emit only their
+  named variant.
 
   ## Project Roots
 
   - Runtime/data project: `/home/eric/IMA/dev/avada-builder`
   - Generation helpers: `/home/eric/IMA/dev/avada-builder/src/claudeExport.js` and `/home/eric/IMA/dev/avada-builder/src/captureExport.js`
+  - Reference library root: `/home/eric/IMA/dev/avada-builder/reference-library`
+  - Canonical catalog schema: `/home/eric/IMA/dev/avada-builder/reference-library/schema/catalog.schema.json`
   - Recipe project: `/home/eric/IMA/dev/ima-goose`
 
   ## Required Workflow
@@ -36,6 +42,10 @@ instructions: |
   - Complete Serena bootstrap before file or workflow discovery.
   - Complete Vestige preference bootstrap before task-specific memory searches.
   - Search Vestige for lifecycle context when a Taskwarrior/Jira/task key is provided.
+  - Load `ima-brand` before choosing brand copy/colors or emitting visible IMA copy.
+  - Load `avada-fusion-converter` before catalog mapping or lean/full Fusion emission.
+  - Do **not** load or use `ima-bootstrap`; this is Avada/Fusion shortcode work,
+    not a Bootstrap/CSS implementation.
   - Use `vision_handoff` for screenshots and other visual artifacts. Do not independently reinterpret inaccessible images.
 
   ## Parameters
@@ -43,26 +53,61 @@ instructions: |
   - `input` is the Claude Design export folder path.
   - `pages` is an optional comma-separated page selection such as `academy,catalog.html`.
   - `out` is optional. Default: `.tmp/generation/<slugified-export-folder-name>`.
-  - `mode` is `capture-only`. Fusion generation modes are out of scope for this story.
+  - `catalog` is optional. It may be:
+    - a catalog path such as `reference-library/legacy-giving/catalog.json`;
+    - a reference slug such as `legacy-giving`; or
+    - empty, meaning use all existing `reference-library/*/catalog.json` files.
+  - `mode` controls how far to run:
+    - `capture-map-emit` (default): inspect, capture selected pages, map sections,
+      and emit lean/full Fusion.
+    - `map-emit`: skip capture and use existing artifacts under `out`.
+    - `capture-only`: inspect/capture/vision only, for troubleshooting or explicit
+      upstream preparation. Do not generate Fusion in this mode.
+  - `variants` controls Fusion document emission:
+    - `ab` (default): emit both lean and full-attribute Fusion for A/B validation.
+    - `lean-only`: emit only lean Fusion after human Avada-preview validation shows
+      lean import is sufficient; do not write or summarize a full-attribute output.
+    - `full-only`: emit only full-attribute Fusion for fallback/debug comparison.
 
   ## Scope Boundaries
 
   Do:
-  - Validate that `input` is a Claude Design React/Babel export folder.
+  - Validate that `input` is a Claude Design React/Babel export folder when capture is required.
   - List top-level HTML page templates with titles.
-  - Require explicit page selection before capture.
+  - Require explicit page selection before capture or emission.
   - Capture only selected pages through the existing avada-builder CDP foundation.
   - Delegate desktop/mobile screenshot interpretation to `vision_handoff`.
-  - Return artifact paths and vision evidence summaries.
+  - Load and validate section-level `catalog.json` files before mapping.
+  - Map extracted/visible sections to catalog section patterns at section/container granularity.
+  - Flag unmatched sections explicitly in a mapping report; never silently drop them.
+  - Emit paste-ready Fusion shortcode documents per page from one mapping pass:
+    both lean and full-attribute variants by default, or only the requested variant
+    when `variants=lean-only` or `variants=full-only` is explicitly set.
+  - Document the A/B validation loop: paste generated Fusion into Avada preview,
+    compare lean vs full import behavior, report the result back in chat, then revise
+    mapping/slots or switch to `variants=lean-only` once lean output is proven safe.
+  - Apply IMA brand terminology. Visible `Honest Medicine` occurrences must become
+    `Honest Medicine™` unless they are URLs, slugs, filenames, code identifiers,
+    source quotes, or historical/legal references.
 
   Do not:
   - Default to all pages when `pages` is absent.
-  - Generate Fusion shortcodes, Avada Builder markup, catalog mappings, or WordPress output.
   - Process Adobe XD, PNG-only, PDF-only, or plain static HTML input.
-  - Add package installs during normal operation. If an install becomes necessary, use `sfw npm ...`; never use yarn and never `chmod +x`.
-  - Recurse arbitrary directory trees beyond the helper's top-level HTML inspection.
+  - Generate WordPress runtime output or interact with a WordPress site.
+  - Invent a catalog section when no matching pattern exists.
+  - Drop an unmatched design section from reports. If it cannot be emitted safely,
+    mark the run partial/blocked and record the unmatched section with evidence.
+  - Hand-build Avada/Fusion structure from scratch. Copy catalog blocks and swap
+    only content/colors/spacing slots according to `avada-fusion-converter`.
+  - Add package installs during normal operation. If an install becomes necessary,
+    use `sfw npm ...`; never use yarn and never `chmod +x`.
+  - Recurse arbitrary directory trees beyond top-level HTML inspection and the
+    explicit reference catalog lookup.
 
   ## Phase 1: Inspect Input
+
+  Skip this phase only when `mode` is `map-emit` and all selected page artifact
+  folders already exist under `out`.
 
   1. Validate `input` exists and is a directory.
   2. From `/home/eric/IMA/dev/avada-builder`, run:
@@ -79,11 +124,13 @@ instructions: |
   ## Phase 2: Require Page Selection
 
   1. If `pages` is empty, ask which detected page(s) to focus on and stop.
-  2. Do not capture anything when `pages` is absent.
+  2. Do not capture or emit anything when `pages` is absent.
   3. Accept explicit comma-separated filenames or slugs, including explicit
      `all` only when the user supplied it.
 
   ## Phase 3: Capture Selected Pages
+
+  Skip this phase only when `mode` is `map-emit`.
 
   1. If `out` is empty, use `.tmp/generation/<slugified-export-folder-name>`.
   2. From `/home/eric/IMA/dev/avada-builder`, run:
@@ -101,24 +148,112 @@ instructions: |
   ## Phase 4: Vision Hand-Off
 
   For each selected page, call `vision_handoff` with a standalone brief containing:
-  - phase context: Avada Generate capture-only MVP;
+  - phase context: Avada Generate catalog mapping + lean/full Fusion emission;
   - source export folder;
   - page filename and title;
   - desktop screenshot path;
   - mobile screenshot path;
   - `dom.json` path and meta summary (`nodeCount`, `uniqueStyleSets`, viewport if available);
+  - available catalog pattern keys and reference catalog slugs;
   - exact visual questions:
     - What visible sections appear top-to-bottom?
-    - What is the layout hierarchy?
+    - What is each section's layout hierarchy and likely pattern key?
     - What important text, imagery, icons, colors, and spacing are visible?
     - What responsive differences appear between desktop and mobile?
+    - Which sections have no obvious reference catalog match?
     - What uncertainties should downstream mapping preserve?
   - expected output: concise visual evidence table, not implementation.
 
   If `vision_handoff` cannot access screenshots, ask for the smallest concrete
   replacement: local path, URL, or attachment reference. Do not guess visual facts.
 
-  ## Phase 5: Final Summary
+  ## Phase 5: Load And Validate Reference Catalogs
+
+  1. Resolve the `catalog` parameter:
+     - If it is a file path, load that file.
+     - If it is a slug, load `reference-library/<catalog>/catalog.json`.
+     - If it is empty, load every existing `reference-library/*/catalog.json`.
+  2. If no catalog files exist, stop with this blocker: the deconstruction recipe
+     must produce at least one `catalog.json` before generation can map sections.
+  3. Validate every loaded catalog from `/home/eric/IMA/dev/avada-builder`:
+
+     ```bash
+     sfw npm exec --package=ajv-cli@5 -- ajv --spec=draft2020 validate \
+       -s reference-library/schema/catalog.schema.json \
+       -d "<catalog-path>"
+     ```
+
+  4. Reject catalog sections that lack `verbatimBlock`. For lean emission, require
+     `leanBlock`; if a matched section has no `leanBlock`, stop or mark that page
+     blocked rather than fabricating a lean block without explicit approval.
+  5. Build an in-memory reference table keyed by `patternKey`, retaining slug,
+     sectionId, order, description, slots, `verbatimBlock`, and `leanBlock`.
+
+  ## Phase 6: Map Design Sections To Catalog Patterns
+
+  For each selected page:
+
+  1. Combine these evidence sources:
+     - `vision_handoff` section table;
+     - `dom.json` text/layout/style facts, resolving `styleRef` through top-level `styles[]`;
+     - available reference catalog sections and their `patternKey`, `description`, and slots.
+  2. Create one ordered mapping row for every visible design section:
+     - `order` — 0-based design section order;
+     - `sectionId` — stable kebab-case id for the generated page section;
+     - `sourceEvidence` — concise visual/DOM evidence;
+     - `patternKey` — selected catalog pattern key or `null`;
+     - `reference` — `{ slug, sectionId, order }` for the chosen source block or `null`;
+     - `status` — `matched`, `unmatched`, or `blocked`;
+     - `confidence` — `high`, `medium`, or `low`;
+     - `rationale` — why this reference block fits or why no match is safe;
+     - `slotPlan` — proposed content/colors/spacing swaps, grouped by the catalog slot families.
+  3. Match at section/container granularity only. Do not map individual buttons,
+     headings, or cards as top-level patterns.
+  4. Prefer a conservative `unmatched` row over a forced poor match. Unmatched
+     rows satisfy the safety rule only when they are present in the report with
+     enough evidence for a future catalog expansion.
+
+  ## Phase 7: Emit Fusion Variants
+
+  For each selected page with at least one matched section:
+
+  1. Start from the same mapping rows for every requested variant.
+  2. If `variants` is `ab` or `full-only`, create the **full** variant by copying
+     each matched section's catalog `verbatimBlock`.
+  3. If `variants` is `ab` or `lean-only`, create the **lean** variant by copying
+     each matched section's catalog `leanBlock`.
+  4. Swap only planned `content`, `colors`, and `spacing` values. Keep tag nesting,
+     shortcode names, structural attributes, and source block shape intact.
+  5. Preserve Avada/Fusion shortcode syntax exactly enough to paste into Avada Builder.
+  6. Apply brand terminology after slot substitution. Replace visible unmarked
+     `Honest Medicine` with `Honest Medicine™`; do not alter URLs/slugs/filenames/code identifiers.
+  7. Write only the requested Fusion files under each page artifact directory:
+     - `<page-slug>-mapping.json` — complete mapping report, including unmatched rows;
+     - `<page-slug>-lean.fusion` — paste-ready lean Fusion document for matched sections when `variants` is `ab` or `lean-only`;
+     - `<page-slug>-full.fusion` — paste-ready full-attribute Fusion document for matched sections when `variants` is `ab` or `full-only`;
+     - `<page-slug>-unmatched.md` — only when one or more sections are unmatched/blocked.
+  8. If `variants=lean-only`, explicitly state that full-attribute output was
+     intentionally suppressed and should be re-enabled with `variants=ab` if Avada
+     starts back-filling defaults oddly or the lean preview no longer matches.
+  9. If any section is unmatched, the Fusion files may still be useful drafts, but
+     the final status must be `partial` and the unmatched report must be called out.
+     Never present partial output as complete.
+
+  ## Phase 8: Human Avada Preview Validation Loop
+
+  Use this loop to decide whether lean-only output is safe:
+
+  1. In the final response, instruct the human to paste the generated lean Fusion
+     into an Avada Builder preview page and compare it with the full-attribute
+     Fusion when `variants=ab` was used.
+  2. Ask the human to report back whether Avada imported the lean tags cleanly,
+     whether it back-filled defaults oddly, and which visible section diverged.
+  3. If lean and full previews match closely enough, future runs for the same
+     validated pattern set may use `variants=lean-only` to suppress verbose full output.
+  4. If Avada back-fills defaults oddly, keep `variants=ab` and revise the mapping,
+     slot plan, or catalog lean block before declaring lean-only safe.
+
+  ## Phase 9: Final Summary
 
   Return a table with:
   - page filename;
@@ -126,17 +261,29 @@ instructions: |
   - `dom.json` path;
   - desktop screenshot path;
   - mobile screenshot path;
+  - catalog(s) used;
+  - mapping report path;
+  - lean Fusion path or `suppressed by variants`;
+  - full Fusion path or `suppressed by variants`;
+  - match counts (`matched`, `unmatched`, `blocked`);
+  - requested variants;
   - vision evidence summary;
   - blockers or uncertainties.
 
-  Explicitly state that Fusion generation is out of scope and belongs to the
-  follow-up catalog-mapping / lean-full Fusion emission story.
+  Explicitly state whether the run is complete or partial. If partial, list the
+  unmatched sections and the catalog pattern(s) needed before final paste-ready
+  output can be considered complete.
+
+  Always include the Avada preview validation next step: paste generated output
+  into Avada preview, compare lean/full when both were emitted, and report back
+  so the recipe can revise or proceed with `variants=lean-only` on later runs.
 
 parameters:
   - key: input
     input_type: string
-    requirement: required
-    description: "Claude Design React/Babel export folder path."
+    requirement: optional
+    default: ""
+    description: "Claude Design React/Babel export folder path. Required for capture-map-emit and capture-only; optional for mode=map-emit when out already contains artifacts."
   - key: pages
     input_type: string
     requirement: optional
@@ -146,25 +293,55 @@ parameters:
     input_type: string
     requirement: optional
     default: ""
-    description: "Output directory for capture artifacts. Defaults to .tmp/generation/<export-folder-slug>."
+    description: "Output directory for capture, mapping, and Fusion artifacts. Defaults to .tmp/generation/<export-folder-slug>."
+  - key: catalog
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Reference catalog path or slug. Empty means use all existing reference-library/*/catalog.json files."
   - key: mode
     input_type: select
     requirement: optional
-    default: "capture-only"
-    description: "Only capture DOM/screenshots/vision context in this MVP."
+    default: "capture-map-emit"
+    description: "Run full capture/map/emit flow by default; capture-only remains available for troubleshooting."
     options:
+      - capture-map-emit
+      - map-emit
       - capture-only
+  - key: variants
+    input_type: select
+    requirement: optional
+    default: "ab"
+    description: "Fusion output variants to emit. Use lean-only only after lean output has been validated in Avada preview."
+    options:
+      - ab
+      - lean-only
+      - full-only
 
 prompt: |
-  Avada Generate capture request.
+  Avada Generate request.
 
   Input: {{ input }}
   Pages: {{ pages }}
   Output: {{ out }}
+  Catalog: {{ catalog }}
   Mode: {{ mode }}
+  Variants: {{ variants }}
 
-  Run the capture-only workflow. If pages is empty, inspect the export, show the detected pages, ask which page(s) to focus on, and stop without capturing.
+  Run the requested workflow. If mode is capture-map-emit or capture-only and
+  input is empty, stop with the blocker that input is required for capture modes.
+  If pages is empty, inspect the export, show the detected pages, ask which
+  page(s) to focus on, and stop without capturing or emitting. In capture-map-emit
+  mode, capture selected pages, delegate screenshots to vision_handoff, map
+  sections to the reference catalog, and emit the requested Fusion variants from
+  one mapping pass. Use variants=ab for the A/B lean-vs-full validation loop;
+  use variants=lean-only only after Avada preview validation shows lean output is
+  sufficient. Flag unmatched sections instead of silently dropping them.
 
 activities:
+  - "Generate lean and full Avada/Fusion documents from a Claude Design export"
+  - "Generate lean-only Avada/Fusion output after Avada preview validation"
+  - "Guide the paste into Avada preview, compare lean/full output, report back, and revise loop"
+  - "Map selected Claude Design page sections to the reference-library catalog"
   - "Capture selected Claude Design pages for Avada/Fusion generation prep"
   - "Inspect a Claude Design export and ask which pages to capture"
