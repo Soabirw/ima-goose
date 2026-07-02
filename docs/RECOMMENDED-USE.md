@@ -26,6 +26,9 @@ help review code before deployment.
 
 ## Before You Start
 
+
+> `--task-project` is the Taskwarrior project used for native `task project:<name>` filtering. It is not a Serena project. Serena bootstrap discovers the current project through the `ima-mcp serena` gateway and Serena's cwd/project configuration behavior.
+
 Run the installer after pulling recipe or skill changes:
 
 ```bash
@@ -140,7 +143,7 @@ should do next, why it matters, what to avoid, and where to go deeper.
 ```bash
 goose-instructor "What should I do next with this review finding?"
 goose-instructor "Vestige memory or Jira key"
-goose-instructor "task question" --project ima-mcp-gateway --task S01
+goose-instructor "task question" --task-project ima-mcp-gateway --task S01
 ```
 
 Use it when:
@@ -172,10 +175,10 @@ keeps detailed continuity in Vestige rather than relying on child session
 memory.
 
 ```bash
-goose-cycle start --project ima-mcp-gateway
-goose-cycle start --project ima-mcp-gateway --task S01
-goose-cycle status --project ima-mcp-gateway --task S01
-goose-cycle close --project ima-mcp-gateway --task S01
+goose-cycle start --task-project ima-mcp-gateway
+goose-cycle start --task-project ima-mcp-gateway --task S01
+goose-cycle status --task-project ima-mcp-gateway --task S01
+goose-cycle close --task-project ima-mcp-gateway --task S01
 ```
 
 This calls the normal phase recipes as separate top-level Goose sessions:

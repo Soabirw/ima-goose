@@ -17,17 +17,15 @@ repository search, browser inspection, workflow discovery, or asking the user
 for paths/config that project memory may already contain:
 
 1. Use the `mcp-serena` skill's `ima-mcp` CLI wrapper, not built-in/native
-   Serena tools and not `execute_typescript`, to activate the Serena project
-   with the current project path or registered project name:
-   `ima-mcp serena project activate "$project" --json`. Activation is always
+   Serena tools and not `execute_typescript`, to activate the current Serena
+   project: `ima-mcp serena project activate --json`. Activation is always
    first; without it, memory calls can return `No active project`.
 2. Call Serena `initial_instructions` through the gateway:
-   `ima-mcp serena instructions --project "$project" --json`.
+   `ima-mcp serena instructions --json`.
 3. List memories and read standard memories through the gateway when present:
-   `ima-mcp serena memory list --project "$project" --json` and
-   `ima-mcp serena memory read <name> --project "$project" --json` for
-   `core`, `conventions`, `tech_stack`, `suggested_commands`, and
-   `task_completion`.
+   `ima-mcp serena memory list --json` and
+   `ima-mcp serena memory read <name> --json` for `core`, `conventions`,
+   `tech_stack`, `suggested_commands`, and `task_completion`.
 4. For implementation, review, testing, planning, or automation, at minimum
    load `core`, `conventions`, and `suggested_commands` before acting.
 5. If required standard memories are missing but `.goosehints`,
@@ -37,17 +35,23 @@ for paths/config that project memory may already contain:
 
 Canonical gateway commands:
 
+Serena/gateway resolves project context from the current working project context
+and Serena project configuration. Do not supply recipe parameters such as
+`project`, `task_project`, `task-project`, or `project_path` as a Serena project
+name. A Taskwarrior `task_project` is never a Serena activation input. Serena
+project identity is owned by Serena, including its `project.yml` `project_name`
+and cwd/project-from-cwd behavior.
+
 ```bash
-project="${PWD}"
 command -v ima-mcp
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
-ima-mcp serena memory read conventions --project "$project" --json
-ima-mcp serena memory read tech_stack --project "$project" --json
-ima-mcp serena memory read suggested_commands --project "$project" --json
-ima-mcp serena memory read task_completion --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
+ima-mcp serena memory read conventions --json
+ima-mcp serena memory read tech_stack --json
+ima-mcp serena memory read suggested_commands --json
+ima-mcp serena memory read task_completion --json
 ```
 
 The bootstrap report must make the sequence auditable. Do not just say

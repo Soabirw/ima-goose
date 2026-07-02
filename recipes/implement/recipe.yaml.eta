@@ -112,11 +112,11 @@ parameters:
     requirement: optional
     default: ""
     description: "Optional. Plan, Jira key, memory reference, local file path, diff summary, acceptance criteria, or pasted implementation brief."
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
   - key: task
     input_type: string
     requirement: optional
@@ -140,12 +140,12 @@ prompt: |
   {% endif %}
 
   Implementation source:
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
   - Cycle phase: {{ cycle_phase }}
 
-  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task.
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task.
   {% if cycle_phase == "resolve-review" %}Resolve confirmed review findings from Vestige without broadening scope. Update Vestige with the resolution summary, changed files, and verification. Add a narrow Taskwarrior annotation/tag indicating review findings were resolved when safe.
   {% else %}Load the latest Vestige plan and implement that approved scope. Update Vestige with changed files, decisions, verification performed, and unresolved questions. Add a narrow Taskwarrior annotation/tag indicating implementation is complete when safe.
   {% endif %}

@@ -2,16 +2,14 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.6.3**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.4**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.6.3
+## What's New In v2.6.4
 
-- Added the Avada deconstruction recipe for guided analysis of Avada Builder pages.
-- Fixed `goose-cycle` manual phase aliases so `review` and `rereview` dispatch
-  to `code-review`, `resolve-review` dispatches to `implement`, and existing
-  `test`/`learn` recipe mappings remain protected.
-- Documented manual `goose-cycle` alias-to-recipe mappings and release-tested
-  the conductor regression suite.
+- Migrated `goose-cycle` and cycle-aware recipes from overloaded `project` parameters to explicit Taskwarrior `task_project` / `--task-project` scoping, with legacy `--project` blocked to avoid confusing Taskwarrior scope with Serena project activation.
+- Updated Serena bootstrap guidance to use current-project `ima-mcp serena` gateway commands without passing recipe parameters as Serena project names.
+- Added Vestige v2.2 gateway/preflight documentation and read-only `/preflight` parity probes while keeping preference bootstrap on high-level `status`/`search`/`get`.
+- Added Avada deconstruction visual handoff manifest support so large vision briefs pass through a JSON manifest instead of multiline recipe params.
 
 ---
 
@@ -54,6 +52,12 @@ Provider notes, current as of 2026-06-12:
   plus [`ima-mcp-gateway`](https://gitea.theflccc.org/IMA/ima-mcp-gateway)
   for Serena and Vestige access. This is the least fragile setup for the
   current IMA workflow.
+- **Vestige v2.2 support:** access Vestige through `ima-mcp vestige`. Normal
+  workflow uses the stable high-level commands (`status`, `doctor`, `search`,
+  `get`, `save`). Advanced parity operations are available through `vestige
+  tools list|describe|call` and first-class aliases such as `recall`,
+  `memory_status`, and `backfill`; see `skills/mcp-vestige/SKILL.md` for safety
+  gates and examples.
 - **Claude ACP billing changed:** Claude ACP should be treated as Anthropic
   API/metered usage rather than a Claude subscription proxy. See Anthropic's
   announcement: [What Anthropic's New Claude Billing Means](https://zed.dev/blog/anthropic-subscription-changes).
@@ -474,9 +478,9 @@ includes a helper script that converts those files into reviewable Serena
 memory blocks.
 
 In Serena-enabled recipes, Serena bootstrap is the first workstream at session
-start. Always activate the Serena project first with the current project path or
-registered project name before calling initial instructions or memory tools;
-without activation, memory calls can return `No active project`. Do this before
+start. Always activate the current Serena project through the `ima-mcp serena`
+gateway before calling initial instructions or memory tools; without activation,
+memory calls can return `No active project`. Do this before
 greeting, Taskwarrior, Jira, Vestige, Qdrant, repository search,
 file discovery, browser inspection, or asking for local paths/config. Loading
 the `mcp-serena` skill first is allowed only as bootstrap support when an agent
@@ -490,12 +494,11 @@ instructions, or memory reads; generated SDK definitions can fail before Serena
 runs.
 
 ```bash
-project="${PWD}"
 command -v ima-mcp
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
 ```
 
 If `ima-mcp` is missing or Serena reports unavailable, stop and report the
@@ -519,6 +522,9 @@ recipe sessions and delegated slash-command sessions keep the developer shell
 tool required for `ima-mcp`.
 Run `/preflight` to perform a
 read-only Goose/MCP configuration canary; see [`docs/PREFLIGHT-CHECK.md`](docs/PREFLIGHT-CHECK.md).
+`/preflight` includes read-only Vestige v2.2 probes such as `tools list`,
+`tools describe recall`, `tools call recall`, and `memory_status`. It does not
+run mutating Vestige commands.
 
 Use `/vestige-bootstrap` (or `/bootstrap-vestige`) to load user preferences from
 Vestige on demand. The tested read-only command is:
@@ -616,7 +622,7 @@ Non-implementation helper recipes: `task-planner`, `investigate`, `instructor`, 
 
 Cycle helper terminals: `cycle-start`, `cycle-close`.
 
-Current-session commands: `/architect`, `/prompt-starter`, `/serena-bootstrap` (`/bootstrap-serena` alias), `/vestige-bootstrap` (`/bootstrap-vestige` alias), `/serena-memorize`.
+Current-session commands: `/architect`, `/prompt-starter`, `/preflight`, `/serena-bootstrap` (`/bootstrap-serena` alias), `/vestige-bootstrap` (`/bootstrap-vestige` alias), `/serena-memorize`.
 
 **Requirements and story delivery chains.** The recommended HITL workflow has two paths. For product requirements, use `brainstorm` → `task-planner` → `document-learn` to turn a concept or PRD draft into epics, stories, and requirements-level tasks. After the hierarchy is reviewed, `task-planner` can optionally persist it to exactly one PM source of truth: Jira or Taskwarrior, never both. Story-level PM items are the default lifecycle units; lower-level tasks are embedded in Story descriptions, checklists, annotations, or acceptance criteria unless explicitly promoted. For each approved story, use `plan` → `implement` → `test-writer` → `code-review` → `document-learn` to move from implementation plan to reviewed closeout. Use localized `task-planner` inside a story only when that story is unusually large.
 

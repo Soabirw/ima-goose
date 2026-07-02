@@ -1,4 +1,4 @@
-version: "1.0.1"
+version: "1.0.2"
 title: "Vestige Bootstrap"
 description: "Load user preferences from Vestige on demand inside an existing Goose session."
 
@@ -21,9 +21,17 @@ instructions: |
   4. If the result set is too broad or misses obvious preference memories, run
      one focused follow-up search:
      `ima-mcp vestige search "user preferences" --json`.
-  5. Summarize the loaded preferences in no more than 8 bullets, including the
+  5. If preference search times out while status is healthy, retry once with
+     `--timeout-ms 300000` or report that command as the recommended next
+     action.
+  6. Summarize the loaded preferences in no more than 8 bullets, including the
      memory ids for high-confidence hits when available.
-  6. Mention uncertainty for stale, partial, or low-confidence hits.
+
+  Preference bootstrap intentionally stays on high-level `status`, `search`, and
+  `get`. Generic v2.2 tools are for task-specific advanced operations and
+  preflight parity checks; do not replace this bootstrap with `vestige tools
+  call`. Do not add mutating commands.
+  7. Mention uncertainty for stale, partial, or low-confidence hits.
 
   Required gateway commands from the `mcp-vestige` skill:
   - `command -v ima-mcp`

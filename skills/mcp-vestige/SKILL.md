@@ -22,12 +22,14 @@ Use these documented command shapes first instead of repeatedly probing
 ima-mcp vestige status --json
 ima-mcp vestige doctor --json
 ima-mcp vestige search "<task key or topic>" --json
-ima-mcp vestige get <memory-id> --json
+ima-mcp vestige search "<task key or topic>" --timeout-ms 300000 --json
+IMA_MCP_VESTIGE_TIMEOUT_MS=300000 ima-mcp vestige search "<task key or topic>" --json
+ima-mcp vestige get <memory-id> --timeout-ms 300000 --json
 ima-mcp vestige save --type plan --file <path> --json
 ima-mcp vestige save --type implementation --file <path> --json
 ima-mcp vestige save --type review --file <path> --json
 ima-mcp vestige save --type resolution --file <path> --json
-ima-mcp vestige save --type closeout --file <path> --json
+ima-mcp vestige save --type closeout --file <path> --timeout-ms 300000 --json
 ```
 
 Diagnostics:
@@ -50,6 +52,76 @@ the blocker with the command and relevant output. Do not silently fall back to
 `execute_typescript` or `Vestige.*`. Run `ima-mcp vestige --help` at most once
 only when a documented command fails and the local CLI version appears to use a
 different syntax.
+
+
+## Vestige v2.2 Tool Surface
+
+Routine memory workflows should keep using the stable high-level commands above.
+Use the generic v2.2 tool surface and aliases for task-specific advanced
+operations, parity checks, and diagnostics when the local gateway advertises
+them.
+
+Generic tool examples:
+
+```bash
+ima-mcp vestige tools list --json
+ima-mcp vestige tools describe recall --json
+ima-mcp vestige tools call recall --args-json '{"query":"preferences","mode":"lookup"}' --json
+ima-mcp vestige tools call memory_status --args-json '{"view":"health"}' --json
+ima-mcp vestige tools call backfill --args-json '{"promote":false}' --json
+ima-mcp vestige tools call smart_ingest --args-json '{"content":"decision"}' --allow-write --json
+```
+
+First-class alias examples:
+
+```bash
+ima-mcp vestige recall --args-json '{"query":"preferences","mode":"lookup"}' --json
+ima-mcp vestige memory_status --args-json '{"view":"health"}' --json
+ima-mcp vestige backfill --args-json '{"promote":false}' --json
+ima-mcp vestige smart_ingest --args-json '{"content":"decision"}' --allow-write --json
+```
+
+Advertised v2.2 aliases:
+
+- `recall`
+- `memory`
+- `codebase`
+- `intention`
+- `smart_ingest`
+- `source_sync`
+- `memory_status`
+- `dedup`
+- `graph`
+- `maintain`
+- `session_start`
+- `suppress`
+- `backfill`
+
+Safety contract:
+
+- High-level `status`, `doctor`, `search`, and `get` are read-only.
+- High-level `save` is mutating.
+- Generic `tools call` and first-class aliases use action-aware classification.
+- Read-only examples that do not need `--allow-write`: `recall`,
+  `memory_status`, `session_start`, `memory action=get`, `dedup action=scan`,
+  and `backfill promote=false`.
+- Write or unknown examples that require `--allow-write`: `smart_ingest`,
+  `save`, `suppress`, write-classified `memory`, and promotion flows such as
+  `backfill promote=true`.
+- Vestige has no shell-exec tool, so there is no `--allow-command` or
+  `--allow-state` gate for Vestige.
+
+Capability/status contract:
+
+- `vestige search` prefers v2.2 `recall` with `mode=lookup` when available.
+- `vestige search` falls back to legacy search aliases on older servers.
+- `status` and `doctor` distinguish required high-level operations from
+  optional advertised v2.2 capabilities.
+- Missing optional v2.2 capabilities should be a warning if `search`, `get`,
+  and `save` remain usable.
+
+Keep preference bootstrap on the high-level `status`, `search`, and `get`
+commands. Do not make `tools call recall` the default preference-bootstrap path.
 
 ## Goose TypeScript SDK Boundary
 

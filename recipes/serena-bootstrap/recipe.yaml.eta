@@ -31,12 +31,11 @@ instructions: |
      `mcp-serena` migration workflow. Do not write memories in this recipe.
 
   Required gateway commands from the `mcp-serena` skill:
-  - `project="${PWD}"`
-  - `command -v ima-mcp`
-  - `ima-mcp serena project activate "$project" --json`
-  - `ima-mcp serena instructions --project "$project" --json`
-  - `ima-mcp serena memory list --project "$project" --json`
-  - `ima-mcp serena memory read core --project "$project" --json`
+    - `command -v ima-mcp`
+  - `ima-mcp serena project activate --json`
+  - `ima-mcp serena instructions --json`
+  - `ima-mcp serena memory list --json`
+  - `ima-mcp serena memory read core --json`
   - Read the other standard memories with the same `memory read <name>` shape.
   - If `ima-mcp` is missing or the gateway reports Serena unavailable, stop and
     report that blocker explicitly.

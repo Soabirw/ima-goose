@@ -42,11 +42,10 @@ instructions: |
   10. Summarize which memories changed and what operational rule was added.
 
   Required gateway commands for the read bootstrap:
-  - `project="${PWD}"`
-  - `ima-mcp serena project activate "$project" --json`
-  - `ima-mcp serena instructions --project "$project" --json`
-  - `ima-mcp serena memory list --project "$project" --json`
-  - `ima-mcp serena memory read core --project "$project" --json`
+    - `ima-mcp serena project activate --json`
+  - `ima-mcp serena instructions --json`
+  - `ima-mcp serena memory list --json`
+  - `ima-mcp serena memory read core --json`
   - Read the other standard memories with the same `memory read <name>` shape.
   - Do not use Goose typed SDK / `execute_typescript` for Serena bootstrap.
 

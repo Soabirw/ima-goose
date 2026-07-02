@@ -76,11 +76,10 @@ any Serena call executes, including failures caused by unrelated namespaces. Use
 reads:
 
 ```bash
-project="${PWD}"
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
 ```
 
 Native/direct Serena MCP tools may still be used for JetBrains-backed symbol

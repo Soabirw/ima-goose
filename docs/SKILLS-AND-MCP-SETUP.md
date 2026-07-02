@@ -267,11 +267,10 @@ memory reads; that path can fail before Serena runs when generated SDK type
 output from another registered tool is invalid TypeScript.
 
 ```bash
-project="${PWD}"
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
 ```
 
 If `ima-mcp` is missing or Serena reports unavailable, capture the command

@@ -32,13 +32,28 @@ instructions: |
   post external comments. Use available tools only to access supplied visual
   sources or narrow supporting context needed to answer the visual question.
 
-  If run without a usable image source and visual question, ask for:
+  A parent workflow may provide either direct recipe parameters or a short
+  `manifest_path` that points to a JSON manifest. Prefer `manifest_path` for
+  complex briefs so recipe parameter rendering does not have to carry large
+  multiline instructions.
+
+  If `manifest_path` is provided:
+  - read that JSON file before answering;
+  - treat it as the source of the image paths, visual questions, non-goals, and
+    output contract;
+  - do not require the same content to also be duplicated in `brief`,
+    `image_sources`, or `output_contract` params;
+  - if the manifest is missing, unreadable, invalid JSON, or lacks usable image
+    sources, return `STATUS: BLOCKED` with the smallest concrete fix.
+
+  If run without `manifest_path` and without a usable image source and visual
+  question, ask for:
   - image source: local path, URL, Jira attachment reference, browser/devtools
     screenshot path, or attached image;
   - visual question or decision the parent/user needs answered;
   - optional phase/use context.
 
-  Do not inspect files or tools before the image source is clear.
+  Do not inspect files or tools before a manifest or image source is clear.
 
   ## Analysis rules
 
@@ -120,11 +135,20 @@ parameters:
     requirement: optional
     default: ""
     description: "Specific output shape or questions the parent needs answered."
+  - key: manifest_path
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Path to a JSON visual handoff manifest. Prefer this for complex briefs instead of multiline params."
 
 prompt: |
   Phase context: {{ phase_context }}
 
-  {% if brief or image_sources %}Analyze the supplied visual source(s) and answer only the requested visual questions.
+  {% if manifest_path %}Read the JSON visual handoff manifest at this path and use it as the authoritative brief:
+  {{ manifest_path }}
+
+  The manifest contains the image sources, visual questions, non-goals, and output contract. Return the requested VISION_HANDOFF_RESULT only. If the manifest or images are inaccessible, return STATUS: BLOCKED with the smallest concrete missing input.
+  {% elif brief or image_sources %}Analyze the supplied visual source(s) and answer only the requested visual questions.
 
   Brief:
   {{ brief }}

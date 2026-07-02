@@ -302,11 +302,11 @@ parameters:
       - quick
       - standard
       - deep
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
   - key: task
     input_type: string
     requirement: optional
@@ -325,11 +325,11 @@ prompt: |
   {% else %}Guided/HITL mode is active. Ask before ambiguous, expensive, noisy, or potentially mutating diagnostics. Wait for user answers where decisions are needed.
   {% endif %}
 
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
 
-  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task. Treat Vestige as the lifecycle source of truth and Taskwarrior as queue/status.
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task. Treat Vestige as the lifecycle source of truth and Taskwarrior as queue/status.
   {% endif %}
 
   Investigation source:

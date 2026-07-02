@@ -130,27 +130,37 @@ instructions: |
 
   Screenshots are visual artifacts, so the Vision Hand-Off Policy is mandatory.
 
-  1. Call `vision_handoff` with a complete standalone brief containing:
-     - phase context: Avada deconstruction for `<slug>`;
-     - image references: page-level desktop/mobile screenshots and any existing
-       section snapshots;
-     - fusion section candidates: order, adminLabel, opening-tag intent attrs,
+  1. Before calling `vision_handoff`, write a JSON manifest at
+     `.tmp/<slug>/vision-handoff-manifest.json`. Keep rich instructions in this
+     file instead of passing long/multiline recipe params. The manifest must
+     include:
+     - `phaseContext`: `"design_to_code"`;
+     - `slug` and `slugDir`;
+     - `imageSources`: absolute paths for page-level desktop/mobile screenshots
+       and any existing section snapshots;
+     - `fusionSectionCandidates`: order, adminLabel, opening-tag intent attrs,
        and raw length (not giant raw blocks unless necessary);
-     - exact visual questions:
+     - `visualQuestions`:
        - What are the visible page sections top-to-bottom?
        - Which screenshot area corresponds to each Fusion top-level container?
        - What concise truthful description fits each section?
        - Which `patternKey` best fits each section from the shared vocabulary?
        - Which text/color/spacing slots are visually important?
-     - expected output shape: ordered evidence table with order, section label,
+     - `nonGoals`: no implementation, no file edits by the child, no final
+       catalog writes by the child;
+     - `outputContract`: ordered evidence table with order, section label,
        visible description, suggested patternKey, confidence, uncertainty, and
        crop notes for desktop/mobile.
-  2. Use the returned visual evidence as evidence, not as implementation. The
+  2. Call `vision_handoff` with only a short manifest reference, preferably
+     `manifest_path: /home/eric/IMA/dev/avada-builder/.tmp/<slug>/vision-handoff-manifest.json`.
+     Do not pass the full brief, section table, or multiline image list through
+     recipe params unless the manifest path is impossible.
+  3. Use the returned visual evidence as evidence, not as implementation. The
      parent recipe owns catalog decisions and validation.
-  3. If `vision_handoff` cannot access the screenshots, ask for the smallest
-     concrete replacement (local path, URL, or attachment reference). Do not
-     guess from inaccessible images.
-  4. If a visual section maps ambiguously to multiple Fusion containers (for
+  4. If `vision_handoff` cannot access the manifest or screenshots, ask for the
+     smallest concrete replacement (manifest path, local image path, URL, or
+     attachment reference). Do not guess from inaccessible images.
+  5. If a visual section maps ambiguously to multiple Fusion containers (for
      example responsive desktop/mobile hero variants), preserve the containers
      and document the ambiguity rather than silently merging or dropping one.
 

@@ -39,6 +39,16 @@ ima-mcp vestige search "user preferences" --json
 ima-mcp vestige get <memory-id> --json
 ```
 
+Preference bootstrap intentionally uses the stable high-level `status`, `search`,
+and `get` commands. Do not replace bootstrap with generic `vestige tools call`
+unless the bootstrap contract is explicitly changed. The v2.2 generic tool
+surface and aliases are documented in the `mcp-vestige` skill for task-specific
+advanced operations and preflight parity checks.
+
+If preference search times out but `ima-mcp vestige status --json` reports
+Vestige available, retry once with `--timeout-ms 300000` or report the timeout
+with that recommended command. Do not fall back to the Goose SDK or `Vestige.*`.
+
 The bootstrap report must make the sequence auditable. Do not just say
 "Vestige bootstrap complete" after `status`. Return a compact status table or
 bullet list that names every attempted preference-bootstrap step and its

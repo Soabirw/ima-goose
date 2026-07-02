@@ -45,7 +45,7 @@ parameters:
     options:
       - guided
       - autonomous
-  - key: project
+  - key: task_project
     input_type: string
     requirement: user_prompt
     description: "Taskwarrior project name."
@@ -67,7 +67,7 @@ prompt: |
   {% else %}Guided/HITL mode is active. Ask before resolving missing lifecycle evidence, committing, or taking any ambiguous external action.
   {% endif %}
 
-  Project: {{ project }}
+  Taskwarrior project: {{ task_project }}
   Task: {{ task }}
   Commit requested: {{ commit }}
 

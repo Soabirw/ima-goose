@@ -100,10 +100,10 @@ Serena project/memory evidence (bootstrap style):
 
 ```bash
 ima-mcp serena doctor --project "$project" --json
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
 ```
 
 Vestige health:
@@ -112,7 +112,20 @@ Vestige health:
 ima-mcp vestige status --json
 ima-mcp vestige doctor --json
 ima-mcp vestige search "preflight" --json
+ima-mcp vestige tools list --json
+ima-mcp vestige tools describe recall --json
+ima-mcp vestige tools call recall --args-json '{"query":"preferences","mode":"lookup"}' --json
+ima-mcp vestige tools call memory_status --args-json '{"view":"health"}' --json
+ima-mcp vestige memory_status --args-json '{"view":"health"}' --json
 ```
+
+High-level Vestige `status`, `doctor`, and `search` failures are material
+`FAIL`s. Optional v2.2 parity probe failures are `WARN`s when high-level
+operations still pass, unless the user explicitly requested full Vestige v2.2
+parity validation. Preflight must never run mutating Vestige commands (`save`,
+`smart_ingest`, `suppress`, source-sync writes, promotion/write flows) and must
+not use `--allow-write`. Never recommend direct Goose extension registration for
+Vestige.
 
 Qdrant health (`PASS` when `status/doctor` return `ok` and the service/collections
 are reachable, even if `configured: false`; `WARN` only if the service is

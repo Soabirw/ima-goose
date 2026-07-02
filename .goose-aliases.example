@@ -51,9 +51,9 @@ goose-desktop-low() { _goose_desktop_low "$@"; }
 # ── HITL Cycle Helper: Taskwarrior → Plan → Implement → Test → Review → Learn ─
 # Installed by scripts/install.ts as ~/.local/bin/goose-cycle.
 # Usage:
-#   goose-cycle start --project ima-mcp-gateway
-#   goose-cycle status --project ima-mcp-gateway --task S01
-#   goose-cycle close --project ima-mcp-gateway --task S01
+#   goose-cycle start --task-project ima-mcp-gateway
+#   goose-cycle status --task-project ima-mcp-gateway --task S01
+#   goose-cycle close --task-project ima-mcp-gateway --task S01
 #
 # Legacy umbrella recipe remains available for explicit experiments:
 goose-cycle-umbrella() {
@@ -97,19 +97,23 @@ goose-brainstorm() {
 #        goose-plan "raw idea text..."
 goose-plan() {
   local spec=""
-  local project=""
+  local task_project=""
   local task=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-plan [spec] [--project <project> --task <task>]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-plan [spec] [--project <project> --task <task>]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-plan [spec] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-plan [spec] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       *) spec="$1"; shift ;;
     esac
   done
 
   local args=(run --recipe plan --name "plan-$(date +%Y%m%d)" --interactive)
   [ -n "$spec" ] && args+=(--params "spec=${spec}")
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   _goose_high "${args[@]}"
 }
@@ -142,14 +146,18 @@ goose-story-prompt() {
 #        goose-implement FNR-123
 goose-implement() {
   local key=""
-  local project=""
+  local task_project=""
   local task=""
   local cycle_phase=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
-      --cycle-phase) cycle_phase="${2:?Usage: goose-implement [source] [--project <project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-implement [source] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-implement [source] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
+      --cycle-phase) cycle_phase="${2:?Usage: goose-implement [source] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase resolve-review]}"; shift 2 ;;
       *) key="$1"; shift ;;
     esac
   done
@@ -157,7 +165,7 @@ goose-implement() {
   local name_slug="${key:-${task:-$(date +%Y%m%d-%H%M)}}"
   local args=(run --recipe wp-developer --name "story-${name_slug}-impl" --interactive)
   [ -n "$key" ] && args+=(--params "plan_source=${key}")
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   [ -n "$cycle_phase" ] && args+=(--params "cycle_phase=${cycle_phase}")
   _goose_mid "${args[@]}"
@@ -175,14 +183,18 @@ goose-implement() {
 #   goose-review https://git.example/owner/repo/pulls/45  # Mode 1, full review
 goose-review() {
   local target=""
-  local project=""
+  local task_project=""
   local task=""
   local cycle_phase=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
-      --cycle-phase) cycle_phase="${2:?Usage: goose-review [target] [--project <project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-review [target] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-review [target] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
+      --cycle-phase) cycle_phase="${2:?Usage: goose-review [target] [--task-project <taskwarrior-project> --task <task>] [--cycle-phase rereview]}"; shift 2 ;;
       *) target="$1"; shift ;;
     esac
   done
@@ -196,7 +208,7 @@ goose-review() {
   else
     args+=(--name "review-$(date +%Y%m%d-%H%M)" --interactive)
   fi
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   [ -n "$cycle_phase" ] && args+=(--params "cycle_phase=${cycle_phase}")
   _goose_high "${args[@]}"
@@ -226,18 +238,22 @@ goose-adversarial-review() {
 # Usage: goose-learn
 #        goose-learn "artifact bundle"
 #        goose-learn "artifact bundle" feature
-#        goose-learn "artifact bundle" story --project ima-mcp-gateway --task S01
+#        goose-learn "artifact bundle" story --task-project ima-mcp-gateway --task S01
 goose-learn() {
   local artifact_bundle=""
   local update_scope="story"
-  local project=""
+  local task_project=""
   local task=""
   local positional=()
 
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-learn [artifact] [story|feature|release] [--project <project> --task <task>]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-learn [artifact] [story|feature|release] [--project <project> --task <task>]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-learn [artifact] [story|feature|release] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-learn [artifact] [story|feature|release] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       *) positional+=("$1"); shift ;;
     esac
   done
@@ -255,7 +271,7 @@ goose-learn() {
 
   local args=(run --recipe document-learn --params "update_scope=${update_scope}" --name "learn-${update_scope}-$(date +%Y%m%d-%H%M)" --interactive)
   [ -n "$artifact_bundle" ] && args+=(--params "artifact_bundle=${artifact_bundle}")
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   _goose_mid "${args[@]}"
 }
@@ -359,19 +375,23 @@ goose-investigate() {
 
 goose-instructor() {
   local source=""
-  local project=""
+  local task_project=""
   local task=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-instructor [source] [--project <project> --task <task>]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-instructor [source] [--project <project> --task <task>]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-instructor [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-instructor [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       *) source="$1"; shift ;;
     esac
   done
 
   local args=(run --recipe instructor --name "instructor-$(date +%Y%m%d-%H%M)" --interactive)
   [ -n "$source" ] && args+=(--params "source=${source}")
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   _goose_high "${args[@]}"
 }
@@ -382,19 +402,23 @@ goose-explore() {
 
 goose-tests() {
   local test_source=""
-  local project=""
+  local task_project=""
   local task=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --project) project="${2:?Usage: goose-tests [source] [--project <project> --task <task>]}"; shift 2 ;;
-      --task) task="${2:?Usage: goose-tests [source] [--project <project> --task <task>]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-tests [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --project|--project=*)
+        echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
+        return 2
+        ;;
+      --task) task="${2:?Usage: goose-tests [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       *) test_source="$1"; shift ;;
     esac
   done
 
   local args=(run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive)
   [ -n "$test_source" ] && args+=(--params "test_source=${test_source}")
-  [ -n "$project" ] && args+=(--params "project=${project}")
+  [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   _goose_mid "${args[@]}"
 }
@@ -481,7 +505,7 @@ RECOMMENDED HITL WORKFLOWS:
 
 EXPERIMENTAL:
 
-  goose-cycle start --project P
+  goose-cycle start --task-project P
                                 Taskwarrior/Vestige-backed HITL cycle helper
   goose-cycle-umbrella [source] Experimental umbrella recipe
   goose-story-prompt FNR-123    Jira story → implementation prompt (legacy)

@@ -1,14 +1,19 @@
 ## Goose Cycle Task Context
 
-When both `project` and `task` are supplied, this session is part of the
+When both `task_project` and `task` are supplied, this session is part of the
 `goose-cycle` HITL workflow.
+
+`task_project` is the Taskwarrior project used for native `task project:<name>`
+filtering. It is not a Serena project name, project path, or activation input.
+Serena project discovery belongs only to the Serena bootstrap.
 
 Before acting:
 - Complete Serena bootstrap.
-- Inspect the Taskwarrior task with a narrow filter for the supplied project
-  and task key/UUID.
-- Search Vestige for the current lifecycle thread using the project, task,
-  Taskwarrior UUID, Jira key, and any source refs found on the task.
+- Inspect the Taskwarrior task with a narrow filter for the supplied
+  Taskwarrior project and task key/UUID.
+- Search Vestige for the current lifecycle thread using the Taskwarrior
+  project, task, Taskwarrior UUID, Jira key, and any source refs found on the
+  task.
 - Treat Vestige as the detailed lifecycle source of truth and Taskwarrior as
   the queue/status source.
 

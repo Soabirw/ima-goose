@@ -28,12 +28,12 @@ instructions: |
   ## Responsibilities
   1. Complete Serena bootstrap.
   2. Inspect the selected Taskwarrior task.
-  3. Search Vestige for the project, task key/UUID, Jira key, and source refs.
+  3. Search Vestige for the Taskwarrior project, task key/UUID, Jira key, and source refs.
   4. Create or update the lifecycle thread when missing.
   5. Add a narrow Taskwarrior annotation/tag pointing to the Vestige thread when
      safe.
   6. Return a concise state summary and the next recommended command:
-     `goose-plan --project <project> --task <task>`.
+     `goose-plan --task-project <taskwarrior-project> --task <task>`.
 
 parameters:
   - key: mode
@@ -44,7 +44,7 @@ parameters:
     options:
       - guided
       - autonomous
-  - key: project
+  - key: task_project
     input_type: string
     requirement: user_prompt
     description: "Taskwarrior project name."
@@ -61,7 +61,7 @@ prompt: |
   {% else %}Guided/HITL mode is active. Ask before resolving conflicting task or Vestige thread identity.
   {% endif %}
 
-  Project: {{ project }}
+  Taskwarrior project: {{ task_project }}
   Task: {{ task }}
 
   Inspect the selected Taskwarrior task, search Vestige, seed or update the lifecycle thread if needed, and return the next command for planning.

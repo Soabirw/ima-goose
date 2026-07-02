@@ -124,7 +124,7 @@ instructions: |
 
   If `source` is empty, greet briefly and ask what the user wants to understand or decide, and where the relevant source lives. Do not do task-specific research before the user answers.
 
-  If both `project` and `task` are supplied, follow the goose-cycle task context instructions for read-only lifecycle lookup. Treat Vestige as the detailed lifecycle source of truth and Taskwarrior as queue/status context. Do not update Taskwarrior unless an explicit save/update is approved and the action is safe and narrow.
+  If both `task_project` and `task` are supplied, follow the goose-cycle task context instructions for read-only lifecycle lookup. Treat Vestige as the detailed lifecycle source of truth and Taskwarrior as queue/status context. Do not update Taskwarrior unless an explicit save/update is approved and the action is safe and narrow.
 
   ## Teaching Output Style
 
@@ -213,11 +213,11 @@ parameters:
     default: ""
     description: "Optional. Question, learning goal, task, bug report, Jira key, Serena/Vestige memory reference, local file path, route, endpoint, stack trace, screenshot reference, or pasted context."
 
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
 
   - key: task
     input_type: string
@@ -235,11 +235,11 @@ prompt: |
   {% else %}Guided/HITL mode is active. Ask before ambiguous, expensive, noisy, runtime-sensitive, or potentially mutating research. Wait for user answers where decisions are needed.
   {% endif %}
 
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
 
-  After bootstrap, inspect the Taskwarrior task and Vestige lifecycle thread for this project/task as read-only context. Teach from the evidence; do not implement or mutate lifecycle state unless the user explicitly approves a safe save/update.
+  After bootstrap, inspect the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task as read-only context. Teach from the evidence; do not implement or mutate lifecycle state unless the user explicitly approves a safe save/update.
   {% endif %}
 
   {% if source %}Instructor mode is active. Do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, deploy, install dependencies, or perform operational changes. Treat the following as the teaching goal or source reference after Serena bootstrap. Research only enough read-only evidence to explain what the user should do and why:

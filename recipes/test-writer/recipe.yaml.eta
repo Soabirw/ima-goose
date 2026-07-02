@@ -22,11 +22,11 @@ parameters:
     requirement: optional
     default: ""
     description: "Implementation plan, changed-file list, diff summary, acceptance criteria, Jira key, memory reference, local file path, failing output, or pasted testing brief."
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
   - key: task
     input_type: string
     requirement: optional
@@ -139,11 +139,11 @@ prompt: |
 
   First run Serena bootstrap. Then load this test source and write or repair the appropriate tests:
 
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
 
-  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task. Use the plan and implementation summary to add or verify sufficient tests. Update Vestige with test summary, commands/results, coverage gaps, and any production defects. Add a narrow Taskwarrior annotation/tag indicating tested or blocked when safe.
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task. Use the plan and implementation summary to add or verify sufficient tests. Update Vestige with test summary, commands/results, coverage gaps, and any production defects. Add a narrow Taskwarrior annotation/tag indicating tested or blocked when safe.
   {% endif %}
 
   {{ test_source }}

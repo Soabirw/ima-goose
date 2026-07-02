@@ -37,6 +37,8 @@ goose run --recipe preflight-check
   `ima-mcp mcp doctor`).
 - Serena, Vestige, and Qdrant through the `ima-mcp` gateway, not the Goose
   TypeScript SDK.
+- Read-only Vestige v2.2 parity probes for the generic tool surface and safe
+  first-class aliases.
 - Non-gateway MCP extensions via SDK when available and in scope: Context7 and
   Sequential Thinking (quick); Tavily, Chrome DevTools, and Atlassian Rovo
   (full).
@@ -51,6 +53,19 @@ Serena, Vestige, and Qdrant are checked with the `ima-mcp` gateway as the source
 of truth, not through SDK probes. This avoids false-positive failures from
 SDK-generation issues and keeps the three gateway MCPs aligned with their actual
 health.
+
+### Vestige v2.2
+
+Vestige v2.2 preflight also checks the advertised generic tool surface with
+read-only probes such as `tools list`, `tools describe recall`, `tools call
+recall`, `tools call memory_status`, and the `memory_status` first-class alias.
+These probes verify parity without mutating memories. Mutating Vestige operations
+such as `save`, `smart_ingest`, suppressions, source sync writes, or promotion
+flows are intentionally not run by preflight.
+
+High-level Vestige failures are material. Optional v2.2 advertised-capability
+failures are warnings when `status`, `doctor`, `search`, and `get` remain usable,
+unless the user explicitly requested full Vestige v2.2 parity validation.
 
 ## Statuses
 

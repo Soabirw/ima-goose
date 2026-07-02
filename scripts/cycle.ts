@@ -20,7 +20,7 @@ type CommandName = LifecycleCommandName | ManualPhaseName;
 
 type CliArgs = {
   command: CommandName;
-  project: string;
+  taskProject: string;
   task: string;
   mode: "guided" | "autonomous";
   dryRun: boolean;
@@ -40,7 +40,7 @@ type TaskwarriorTask = {
 };
 
 type ActiveState = {
-  project: string;
+  taskProject: string;
   task: string;
   taskwarriorUuid?: string;
   status: string;
@@ -65,13 +65,13 @@ function isManualPhase(command: CommandName): command is ManualPhaseName {
 
 function usage(): never {
   console.error(`Usage:
-  goose-cycle start --project <project> [--task <task-key-or-uuid>] [--dry-run]
-  goose-cycle next --project <project> [--dry-run]
-  goose-cycle status --project <project> [--task <task-key-or-uuid>]
-  goose-cycle close --project <project> [--task <task-key-or-uuid>] [--commit] [--dry-run]
+  goose-cycle start --task-project <taskwarrior-project> [--task <task-key-or-uuid>] [--dry-run]
+  goose-cycle next --task-project <taskwarrior-project> [--dry-run]
+  goose-cycle status --task-project <taskwarrior-project> [--task <task-key-or-uuid>]
+  goose-cycle close --task-project <taskwarrior-project> [--task <task-key-or-uuid>] [--commit] [--dry-run]
 
 Manual phases:
-  goose-cycle plan|implement|test|review|learn|resolve-review|rereview --project <project> --task <task> [--dry-run]
+  goose-cycle plan|implement|test|review|learn|resolve-review|rereview --task-project <taskwarrior-project> --task <task> [--dry-run]
 
 Options:
   --mode guided|autonomous
@@ -94,7 +94,7 @@ function parseArgs(): CliArgs {
 
   const parsed: CliArgs = {
     command,
-    project: "",
+    taskProject: "",
     task: "",
     mode: "guided",
     dryRun: false,
@@ -104,8 +104,14 @@ function parseArgs(): CliArgs {
 
   for (let i = 0; i < raw.length; i++) {
     const arg = raw[i];
-    if (arg === "--project" && raw[i + 1]) {
-      parsed.project = raw[++i];
+    if (arg === "--project" || arg.startsWith("--project=")) {
+      throw new Error(
+        "--project is no longer accepted by goose-cycle.\n" +
+          "Use --task-project <taskwarrior-project> for Taskwarrior project scoping.\n" +
+          "Serena project selection is automatic and must not be supplied as a recipe parameter.",
+      );
+    } else if (arg === "--task-project" && raw[i + 1]) {
+      parsed.taskProject = raw[++i];
     } else if (arg === "--task" && raw[i + 1]) {
       parsed.task = raw[++i];
     } else if (arg === "--mode" && raw[i + 1]) {
@@ -125,7 +131,7 @@ function parseArgs(): CliArgs {
     }
   }
 
-  if (!parsed.project) usage();
+  if (!parsed.taskProject) usage();
   if (isManualPhase(command) && !parsed.task) usage();
   return parsed;
 }
@@ -179,16 +185,16 @@ function taskLabel(task: TaskwarriorTask): string {
   return `${id}/${uuid} ${task.description ?? "(no description)"}`;
 }
 
-function findEligibleTask(project: string): TaskwarriorTask {
-  const tasks = taskExport([`project:${project}`, "+PENDING", "+READY"]);
+function findEligibleTask(taskProject: string): TaskwarriorTask {
+  const tasks = taskExport([`project:${taskProject}`, "+PENDING", "+READY"]);
   if (tasks.length === 0) {
-    throw new Error(`No pending ready Taskwarrior tasks found for project:${project}.`);
+    throw new Error(`No pending ready Taskwarrior tasks found for project:${taskProject}.`);
   }
   return tasks[0];
 }
 
-function resolveTask(project: string, taskRef: string): TaskwarriorTask {
-  const projectTasks = taskExport([`project:${project}`, "+PENDING"]);
+function resolveTask(taskProject: string, taskRef: string): TaskwarriorTask {
+  const projectTasks = taskExport([`project:${taskProject}`, "+PENDING"]);
 
   const exactMatches = projectTasks.filter((task) => {
     const id = task.id === undefined ? "" : String(task.id);
@@ -208,10 +214,10 @@ function resolveTask(project: string, taskRef: string): TaskwarriorTask {
   if (fuzzyMatches.length === 1) return fuzzyMatches[0];
   if (fuzzyMatches.length > 1) {
     const matches = fuzzyMatches.map(taskLabel).join("; ");
-    throw new Error(`Task reference '${taskRef}' is ambiguous in project:${project}: ${matches}. Use a UUID.`);
+    throw new Error(`Task reference '${taskRef}' is ambiguous in project:${taskProject}: ${matches}. Use a UUID.`);
   }
 
-  throw new Error(`Could not resolve task '${taskRef}' in project:${project}.`);
+  throw new Error(`Could not resolve task '${taskRef}' in project:${taskProject}.`);
 }
 
 function projectRoot(start = process.cwd()): string {
@@ -236,7 +242,11 @@ function statePath(): string {
 function readActiveState(): ActiveState | null {
   const file = statePath();
   if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf8")) as ActiveState;
+  const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as ActiveState & { project?: string };
+  if (parsed.project && !parsed.taskProject) {
+    throw new Error('.goose-cycle/active.json uses legacy field "project". Delete/regenerate the active cycle state or migrate it to "taskProject".');
+  }
+  return parsed;
 }
 
 function writeActiveState(state: ActiveState, dryRun: boolean): void {
@@ -285,7 +295,7 @@ function reviewState(task: TaskwarriorTask): "approved" | "needs-fix" | "blocked
   return "unknown";
 }
 
-function printStatus(project: string, taskRef: string): void {
+function printStatus(taskProject: string, taskRef: string): void {
   const active = readActiveState();
   const ref = taskRef || active?.task;
   if (!ref) {
@@ -293,8 +303,8 @@ function printStatus(project: string, taskRef: string): void {
     return;
   }
 
-  const task = resolveTask(project, ref);
-  console.log(`Project: ${project}`);
+  const task = resolveTask(taskProject, ref);
+  console.log(`Taskwarrior project: ${taskProject}`);
   console.log(`Task: ${taskLabel(task)}`);
   console.log(`Status: ${task.status ?? "unknown"}`);
   console.log(`Lifecycle tags: ${(task.tags ?? []).filter((tag) => lifecycleTags.includes(tag)).join(", ") || "(none)"}`);
@@ -307,7 +317,7 @@ function printStatus(project: string, taskRef: string): void {
 function phaseParams(args: CliArgs, task: TaskwarriorTask, extras: Record<string, string | boolean> = {}): Record<string, string | boolean> {
   return {
     mode: args.mode,
-    project: args.project,
+    task_project: args.taskProject,
     task: taskIdentity(task),
     ...extras,
   };
@@ -329,28 +339,28 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
     recipe: "implement",
     status: "implement",
     params: (args, task) => ({
-      implementation_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   test: {
     recipe: "test-writer",
     status: "test",
     params: (args, task) => ({
-      test_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   review: {
     recipe: "code-review",
     status: "review",
     params: (args, task) => ({
-      target: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   learn: {
     recipe: "document-learn",
     status: "learn",
     params: (args, task) => ({
-      artifact_bundle: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   "resolve-review": {
@@ -358,7 +368,7 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
     status: "resolve-review",
     params: (args, task) => ({
       cycle_phase: "resolve-review",
-      implementation_source: `Resolve review findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   rereview: {
@@ -366,20 +376,20 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
     status: "rereview",
     params: (args, task) => ({
       cycle_phase: "rereview",
-      target: `Rereview resolved findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+      target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
 };
 
 function runManualPhase(args: CliArgs): void {
-  const task = resolveTask(args.project, args.task);
+  const task = resolveTask(args.taskProject, args.task);
   if (!isManualPhase(args.command)) {
     throw new Error(`Unsupported manual phase '${args.command}'.`);
   }
   const spec = manualPhaseSpecs[args.command];
   runRecipe(spec.recipe, phaseParams(args, task, spec.params(args, task)), args.dryRun);
   writeActiveState({
-    project: args.project,
+    taskProject: args.taskProject,
     task: taskIdentity(task),
     taskwarriorUuid: task.uuid,
     status: spec.status,
@@ -388,10 +398,10 @@ function runManualPhase(args: CliArgs): void {
 }
 
 function runStart(args: CliArgs): void {
-  const task = args.task ? resolveTask(args.project, args.task) : findEligibleTask(args.project);
+  const task = args.task ? resolveTask(args.taskProject, args.task) : findEligibleTask(args.taskProject);
   console.log(`Selected task: ${taskLabel(task)}`);
   writeActiveState({
-    project: args.project,
+    taskProject: args.taskProject,
     task: taskIdentity(task),
     taskwarriorUuid: task.uuid,
     status: "selected",
@@ -401,13 +411,13 @@ function runStart(args: CliArgs): void {
   runRecipe("cycle-start", phaseParams(args, task), args.dryRun);
   runRecipe("plan", phaseParams(args, task), args.dryRun);
   runRecipe("implement", phaseParams(args, task, {
-    implementation_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
   }), args.dryRun);
   runRecipe("test-writer", phaseParams(args, task, {
-    test_source: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
   }), args.dryRun);
   runRecipe("code-review", phaseParams(args, task, {
-    target: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(task)}`,
+    target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
   }), args.dryRun);
 
   if (args.dryRun) {
@@ -416,14 +426,14 @@ function runStart(args: CliArgs): void {
   }
 
   for (let cycle = 0; cycle <= args.maxReviewCycles; cycle++) {
-    const current = resolveTask(args.project, taskIdentity(task));
+    const current = resolveTask(args.taskProject, taskIdentity(task));
     const state = reviewState(current);
     if (state === "approved") {
       runRecipe("document-learn", phaseParams(args, current, {
-        artifact_bundle: `Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(current)}`,
+        artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
       }), false);
       writeActiveState({
-        project: args.project,
+        taskProject: args.taskProject,
         task: taskIdentity(current),
         taskwarriorUuid: current.uuid,
         status: "learned",
@@ -443,11 +453,11 @@ function runStart(args: CliArgs): void {
 
     runRecipe("implement", phaseParams(args, current, {
       cycle_phase: "resolve-review",
-      implementation_source: `Resolve review findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(current)}`,
+      implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
     }), false);
     runRecipe("code-review", phaseParams(args, current, {
       cycle_phase: "rereview",
-      target: `Rereview resolved findings from Vestige lifecycle thread for project ${args.project}, task ${taskIdentity(current)}`,
+      target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
     }), false);
   }
 }
@@ -458,7 +468,7 @@ function runClose(args: CliArgs): void {
   if (!taskRef) {
     throw new Error("close requires --task or an existing .goose-cycle/active.json pointer.");
   }
-  const task = resolveTask(args.project, taskRef);
+  const task = resolveTask(args.taskProject, taskRef);
   runRecipe("cycle-close", phaseParams(args, task, { commit: args.commit }), args.dryRun);
 }
 
@@ -466,7 +476,7 @@ function main(): void {
   const args = parseArgs();
   try {
     if (args.command === "status") {
-      printStatus(args.project, args.task);
+      printStatus(args.taskProject, args.task);
     } else if (args.command === "start" || args.command === "next") {
       runStart(args);
     } else if (args.command === "close") {

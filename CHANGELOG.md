@@ -4,6 +4,40 @@
 
 _No unreleased changes._
 
+## v2.6.4 - 2026-07-02
+
+### Added
+
+- Added Vestige v2.2 gateway parity documentation in the `mcp-vestige` skill, including generic `tools list|describe|call`, first-class aliases, timeout options, and action-aware safety gates.
+- Expanded `/preflight` and the `goose-preflight` skill with read-only Vestige v2.2 probes for `tools list`, `tools describe recall`, `tools call recall`, `tools call memory_status`, and the `memory_status` alias.
+- Added Avada deconstruction visual handoff manifest guidance so parent workflows can pass complex screenshot/section briefs through `.tmp/<slug>/vision-handoff-manifest.json` instead of long multiline recipe parameters.
+- Added `manifest_path` support to `vision-handoff` and regression coverage for the Avada deconstruction manifest handoff path.
+
+### Changed
+
+- Renamed goose-cycle Taskwarrior scoping from generic `--project` / `project` to `--task-project` / `task_project`, and updated aliases, cycle docs, recipe parameters, lifecycle prompts, and regression tests to use the explicit Taskwarrior scope.
+- Updated `goose-cycle` manual phase handoffs to describe Vestige lifecycle threads as belonging to a Taskwarrior project/task, not a Serena project.
+- Updated canonical Serena bootstrap guidance across shared instructions, bootstrap recipes, skills, README, and MCP setup docs to use current-project `ima-mcp serena` commands without passing recipe parameters as Serena project names.
+- Clarified that Vestige preference bootstrap remains on stable high-level `status`/`search`/`get` commands while advanced v2.2 operations live in the `mcp-vestige` skill and preflight parity checks.
+- Updated preflight classification so high-level Vestige failures are material and optional v2.2 parity failures warn unless full parity validation is explicitly requested.
+- Documented `/preflight` as a current-session command and refreshed setup/recommended-use docs for the new Taskwarrior scoping and gateway behavior.
+- Bumped the package, lockfile, and README release metadata to v2.6.4.
+
+### Fixed
+
+- Blocked legacy goose-cycle `--project` usage with an explicit migration error so Taskwarrior project scope cannot be mistaken for Serena project selection.
+- Restored the preflight `$project` variable for gateway checks that still use explicit `--project "$project"` while preserving cwd-default Serena bootstrap probes.
+- Prevented Avada deconstruction vision handoffs from depending on fragile multiline recipe parameter rendering for large visual briefs.
+
+### Validation
+
+- Ran `node --check scripts/install.ts` and `node --check scripts/cycle.ts`.
+- Ran `npm test` (26 tests passed).
+- Ran `node scripts/install.ts --dest "$tmpdir" --profile openai --validate`; all rendered recipes validated successfully in the temporary destination.
+- Ran `goose recipe validate` on rendered `preflight-check.yaml`, `vestige-bootstrap.yaml`, `avada-deconstruct.yaml`, and `vision-handoff.yaml`.
+- Ran read-only Vestige v2.2 gateway probes for `status`, `doctor`, `search`, `tools list`, `tools describe recall`, `tools call recall`, `tools call memory_status`, and the `memory_status` alias.
+- Ran `git diff --check`.
+
 ## v2.6.3 - 2026-06-26
 
 ### Added

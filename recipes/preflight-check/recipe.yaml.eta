@@ -1,4 +1,4 @@
-version: "2.1.0"
+version: "2.1.1"
 title: "Preflight Check"
 description: "Run a read-only Goose/MCP/tooling preflight and report what is configured, reachable, or failing."
 
@@ -85,6 +85,12 @@ instructions: |
   ima-mcp serena doctor --project "$project" --json
   ima-mcp vestige status --json
   ima-mcp vestige doctor --json
+  ima-mcp vestige search "preflight" --json
+  ima-mcp vestige tools list --json
+  ima-mcp vestige tools describe recall --json
+  ima-mcp vestige tools call recall --args-json '{"query":"preferences","mode":"lookup"}' --json
+  ima-mcp vestige tools call memory_status --args-json '{"view":"health"}' --json
+  ima-mcp vestige memory_status --args-json '{"view":"health"}' --json
   ima-mcp qdrant status --json
   ima-mcp qdrant doctor --json
   ima-mcp qdrant collections --json
@@ -93,10 +99,10 @@ instructions: |
   For Serena project/memory evidence, use bootstrap-style gateway probes:
 
   ```bash
-  ima-mcp serena project activate "$project" --json
-  ima-mcp serena instructions --project "$project" --json
-  ima-mcp serena memory list --project "$project" --json
-  ima-mcp serena memory read core --project "$project" --json
+  ima-mcp serena project activate --json
+  ima-mcp serena instructions --json
+  ima-mcp serena memory list --json
+  ima-mcp serena memory read core --json
   ```
 
   When Goose TypeScript SDK wrappers are available, batch probes for non-gateway
@@ -145,6 +151,16 @@ instructions: |
     bootstrap depends on it.
   - `FAIL` if `ima-mcp mcp doctor` reports required MCP failure for Serena or
     Vestige.
+  - `FAIL` if high-level Vestige operations are unavailable: `status`,
+    `doctor`, or `search`.
+  - `WARN` if Vestige v2.2 parity probes fail but high-level Vestige operations
+    still pass.
+  - `FAIL` if the user explicitly requested full Vestige v2.2 parity validation
+    and generic tools or aliases fail.
+  - Never run mutating Vestige commands in preflight: no `save`, no
+    `smart_ingest`, no `suppress`, no source-sync writes, no promotion/write
+    flows, and no `--allow-write`. Never recommend direct Goose extension
+    registration for Vestige.
   - For gateway-managed MCPs (Serena, Vestige, Qdrant), health is determined
     ONLY by `ima-mcp <svc> status/doctor` (`ok`, `backendStatus`/`serviceStatus`).
     The `configured: false` / `enabled: false` fields from `ima-mcp mcp servers`

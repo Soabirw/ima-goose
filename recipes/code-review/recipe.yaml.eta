@@ -320,11 +320,11 @@ parameters:
     requirement: optional
     default: ""
     description: "Optional. PR URL, FNR-### key, or pre-built review prompt. If set, the recipe skips the greeting and routes by content. If empty, the recipe greets and waits."
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
   - key: task
     input_type: string
     requirement: optional
@@ -347,12 +347,12 @@ prompt: |
   {% else %}Guided/HITL mode is active. Use the normal review gates and ask before external posting or ambiguous scope changes.
   {% endif %}
 
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
   - Cycle phase: {{ cycle_phase }}
 
-  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this project/task.
+  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task.
   {% if cycle_phase == "rereview" %}Load original review findings and the resolution summary from Vestige. Verify fixes and check for regressions, then update Vestige with rereview verdict and any remaining findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
   {% else %}Load the plan, implementation summary, and test summary from Vestige. Review current diff/code against that scope, then update Vestige with verdict and findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
   {% endif %}

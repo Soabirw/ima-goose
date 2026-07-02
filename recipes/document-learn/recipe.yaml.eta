@@ -168,11 +168,11 @@ parameters:
       - story
       - feature
       - release
-  - key: project
+  - key: task_project
     input_type: string
     requirement: optional
     default: ""
-    description: "Optional. Taskwarrior project for goose-cycle lifecycle context."
+    description: "Optional. Taskwarrior project for goose-cycle lifecycle context. Do not use for Serena project selection."
   - key: task
     input_type: string
     requirement: optional
@@ -187,11 +187,11 @@ prompt: |
 
   Update scope: {{ update_scope }}
 
-  {% if project and task %}Goose cycle context:
-  - Project: {{ project }}
+  {% if task_project and task %}Goose cycle context:
+  - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
 
-  After bootstrap, load the full Vestige lifecycle and Taskwarrior task for this project/task. Update relevant docs and memories, update Vestige closeout/documentation state, and add a narrow Taskwarrior annotation/tag indicating learned/ready-for-close when safe. Do not mark the task done.
+  After bootstrap, load the full Vestige lifecycle and Taskwarrior task for this Taskwarrior project/task. Update relevant docs and memories, update Vestige closeout/documentation state, and add a narrow Taskwarrior annotation/tag indicating learned/ready-for-close when safe. Do not mark the task done.
   {% endif %}
 
   Artifact bundle:

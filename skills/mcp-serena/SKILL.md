@@ -26,15 +26,14 @@ Serena tool execution, go straight to the CLI.
 Canonical bootstrap:
 
 ```bash
-project="${PWD}"
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
-ima-mcp serena memory read conventions --project "$project" --json
-ima-mcp serena memory read tech_stack --project "$project" --json
-ima-mcp serena memory read suggested_commands --project "$project" --json
-ima-mcp serena memory read task_completion --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
+ima-mcp serena memory read conventions --json
+ima-mcp serena memory read tech_stack --json
+ima-mcp serena memory read suggested_commands --json
+ima-mcp serena memory read task_completion --json
 ```
 
 Diagnostics:
@@ -61,10 +60,11 @@ first-class alias.
 ```bash
 # Compatibility/bootstrap
 ima-mcp serena project status --project . --json
-ima-mcp serena project activate . --json
-ima-mcp serena instructions --project . --json
-ima-mcp serena memory list --project . --json
-ima-mcp serena memory read core --project . --json
+ima-mcp serena project activate --json
+ima-mcp serena project activate . --json  # explicit fallback/diagnostic path
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
 ima-mcp serena doctor --project . --json
 
 # Direct Serena compatibility aliases
@@ -300,14 +300,14 @@ Taskwarrior, Jira, Vestige, Qdrant, file reads, repository search, browser
 inspection, or local workflow discovery.
 
 1. Activate the Serena project with the current project path or registered
-   project name by using `ima-mcp serena project activate "$project" --json`.
+   project name by using `ima-mcp serena project activate --json`.
    Activation is always first; without it, memory calls can return
    `No active project`.
 2. Call Serena initial instructions with
-   `ima-mcp serena instructions --project "$project" --json`.
-3. List memories with `ima-mcp serena memory list --project "$project" --json`.
+   `ima-mcp serena instructions --json`.
+3. List memories with `ima-mcp serena memory list --json`.
 4. Read the standard memories that exist and are relevant to the task with
-   `ima-mcp serena memory read <name> --project "$project" --json`.
+   `ima-mcp serena memory read <name> --json`.
    - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
    - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
    - Read `task_completion` before final verification, release work, or handoff.
@@ -466,13 +466,12 @@ ima-mcp serena write_memory --memory_name core --content 'Auth uses JWT. Tokens 
 ### Read standard project memories
 
 ```bash
-project="${PWD}"
-ima-mcp serena project activate "$project" --json
-ima-mcp serena instructions --project "$project" --json
-ima-mcp serena memory list --project "$project" --json
-ima-mcp serena memory read core --project "$project" --json
-ima-mcp serena memory read conventions --project "$project" --json
-ima-mcp serena memory read suggested_commands --project "$project" --json
+ima-mcp serena project activate --json
+ima-mcp serena instructions --json
+ima-mcp serena memory list --json
+ima-mcp serena memory read core --json
+ima-mcp serena memory read conventions --json
+ima-mcp serena memory read suggested_commands --json
 ```
 
 ## Setup

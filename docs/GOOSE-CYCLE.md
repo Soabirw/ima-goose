@@ -29,13 +29,13 @@ already present.
 Start the next ready Taskwarrior task for a project:
 
 ```bash
-goose-cycle start --project ima-mcp-gateway
+goose-cycle start --task-project ima-mcp-gateway
 ```
 
 Start a specific task:
 
 ```bash
-goose-cycle start --project ima-mcp-gateway --task S01
+goose-cycle start --task-project ima-mcp-gateway --task S01
 ```
 
 The conductor runs:
@@ -56,14 +56,14 @@ done during normal start/next.
 After final human approval:
 
 ```bash
-goose-cycle close --project ima-mcp-gateway --task S01
+goose-cycle close --task-project ima-mcp-gateway --task S01
 ```
 
 Use `--commit` only when you explicitly want the closeout recipe to include
 commit preparation or application:
 
 ```bash
-goose-cycle close --project ima-mcp-gateway --task S01 --commit
+goose-cycle close --task-project ima-mcp-gateway --task S01 --commit
 ```
 
 ## Status And Dry Runs
@@ -71,13 +71,13 @@ goose-cycle close --project ima-mcp-gateway --task S01 --commit
 Inspect the selected task and local pointer state:
 
 ```bash
-goose-cycle status --project ima-mcp-gateway --task S01
+goose-cycle status --task-project ima-mcp-gateway --task S01
 ```
 
 Preview the exact Goose commands without running them:
 
 ```bash
-goose-cycle start --project ima-mcp-gateway --task S01 --dry-run
+goose-cycle start --task-project ima-mcp-gateway --task S01 --dry-run
 ```
 
 ## Manual Phases
@@ -85,13 +85,13 @@ goose-cycle start --project ima-mcp-gateway --task S01 --dry-run
 You can run a single phase with the same project/task context:
 
 ```bash
-goose-cycle plan --project ima-mcp-gateway --task S01
-goose-cycle implement --project ima-mcp-gateway --task S01
-goose-cycle test --project ima-mcp-gateway --task S01
-goose-cycle review --project ima-mcp-gateway --task S01
-goose-cycle learn --project ima-mcp-gateway --task S01
-goose-cycle resolve-review --project ima-mcp-gateway --task S01
-goose-cycle rereview --project ima-mcp-gateway --task S01
+goose-cycle plan --task-project ima-mcp-gateway --task S01
+goose-cycle implement --task-project ima-mcp-gateway --task S01
+goose-cycle test --task-project ima-mcp-gateway --task S01
+goose-cycle review --task-project ima-mcp-gateway --task S01
+goose-cycle learn --task-project ima-mcp-gateway --task S01
+goose-cycle resolve-review --task-project ima-mcp-gateway --task S01
+goose-cycle rereview --task-project ima-mcp-gateway --task S01
 ```
 
 Manual phase names are operator-facing aliases. The conductor maps each alias to
@@ -100,12 +100,12 @@ the concrete Goose recipe and phase-specific handoff parameters:
 | Manual phase | Goose recipe | Phase-specific parameters |
 |---|---|---|
 | `plan` | `plan` | none |
-| `implement` | `implement` | `implementation_source=Vestige lifecycle thread for project <project>, task <task>` |
-| `test` | `test-writer` | `test_source=Vestige lifecycle thread for project <project>, task <task>` |
-| `review` | `code-review` | `target=Vestige lifecycle thread for project <project>, task <task>` |
-| `learn` | `document-learn` | `artifact_bundle=Vestige lifecycle thread for project <project>, task <task>` |
-| `resolve-review` | `implement` | `cycle_phase=resolve-review`, `implementation_source=Resolve review findings from Vestige lifecycle thread for project <project>, task <task>` |
-| `rereview` | `code-review` | `cycle_phase=rereview`, `target=Rereview resolved findings from Vestige lifecycle thread for project <project>, task <task>` |
+| `implement` | `implement` | `implementation_source=Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
+| `test` | `test-writer` | `test_source=Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
+| `review` | `code-review` | `target=Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
+| `learn` | `document-learn` | `artifact_bundle=Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
+| `resolve-review` | `implement` | `cycle_phase=resolve-review`, `implementation_source=Resolve review findings from Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
+| `rereview` | `code-review` | `cycle_phase=rereview`, `target=Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project <task_project>, task <task>` |
 
 The conductor passes lifecycle identifiers and the alias-specific handoff. The
 recipes are responsible for loading Taskwarrior, searching Vestige, doing
@@ -117,7 +117,7 @@ phase-specific work, and updating phase outcomes.
 
 ```json
 {
-  "project": "ima-mcp-gateway",
+  "taskProject": "ima-mcp-gateway",
   "task": "S01",
   "taskwarriorUuid": "...",
   "status": "learned",
@@ -156,3 +156,6 @@ goose-cycle-umbrella
 
 The new `goose-cycle` binary is the recommended operational helper for
 Taskwarrior/Vestige-backed per-story delivery.
+
+
+> `--task-project` is the Taskwarrior project used for native `task project:<name>` filtering. It is not a Serena project. Serena bootstrap discovers the current project through the `ima-mcp serena` gateway and Serena's cwd/project configuration behavior.
