@@ -4,6 +4,21 @@
 
 _No unreleased changes._
 
+## v2.6.5 - 2026-07-07
+
+### Changed
+
+- Clarified the preflight child recipe naming contract: `preflight-probe` is the source/rendered recipe slug and filename, while `preflight_probe` is only the parent subrecipe tool name.
+- Bumped the package, lockfile, and README release metadata to v2.6.5.
+
+### Validation
+
+- Ran `node --check scripts/install.ts`.
+- Ran `npm test`.
+- Ran `node scripts/install.ts --validate --dest "$tmpdir" --profile openai`; all rendered recipes validated successfully in the temporary destination.
+- Ran `goose recipe validate` on rendered `preflight-check.yaml` and `preflight-probe.yaml`.
+- Ran `git diff --check`.
+
 ## v2.6.4 - 2026-07-02
 
 ### Added

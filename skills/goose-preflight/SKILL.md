@@ -206,9 +206,15 @@ requires Taskwarrior writes.
 
 Call the `preflight_probe` subrecipe in every scope (`offline`, `quick`, and
 `full`). It is the delegation canary that proves Goose subrecipe spawning works.
-The subrecipe/delegation check PASSes only if the child response includes the
-marker `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK`. If the call errors, times out, or
-returns without the marker, classify the subrecipe/delegation check as `FAIL`.
+The parent invokes the child as the `preflight_probe` subrecipe tool, but the
+source/rendered recipe slug and filename are `preflight-probe`
+(`preflight-probe.yaml`). Goose recipe lookup by name should use
+`preflight-probe`, not `preflight_probe`. If troubleshooting a missing child
+recipe, verify the rendered file exists as `preflight-probe.yaml` in the
+installed recipe directory. The subrecipe/delegation check PASSes only if the
+child response includes the marker `IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK`. If the
+call errors, times out, or returns without the marker, classify the
+subrecipe/delegation check as `FAIL`.
 
 ## Report Format
 

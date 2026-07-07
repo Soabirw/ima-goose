@@ -25,7 +25,8 @@ prompt: |
   Return this exact marker in your response:
   IMA_GOOSE_PREFLIGHT_SUBRECIPE_OK
 
-  Also state that this response came from the `preflight_probe` subrecipe.
+  Also state that this response came from the `preflight_probe` parent subrecipe tool
+  defined by the `preflight-probe` recipe.
 
 activities:
   - "Return the IMA Goose preflight subrecipe marker"

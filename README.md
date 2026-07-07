@@ -2,14 +2,12 @@
 
 IMA's Goose recipe repository — FP-aware coding agents, WordPress development, code review, testing, and architecture guidance.
 
-Current release: **v2.6.4**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+Current release: **v2.6.5**. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## What's New In v2.6.4
+## What's New In v2.6.5
 
-- Migrated `goose-cycle` and cycle-aware recipes from overloaded `project` parameters to explicit Taskwarrior `task_project` / `--task-project` scoping, with legacy `--project` blocked to avoid confusing Taskwarrior scope with Serena project activation.
-- Updated Serena bootstrap guidance to use current-project `ima-mcp serena` gateway commands without passing recipe parameters as Serena project names.
-- Added Vestige v2.2 gateway/preflight documentation and read-only `/preflight` parity probes while keeping preference bootstrap on high-level `status`/`search`/`get`.
-- Added Avada deconstruction visual handoff manifest support so large vision briefs pass through a JSON manifest instead of multiline recipe params.
+- Clarified the `/preflight` child recipe naming contract: `preflight-probe` is the installed recipe slug and rendered filename, while `preflight_probe` is only the parent subrecipe tool name.
+- Updated preflight troubleshooting guidance so recipe lookup uses the hyphenated `preflight-probe` slug.
 
 ---
 
@@ -524,7 +522,11 @@ Run `/preflight` to perform a
 read-only Goose/MCP configuration canary; see [`docs/PREFLIGHT-CHECK.md`](docs/PREFLIGHT-CHECK.md).
 `/preflight` includes read-only Vestige v2.2 probes such as `tools list`,
 `tools describe recall`, `tools call recall`, and `memory_status`. It does not
-run mutating Vestige commands.
+run mutating Vestige commands. If preflight reports `preflight_probe` missing,
+verify the rendered child recipe exists as `preflight-probe.yaml` in the
+installed recipe directory. Goose recipe lookup uses the hyphenated
+`preflight-probe` slug; the parent recipe invokes the child as the
+`preflight_probe` subrecipe tool.
 
 Use `/vestige-bootstrap` (or `/bootstrap-vestige`) to load user preferences from
 Vestige on demand. The tested read-only command is:
