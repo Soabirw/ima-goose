@@ -38,22 +38,29 @@ Start a specific task:
 goose-cycle start --task-project ima-mcp-gateway --task S01
 ```
 
-The conductor runs:
+When both `--task-project` and `--task` are supplied, the selected
+Taskwarrior task and its Vestige lifecycle thread are concrete source material;
+the planning phase should not fall back to open-ended "what should we plan?"
+prompts.
+
+The approved flow is:
 
 ```text
-cycle-start -> plan -> implement -> test-writer -> code-review
+cycle-start -> plan -> implement -> test-writer -> code-review -> document-learn -> cycle-close
 ```
 
-If Taskwarrior/Vestige marks the review approved, it continues to:
+If review requests changes, the fix loop remains:
 
 ```text
-document-learn
+code-review -> resolve-review -> rereview
 ```
 
-Then it stops for final human review. It does not mark the Taskwarrior task
-done during normal start/next.
+After an approved review or rereview, `goose-cycle` no longer stops after
+`document-learn`; it continues into `cycle-close`. In autonomous mode, automatic
+closeout passes `commit=true`. In guided mode, automatic closeout does not pass
+commit behavior unless `--commit` was supplied.
 
-After final human approval:
+Manual close remains available when you want to run it directly:
 
 ```bash
 goose-cycle close --task-project ima-mcp-gateway --task S01
@@ -66,7 +73,7 @@ commit preparation or application:
 goose-cycle close --task-project ima-mcp-gateway --task S01 --commit
 ```
 
-## Status And Dry Runs
+## Status, Next, And Dry Runs
 
 Inspect the selected task and local pointer state:
 
@@ -74,10 +81,22 @@ Inspect the selected task and local pointer state:
 goose-cycle status --task-project ima-mcp-gateway --task S01
 ```
 
+Resume from `.goose-cycle/active.json`:
+
+```bash
+goose-cycle next --task-project ima-mcp-gateway
+```
+
+`next` uses the active status as the phase pointer; it does not replay the full
+cycle unless no active state exists. `closed` is terminal, so `goose-cycle next`
+from a closed state is a no-op and does not try to resolve a now-completed
+Taskwarrior task.
+
 Preview the exact Goose commands without running them:
 
 ```bash
 goose-cycle start --task-project ima-mcp-gateway --task S01 --dry-run
+goose-cycle next --task-project ima-mcp-gateway --dry-run
 ```
 
 ## Manual Phases
@@ -113,31 +132,41 @@ phase-specific work, and updating phase outcomes.
 
 ## Local State
 
-`.goose-cycle/active.json` stores only lightweight pointers:
+`.goose-cycle/active.json` stores only lightweight pointers and the current
+resumable phase:
 
 ```json
 {
   "taskProject": "ima-mcp-gateway",
   "task": "S01",
   "taskwarriorUuid": "...",
-  "status": "learned",
+  "status": "reviewed",
   "updatedAt": "2026-06-12T00:00:00.000Z"
 }
 ```
+
+The conductor updates the pointer before and after each tracked phase. Completed
+manual phases use completed-state names such as `planned`, `implemented`,
+`tested`, `reviewed`, `learned`, `review-resolved`, and `rereviewed`; legacy
+phase names are normalized only where resume behavior is safe.
 
 Detailed lifecycle state belongs in Vestige. `.goose-cycle/` is git-ignored.
 
 ## Review Loop
 
-The first implementation keeps review-loop decisions conservative. After
-`code-review`, the conductor inspects Taskwarrior tags/annotations for:
+After `code-review` or `rereview`, the conductor inspects Taskwarrior
+annotations and tags for:
 
 - `approved`
-- `needs-fix`
+- `needs-fix` / `changes requested`
 - `blocked`
 
-If the state is unknown, the conductor stops for human inspection rather than
-guessing. If `needs-fix` is present, it runs:
+Latest explicit review annotations win over stale or conflicting lifecycle
+tags. Tags are fallback state markers only; if `approved` and `needs-fix` tags
+conflict without a resolving annotation, the conductor stops as
+unknown/ambiguous rather than entering a loop.
+
+If `needs-fix` is the current state, it runs:
 
 ```text
 implement --cycle-phase resolve-review
@@ -156,6 +185,5 @@ goose-cycle-umbrella
 
 The new `goose-cycle` binary is the recommended operational helper for
 Taskwarrior/Vestige-backed per-story delivery.
-
 
 > `--task-project` is the Taskwarrior project used for native `task project:<name>` filtering. It is not a Serena project. Serena bootstrap discovers the current project through the `ima-mcp serena` gateway and Serena's cwd/project configuration behavior.

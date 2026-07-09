@@ -29,5 +29,10 @@ Before finishing:
   verification commands/results, blockers, and residual risk.
 - Update Taskwarrior narrowly with an annotation or lifecycle tag when it is
   safe and specific to the selected task.
+- For review/rereview verdicts, treat Taskwarrior `approved` and `needs-fix`
+  tags as current-state markers, not append-only history. On an unambiguous
+  narrow task selection, remove the stale opposing review tag when safe and
+  record an explicit timestamped annotation so the conductor can determine the
+  latest verdict.
 - Do not mark the Taskwarrior task done. Final completion belongs to
   `goose-cycle close` after human approval.

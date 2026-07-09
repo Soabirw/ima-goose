@@ -18,6 +18,27 @@ type ManualPhaseName =
 
 type CommandName = LifecycleCommandName | ManualPhaseName;
 
+type CycleStatus =
+  | "selected"
+  | "started"
+  | "planned"
+  | "implemented"
+  | "tested"
+  | "reviewed"
+  | "needs-fix"
+  | "resolve-review"
+  | "review-resolved"
+  | "rereviewed"
+  | "approved"
+  | "learn"
+  | "learned"
+  | "closing"
+  | "closed"
+  | "blocked"
+  | "review-unknown";
+
+type ReviewState = "approved" | "needs-fix" | "blocked" | "unknown";
+
 type CliArgs = {
   command: CommandName;
   taskProject: string;
@@ -43,11 +64,20 @@ type ActiveState = {
   taskProject: string;
   task: string;
   taskwarriorUuid?: string;
-  status: string;
+  status: CycleStatus | string;
   updatedAt: string;
 };
 
-const lifecycleTags = ["planned", "implemented", "tested", "reviewed", "needs-fix", "approved", "learned"];
+const lifecycleTags = [
+  "planned",
+  "implemented",
+  "tested",
+  "reviewed",
+  "needs-fix",
+  "approved",
+  "learned",
+  "blocked",
+];
 
 const manualPhaseNames = new Set<string>([
   "plan",
@@ -257,6 +287,16 @@ function writeActiveState(state: ActiveState, dryRun: boolean): void {
   fs.writeFileSync(file, `${JSON.stringify(state, null, 2)}\n`);
 }
 
+function writePhaseState(args: CliArgs, task: TaskwarriorTask, status: CycleStatus, dryRun: boolean): void {
+  writeActiveState({
+    taskProject: args.taskProject,
+    task: taskIdentity(task),
+    taskwarriorUuid: task.uuid,
+    status,
+    updatedAt: new Date().toISOString(),
+  }, dryRun);
+}
+
 function recipeArgs(recipe: string, params: Record<string, string | boolean>): string[] {
   const args = ["run", "--recipe", recipe];
   for (const [key, value] of Object.entries(params)) {
@@ -271,27 +311,45 @@ function runRecipe(recipe: string, params: Record<string, string | boolean>, dry
   run("goose", recipeArgs(recipe, params), { dryRun });
 }
 
-function annotationText(task: TaskwarriorTask): string {
-  return (task.annotations ?? [])
-    .map((annotation) => annotation.description ?? "")
-    .join("\n")
-    .toLowerCase();
-}
+function annotationVerdict(description: string): ReviewState | null {
+  const text = description.toLowerCase();
 
-function reviewState(task: TaskwarriorTask): "approved" | "needs-fix" | "blocked" | "unknown" {
-  const tags = new Set(task.tags ?? []);
-  const annotations = annotationText(task);
-  if (tags.has("blocked") || /\bblocked\b/.test(annotations)) return "blocked";
-  if (tags.has("needs-fix") || /needs[- ]fix|request changes|changes requested/.test(annotations)) {
+  if (/\bblocked\b/.test(text)) return "blocked";
+
+  const negatedApproval =
+    /\bnot approved\b|\bnot approve\b|\bdo not approve\b|\bdo(?:n't| not) approve\b|\bwithout approval\b|\bpending approval\b|\bapproval pending\b/.test(text);
+
+  if (/needs[- ]fix|request changes|changes requested/.test(text)) {
     return "needs-fix";
   }
-  const negatedApproval =
-    /\bnot approved\b|\bnot approve\b|\bdo not approve\b|\bdo(?:n't| not) approve\b|\bwithout approval\b|\bpending approval\b|\bapproval pending\b/.test(
-      annotations,
-    );
-  if (tags.has("approved") || (!negatedApproval && /\bapproved\b|\bapprove\b/.test(annotations))) {
+
+  if (!negatedApproval && /\bapproved\b|\bapprove\b/.test(text)) {
     return "approved";
   }
+
+  return null;
+}
+
+function latestAnnotationVerdict(task: TaskwarriorTask): ReviewState | null {
+  return [...(task.annotations ?? [])]
+    .sort((a, b) => String(b.entry ?? "").localeCompare(String(a.entry ?? "")))
+    .map((annotation) => annotationVerdict(annotation.description ?? ""))
+    .find((verdict): verdict is ReviewState => verdict !== null) ?? null;
+}
+
+function reviewState(task: TaskwarriorTask): ReviewState {
+  const fromAnnotation = latestAnnotationVerdict(task);
+  if (fromAnnotation) return fromAnnotation;
+
+  const tags = new Set(task.tags ?? []);
+  const hasBlocked = tags.has("blocked");
+  const hasApproved = tags.has("approved");
+  const hasNeedsFix = tags.has("needs-fix");
+
+  if (hasBlocked && !hasApproved && !hasNeedsFix) return "blocked";
+  if (hasApproved && !hasNeedsFix) return "approved";
+  if (hasNeedsFix && !hasApproved) return "needs-fix";
+
   return "unknown";
 }
 
@@ -325,40 +383,40 @@ function phaseParams(args: CliArgs, task: TaskwarriorTask, extras: Record<string
 
 type ManualPhaseSpec = {
   recipe: string;
-  status: string;
+  status: CycleStatus;
   params: (args: CliArgs, task: TaskwarriorTask) => Record<string, string | boolean>;
 };
 
 const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   plan: {
     recipe: "plan",
-    status: "plan",
+    status: "planned",
     params: () => ({}),
   },
   implement: {
     recipe: "implement",
-    status: "implement",
+    status: "implemented",
     params: (args, task) => ({
       implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   test: {
     recipe: "test-writer",
-    status: "test",
+    status: "tested",
     params: (args, task) => ({
       test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   review: {
     recipe: "code-review",
-    status: "review",
+    status: "reviewed",
     params: (args, task) => ({
       target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   learn: {
     recipe: "document-learn",
-    status: "learn",
+    status: "learned",
     params: (args, task) => ({
       artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
@@ -373,7 +431,7 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   },
   rereview: {
     recipe: "code-review",
-    status: "rereview",
+    status: "rereviewed",
     params: (args, task) => ({
       cycle_phase: "rereview",
       target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
@@ -388,78 +446,230 @@ function runManualPhase(args: CliArgs): void {
   }
   const spec = manualPhaseSpecs[args.command];
   runRecipe(spec.recipe, phaseParams(args, task, spec.params(args, task)), args.dryRun);
-  writeActiveState({
-    taskProject: args.taskProject,
-    task: taskIdentity(task),
-    taskwarriorUuid: task.uuid,
-    status: spec.status,
-    updatedAt: new Date().toISOString(),
-  }, args.dryRun);
+  writePhaseState(args, task, spec.status, args.dryRun);
+}
+
+function runTrackedRecipe(
+  args: CliArgs,
+  task: TaskwarriorTask,
+  recipe: string,
+  beforeStatus: CycleStatus,
+  afterStatus: CycleStatus,
+  params: Record<string, string | boolean>,
+  dryRun: boolean,
+): void {
+  writePhaseState(args, task, beforeStatus, dryRun);
+  runRecipe(recipe, phaseParams(args, task, params), dryRun);
+  writePhaseState(args, task, afterStatus, dryRun);
+}
+
+function closeCommitRequested(args: CliArgs): boolean {
+  return args.commit || args.mode === "autonomous";
+}
+
+function runClosePhase(args: CliArgs, task: TaskwarriorTask, dryRun: boolean, commit = closeCommitRequested(args)): void {
+  runTrackedRecipe(args, task, "cycle-close", "closing", "closed", { commit }, dryRun);
+}
+
+function runLearnAndClose(args: CliArgs, task: TaskwarriorTask, dryRun: boolean): void {
+  runTrackedRecipe(args, task, "document-learn", "learn", "learned", {
+    artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+  }, dryRun);
+
+  runClosePhase(args, task, dryRun);
+}
+
+function handleReviewOutcome(args: CliArgs, task: TaskwarriorTask, dryRun: boolean): void {
+  const state = reviewState(task);
+
+  if (state === "approved") {
+    writePhaseState(args, task, "approved", dryRun);
+    runLearnAndClose(args, task, dryRun);
+    return;
+  }
+
+  if (state === "needs-fix") {
+    writePhaseState(args, task, "needs-fix", dryRun);
+    runTrackedRecipe(args, task, "implement", "resolve-review", "review-resolved", {
+      cycle_phase: "resolve-review",
+      implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+    }, dryRun);
+    return;
+  }
+
+  if (state === "blocked") {
+    writePhaseState(args, task, "blocked", dryRun);
+    console.log("Review state is blocked. Stopping for human inspection.");
+    return;
+  }
+
+  writePhaseState(args, task, "review-unknown", dryRun);
+  console.log("Review state is unknown or ambiguous. Stopping for human inspection.");
+}
+
+function runReviewLoopAfterReview(args: CliArgs, task: TaskwarriorTask): void {
+  let current = resolveTask(args.taskProject, taskIdentity(task));
+
+  for (let cycle = 0; cycle <= args.maxReviewCycles; cycle++) {
+    const state = reviewState(current);
+
+    if (state === "approved") {
+      writePhaseState(args, current, "approved", false);
+      runLearnAndClose(args, current, false);
+      return;
+    }
+
+    if (state === "blocked") {
+      writePhaseState(args, current, "blocked", false);
+      console.log("Review state is blocked. Stopping for human inspection.");
+      return;
+    }
+
+    if (state === "unknown") {
+      writePhaseState(args, current, "review-unknown", false);
+      console.log("Review state is unknown or ambiguous. Stopping for human inspection.");
+      return;
+    }
+
+    writePhaseState(args, current, "needs-fix", false);
+    if (cycle === args.maxReviewCycles) {
+      console.log(`Reached max review cycles (${args.maxReviewCycles}). Stopping for human inspection.`);
+      return;
+    }
+
+    runTrackedRecipe(args, current, "implement", "resolve-review", "review-resolved", {
+      cycle_phase: "resolve-review",
+      implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
+    }, false);
+    current = resolveTask(args.taskProject, taskIdentity(current));
+    runTrackedRecipe(args, current, "code-review", "review-resolved", "rereviewed", {
+      cycle_phase: "rereview",
+      target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
+    }, false);
+    current = resolveTask(args.taskProject, taskIdentity(current));
+  }
 }
 
 function runStart(args: CliArgs): void {
   const task = args.task ? resolveTask(args.taskProject, args.task) : findEligibleTask(args.taskProject);
   console.log(`Selected task: ${taskLabel(task)}`);
-  writeActiveState({
-    taskProject: args.taskProject,
-    task: taskIdentity(task),
-    taskwarriorUuid: task.uuid,
-    status: "selected",
-    updatedAt: new Date().toISOString(),
-  }, args.dryRun);
+  writePhaseState(args, task, "selected", args.dryRun);
 
-  runRecipe("cycle-start", phaseParams(args, task), args.dryRun);
-  runRecipe("plan", phaseParams(args, task), args.dryRun);
-  runRecipe("implement", phaseParams(args, task, {
+  runTrackedRecipe(args, task, "cycle-start", "selected", "started", {}, args.dryRun);
+  runTrackedRecipe(args, task, "plan", "started", "planned", {}, args.dryRun);
+  runTrackedRecipe(args, task, "implement", "planned", "implemented", {
     implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
-  }), args.dryRun);
-  runRecipe("test-writer", phaseParams(args, task, {
+  }, args.dryRun);
+  runTrackedRecipe(args, task, "test-writer", "implemented", "tested", {
     test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
-  }), args.dryRun);
-  runRecipe("code-review", phaseParams(args, task, {
+  }, args.dryRun);
+  runTrackedRecipe(args, task, "code-review", "tested", "reviewed", {
     target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
-  }), args.dryRun);
+  }, args.dryRun);
 
   if (args.dryRun) {
     console.log("Dry run: skipping review-state inspection and learn/resolve loop.");
     return;
   }
 
-  for (let cycle = 0; cycle <= args.maxReviewCycles; cycle++) {
-    const current = resolveTask(args.taskProject, taskIdentity(task));
-    const state = reviewState(current);
-    if (state === "approved") {
-      runRecipe("document-learn", phaseParams(args, current, {
-        artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
-      }), false);
-      writeActiveState({
-        taskProject: args.taskProject,
-        task: taskIdentity(current),
-        taskwarriorUuid: current.uuid,
-        status: "learned",
-        updatedAt: new Date().toISOString(),
-      }, false);
-      console.log("Goose cycle stopped after document/learn. Final human review is required before `goose-cycle close`.");
-      return;
-    }
-    if (state === "blocked" || state === "unknown") {
-      console.log(`Review state is ${state}. Stopping before learn so a human can inspect Vestige/Taskwarrior.`);
-      return;
-    }
-    if (cycle === args.maxReviewCycles) {
-      console.log(`Reached max review cycles (${args.maxReviewCycles}). Stopping for human inspection.`);
-      return;
-    }
+  runReviewLoopAfterReview(args, task);
+}
 
-    runRecipe("implement", phaseParams(args, current, {
-      cycle_phase: "resolve-review",
-      implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
-    }), false);
-    runRecipe("code-review", phaseParams(args, current, {
-      cycle_phase: "rereview",
-      target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
-    }), false);
+function normalizedStatus(status: string): string {
+  const legacyStatusMap: Record<string, CycleStatus> = {
+    plan: "planned",
+    implement: "implemented",
+    test: "tested",
+    review: "reviewed",
+    rereview: "rereviewed",
+  };
+  return legacyStatusMap[status] ?? status;
+}
+
+function continueFromStatus(args: CliArgs, task: TaskwarriorTask, status: string): void {
+  const currentStatus = normalizedStatus(status);
+
+  switch (currentStatus) {
+    case "selected":
+      runTrackedRecipe(args, task, "cycle-start", "selected", "started", {}, args.dryRun);
+      return;
+    case "started":
+      runTrackedRecipe(args, task, "plan", "started", "planned", {}, args.dryRun);
+      return;
+    case "planned":
+      runTrackedRecipe(args, task, "implement", "planned", "implemented", {
+        implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+      }, args.dryRun);
+      return;
+    case "implemented":
+      runTrackedRecipe(args, task, "test-writer", "implemented", "tested", {
+        test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+      }, args.dryRun);
+      return;
+    case "tested":
+      runTrackedRecipe(args, task, "code-review", "tested", "reviewed", {
+        target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+      }, args.dryRun);
+      if (args.dryRun) {
+        console.log("Dry run: skipping review-state inspection.");
+        return;
+      }
+      handleReviewOutcome(args, resolveTask(args.taskProject, taskIdentity(task)), false);
+      return;
+    case "reviewed":
+    case "rereviewed":
+      handleReviewOutcome(args, task, args.dryRun);
+      return;
+    case "needs-fix":
+    case "resolve-review":
+      runTrackedRecipe(args, task, "implement", "resolve-review", "review-resolved", {
+        cycle_phase: "resolve-review",
+        implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+      }, args.dryRun);
+      return;
+    case "review-resolved":
+      runTrackedRecipe(args, task, "code-review", "review-resolved", "rereviewed", {
+        cycle_phase: "rereview",
+        target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
+      }, args.dryRun);
+      return;
+    case "approved":
+    case "learn":
+      runLearnAndClose(args, task, args.dryRun);
+      return;
+    case "learned":
+    case "closing":
+      runClosePhase(args, task, args.dryRun);
+      return;
+    case "blocked":
+      console.log("Active cycle is blocked. Stopping for human inspection.");
+      return;
+    case "review-unknown":
+      console.log("Active cycle review state is unknown or ambiguous. Stopping for human inspection.");
+      return;
+    case "closed":
+      console.log(`Goose cycle is already closed for task ${taskIdentity(task)}. No next phase remains.`);
+      return;
+    default:
+      console.log(`Unknown active cycle status '${status}'. Stopping for human inspection.`);
   }
+}
+
+function runNext(args: CliArgs): void {
+  const active = readActiveState();
+  if (!active) {
+    runStart(args);
+    return;
+  }
+
+  if (active.status === "closed") {
+    console.log(`Goose cycle is already closed for task ${active.task}. No next phase remains.`);
+    return;
+  }
+
+  const taskRef = args.task || active.task;
+  const task = resolveTask(args.taskProject, taskRef);
+  continueFromStatus(args, task, active.status);
 }
 
 function runClose(args: CliArgs): void {
@@ -469,7 +679,7 @@ function runClose(args: CliArgs): void {
     throw new Error("close requires --task or an existing .goose-cycle/active.json pointer.");
   }
   const task = resolveTask(args.taskProject, taskRef);
-  runRecipe("cycle-close", phaseParams(args, task, { commit: args.commit }), args.dryRun);
+  runClosePhase(args, task, args.dryRun, args.commit);
 }
 
 function main(): void {
@@ -477,8 +687,10 @@ function main(): void {
   try {
     if (args.command === "status") {
       printStatus(args.taskProject, args.task);
-    } else if (args.command === "start" || args.command === "next") {
+    } else if (args.command === "start") {
       runStart(args);
+    } else if (args.command === "next") {
+      runNext(args);
     } else if (args.command === "close") {
       runClose(args);
     } else {

@@ -8,15 +8,15 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const recipePath = path.join(repoRoot, "recipes", "avada-generate", "recipe.yaml.eta");
-const readmePath = path.join(repoRoot, "README.md");
+const recipeCatalogPath = path.join(repoRoot, "docs", "RECIPES-AND-SKILLS.md");
 const fusionConverterSkillPath = path.join(repoRoot, "skills", "avada-fusion-converter", "SKILL.md");
 
 function readRecipeSource() {
   return fs.readFileSync(recipePath, "utf8");
 }
 
-function readReadme() {
-  return fs.readFileSync(readmePath, "utf8");
+function readRecipeCatalog() {
+  return fs.readFileSync(recipeCatalogPath, "utf8");
 }
 
 function renderRecipes() {
@@ -116,11 +116,11 @@ test("rendered avada-generate recipe preserves the generation contract", () => {
   assert.doesNotMatch(rendered, /Fusion generation is out of scope/);
 });
 
-test("README advertises A/B validation and optional lean-only emission", () => {
-  const readme = readReadme();
+test("recipe catalog advertises A/B validation and optional lean-only emission", () => {
+  const catalog = readRecipeCatalog();
 
   assert.match(
-    readme,
+    catalog,
     /\| `avada-generate` \| Avada\/Fusion generation recipe: selected Claude Design pages -> DOM\/screenshots\/vision context, catalog section mapping, lean\/full A\/B validation, and optional lean-only emission \| HIGH \|/,
   );
 });

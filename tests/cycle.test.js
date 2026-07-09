@@ -462,3 +462,223 @@ test("rejects legacy active state using project without taskProject", () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /.goose-cycle\/active.json uses legacy field "project"/);
 });
+
+function writeActive(cwd, state) {
+  const stateDir = path.join(cwd, ".goose-cycle");
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(path.join(stateDir, "active.json"), `${JSON.stringify(state, null, 2)}\n`);
+}
+
+function readActive(cwd) {
+  return JSON.parse(fs.readFileSync(path.join(cwd, ".goose-cycle", "active.json"), "utf8"));
+}
+
+function readGooseLog(harness) {
+  return fs.existsSync(harness.gooseLog) ? fs.readFileSync(harness.gooseLog, "utf8") : "";
+}
+
+test("manual review and learn phases write completed active statuses", () => {
+  const task = {
+    id: 41,
+    uuid: "41414141-2222-3333-4444-555555555555",
+    description: "S41 manual statuses",
+    project: "ima-goose",
+    status: "pending",
+  };
+
+  const reviewHarness = makeHarness([task]);
+  const reviewResult = runCycle(reviewHarness, ["review", "--task-project", "ima-goose", "--task", "S41"]);
+
+  assert.equal(reviewResult.status, 0, reviewResult.stderr);
+  assert.equal(readActive(reviewHarness.cwd).status, "reviewed");
+
+  const learnHarness = makeHarness([task]);
+  const learnResult = runCycle(learnHarness, ["learn", "--task-project", "ima-goose", "--task", "S41"]);
+
+  assert.equal(learnResult.status, 0, learnResult.stderr);
+  assert.equal(readActive(learnHarness.cwd).status, "learned");
+});
+
+test("next from reviewed with latest approved annotation runs learn and close only", () => {
+  const harness = makeHarness([
+    {
+      id: 42,
+      uuid: "42424242-2222-3333-4444-555555555555",
+      description: "S42 approved review",
+      project: "ima-goose",
+      status: "pending",
+      tags: ["needs-fix", "approved"],
+      annotations: [
+        { entry: "20260709T150000Z", description: "changes requested before fix" },
+        { entry: "20260709T160000Z", description: "approved after rereview" },
+      ],
+    },
+  ]);
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: "42424242-2222-3333-4444-555555555555",
+    taskwarriorUuid: "42424242-2222-3333-4444-555555555555",
+    status: "reviewed",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+
+  const result = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const log = readGooseLog(harness);
+  assert.match(log, /run --recipe document-learn/);
+  assert.match(log, /run --recipe cycle-close/);
+  assert.doesNotMatch(log, /run --recipe implement/);
+  assert.doesNotMatch(log, /run --recipe code-review/);
+  assert.equal(readActive(harness.cwd).status, "closed");
+});
+
+test("next automatic close commit follows mode and explicit commit flag", () => {
+  const task = {
+    id: 43,
+    uuid: "43434343-2222-3333-4444-555555555555",
+    description: "S43 close commit",
+    project: "ima-goose",
+    status: "pending",
+  };
+
+  const guidedHarness = makeHarness([task]);
+  writeActive(guidedHarness.cwd, {
+    taskProject: "ima-goose",
+    task: task.uuid,
+    taskwarriorUuid: task.uuid,
+    status: "learned",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+  const guidedResult = runCycle(guidedHarness, ["next", "--task-project", "ima-goose"]);
+  assert.equal(guidedResult.status, 0, guidedResult.stderr);
+  assert.doesNotMatch(readGooseLog(guidedHarness), /--params commit=true/);
+
+  const autonomousHarness = makeHarness([task]);
+  writeActive(autonomousHarness.cwd, {
+    taskProject: "ima-goose",
+    task: task.uuid,
+    taskwarriorUuid: task.uuid,
+    status: "learned",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+  const autonomousResult = runCycle(autonomousHarness, ["next", "--task-project", "ima-goose", "--mode", "autonomous"]);
+  assert.equal(autonomousResult.status, 0, autonomousResult.stderr);
+  assert.match(readGooseLog(autonomousHarness), /--params commit=true/);
+
+  const commitHarness = makeHarness([task]);
+  writeActive(commitHarness.cwd, {
+    taskProject: "ima-goose",
+    task: task.uuid,
+    taskwarriorUuid: task.uuid,
+    status: "learned",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+  const commitResult = runCycle(commitHarness, ["next", "--task-project", "ima-goose", "--commit"]);
+  assert.equal(commitResult.status, 0, commitResult.stderr);
+  assert.match(readGooseLog(commitHarness), /--params commit=true/);
+});
+
+test("next from learned runs close only and marks cycle closed", () => {
+  const task = {
+    id: 46,
+    uuid: "46464646-2222-3333-4444-555555555555",
+    description: "S46 learned close",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const harness = makeHarness([task]);
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: task.uuid,
+    taskwarriorUuid: task.uuid,
+    status: "learned",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+
+  const result = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const log = readGooseLog(harness);
+  assert.match(log, /run --recipe cycle-close/);
+  assert.doesNotMatch(log, /run --recipe document-learn/);
+  assert.doesNotMatch(log, /run --recipe implement/);
+  assert.doesNotMatch(log, /run --recipe code-review/);
+  assert.equal(readActive(harness.cwd).status, "closed");
+});
+
+ test("latest needs-fix annotation wins over stale approved tag", () => {
+  const harness = makeHarness([
+    {
+      id: 44,
+      uuid: "44444444-2222-3333-4444-555555555555",
+      description: "S44 changes requested",
+      project: "ima-goose",
+      status: "pending",
+      tags: ["approved"],
+      annotations: [
+        { entry: "20260709T150000Z", description: "approved initial review" },
+        { entry: "20260709T160000Z", description: "changes requested after regression check" },
+      ],
+    },
+  ]);
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: "44444444-2222-3333-4444-555555555555",
+    taskwarriorUuid: "44444444-2222-3333-4444-555555555555",
+    status: "reviewed",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+
+  const result = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const log = readGooseLog(harness);
+  assert.match(log, /run --recipe implement/);
+  assert.match(log, /cycle_phase=resolve-review/);
+  assert.doesNotMatch(log, /run --recipe document-learn/);
+  assert.equal(readActive(harness.cwd).status, "review-resolved");
+});
+
+test("conflicting review tags without resolving annotation stop as review-unknown", () => {
+  const harness = makeHarness([
+    {
+      id: 45,
+      uuid: "45454545-2222-3333-4444-555555555555",
+      description: "S45 conflicting tags",
+      project: "ima-goose",
+      status: "pending",
+      tags: ["approved", "needs-fix"],
+    },
+  ]);
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: "45454545-2222-3333-4444-555555555555",
+    taskwarriorUuid: "45454545-2222-3333-4444-555555555555",
+    status: "reviewed",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+
+  const result = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Review state is unknown or ambiguous/);
+  assert.equal(readGooseLog(harness), "");
+  assert.equal(readActive(harness.cwd).status, "review-unknown");
+});
+
+test("next from closed is terminal and does not resolve pending task", () => {
+  const harness = makeHarness([]);
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: "already-closed-task",
+    status: "closed",
+    updatedAt: "2026-07-09T16:00:00.000Z",
+  });
+
+  const result = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /already closed/);
+  assert.equal(readGooseLog(harness), "");
+});

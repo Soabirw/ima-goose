@@ -319,20 +319,34 @@ prompt: |
   `suggested_commands`, `task_completion`). Then continue.
 
   Mode: {{ mode }}
-  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for interactive approval or routine clarification. Use the supplied source, repository evidence, and documented conventions; record assumptions and blockers in the plan.
+  {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for interactive approval or routine clarification when concrete source material is supplied.
   {% else %}Guided/HITL mode is active. Use the normal planning conversation and wait for user answers where decisions are needed.
   {% endif %}
 
-  {% if task_project and task %}Goose cycle context:
+  {% if task_project and task %}
+  Goose-cycle task planning mode:
   - Taskwarrior project: {{ task_project }}
   - Task: {{ task }}
 
-  After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task. Produce the implementation plan, then update Vestige with plan, non-goals, acceptance criteria, expected files, and verification plan. Add a narrow Taskwarrior annotation/tag indicating planning is complete when safe.
+  The supplied Taskwarrior task is concrete planning source material. Do not ask what to plan or where the source lives.
+  After bootstrap, inspect the selected Taskwarrior task with a narrow project/task filter and search Vestige for the lifecycle thread using the Taskwarrior project, task, UUID, Jira key, and source references.
+  Use the Taskwarrior task, Vestige lifecycle thread, repository evidence, and documented conventions to produce the implementation plan.
+  {% if spec %}
+  Additional planning input:
+  {{ spec }}
+  {% endif %}
+  Produce the implementation plan, then update Vestige with plan, non-goals, acceptance criteria, expected files, and verification plan. Add a narrow Taskwarrior annotation/tag indicating planning is complete when safe.
+  {% if mode == "autonomous" %}Proceed without waiting for user input unless missing information would make the plan materially unsafe, non-reproducible, destructive, or impossible to scope.
+  {% else %}Begin targeted research from the task and ask focused planning questions only where product, architecture, rollout, or verification decisions are needed.
   {% endif %}
 
-  {% if spec %}Planning-only mode is active for this entire session. Do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts. Treat the following as planning input after Serena bootstrap and produce a reviewable plan before any handoff:
+  {% elif spec %}
+  Planning-only mode is active for this entire session. Do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts. Treat the following as planning input after Serena bootstrap and produce a reviewable plan before any handoff:
 
-  {{ spec }}{% else %}Open planning mode. First run Serena bootstrap. Then greet in one or two lines and ask the user what they want to plan and where the source lives (paste, Serena memory name, file path, or Jira key). After bootstrap, do not do task-specific research, memory search, or tool calls before the user answers — wait for their input first. Planning-only mode persists for the entire session; do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts.{% endif %}
+  {{ spec }}
+  {% else %}
+  Open planning mode. First run Serena bootstrap. Then greet in one or two lines and ask the user what they want to plan and where the source lives (paste, Serena memory name, file path, or Jira key). After bootstrap, do not do task-specific research, memory search, or tool calls before the user answers — wait for their input first. Planning-only mode persists for the entire session; do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts.
+  {% endif %}
 
 activities:
   - "Open plan — ask me what I want to plan"

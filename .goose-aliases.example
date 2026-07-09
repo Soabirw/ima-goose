@@ -400,27 +400,32 @@ goose-explore() {
   _goose_low run --recipe explore --name "explore-$(date +%Y%m%d-%H%M)" --interactive
 }
 
-goose-tests() {
+goose-test() {
   local test_source=""
   local task_project=""
   local task=""
   while [ $# -gt 0 ]; do
     case "$1" in
-      --task-project) task_project="${2:?Usage: goose-tests [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --task-project) task_project="${2:?Usage: goose-test [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       --project|--project=*)
         echo "ERROR: --project is no longer accepted. Use --task-project for Taskwarrior project scoping. Serena project selection is automatic." >&2
         return 2
         ;;
-      --task) task="${2:?Usage: goose-tests [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
+      --task) task="${2:?Usage: goose-test [source] [--task-project <taskwarrior-project> --task <task>]}"; shift 2 ;;
       *) test_source="$1"; shift ;;
     esac
   done
 
-  local args=(run --recipe test-writer --name "tests-$(date +%Y%m%d-%H%M)" --interactive)
+  local args=(run --recipe test-writer --name "test-$(date +%Y%m%d-%H%M)" --interactive)
   [ -n "$test_source" ] && args+=(--params "test_source=${test_source}")
   [ -n "$task_project" ] && args+=(--params "task_project=${task_project}")
   [ -n "$task" ] && args+=(--params "task=${task}")
   _goose_mid "${args[@]}"
+}
+
+# Legacy fallback; prefer goose-test for consistency with goose-plan/review/learn.
+goose-tests() {
+  goose-test "$@"
 }
 
 goose-scorecard() {
@@ -499,7 +504,8 @@ RECOMMENDED HITL WORKFLOWS:
   Per-story delivery:
     goose-plan [story]            Story → detailed implementation plan
     goose-implement [source]      Approved plan/story → implementation
-    goose-tests                   Write or debug tests
+    goose-test                    Write or debug tests
+    goose-tests                   Legacy fallback for goose-test
     goose-review [FNR-123]        PR review, comment, Jira update
     goose-learn [artifact] story  Document story closeout
 
@@ -526,7 +532,8 @@ DIRECT RECIPES:
   goose-investigate [source]    Sherlock-style read-only troubleshooting/root-cause investigation
   goose-instructor [source]     Context-aware read-only mentor: what to do next and why
   goose-explore                 Read-only codebase exploration
-  goose-tests                   Write or debug tests
+  goose-test                    Write or debug tests
+  goose-tests                   Legacy fallback for goose-test
   goose-scorecard [target]      Project, PR, or codebase quality scorecard
   goose-ship-it stg|prod        Prepare IMA ship-it release branches/tags
   goose-ima-research [question] IMA medical research with ima-research + primary-source verification

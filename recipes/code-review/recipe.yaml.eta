@@ -353,9 +353,14 @@ prompt: |
   - Cycle phase: {{ cycle_phase }}
 
   After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task.
-  {% if cycle_phase == "rereview" %}Load original review findings and the resolution summary from Vestige. Verify fixes and check for regressions, then update Vestige with rereview verdict and any remaining findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
-  {% else %}Load the plan, implementation summary, and test summary from Vestige. Review current diff/code against that scope, then update Vestige with verdict and findings. Add a narrow Taskwarrior annotation/tag indicating approved or needs-fix when safe.
+  {% if cycle_phase == "rereview" %}Load original review findings and the resolution summary from Vestige. Verify fixes and check for regressions, then update Vestige with rereview verdict and any remaining findings.
+  {% else %}Load the plan, implementation summary, and test summary from Vestige. Review current diff/code against that scope, then update Vestige with verdict and findings.
   {% endif %}
+  When recording the goose-cycle review verdict on an unambiguous, narrowly selected Taskwarrior task:
+  - For APPROVE: add an explicit timestamped annotation containing `approved`; add the `approved` lifecycle tag; remove stale `needs-fix` when safe.
+  - For REQUEST CHANGES: add an explicit timestamped annotation containing `needs-fix` or `changes requested`; add the `needs-fix` lifecycle tag; remove stale `approved` when safe.
+  - For blocked review: add an explicit blocked annotation/tag and do not claim approved or needs-fix.
+  Review lifecycle tags are current-state markers, not append-only history.
   {% endif %}
 
   {% if target %}Review this target after Serena bootstrap:

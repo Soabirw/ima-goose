@@ -92,7 +92,7 @@ created the story set.
 ```bash
 goose-plan "story key, story spec, or acceptance criteria"
 goose-implement "approved story implementation plan"
-goose-tests
+goose-test
 goose-review "PR URL or FNR-123"
 goose-learn "story execution artifact bundle" story
 ```
@@ -309,14 +309,14 @@ and any follow-up risk.
 
 ### Test
 
-Use `goose-tests` when tests are the primary task:
+Use `goose-test` when tests are the primary task:
 
 - add missing unit tests
 - repair failing tests
 - characterize existing behavior before a risky refactor
 - build a focused regression suite for a bug
 
-In the full cycle, tests are part of the story loop. Direct `goose-tests` is
+In the full cycle, tests are part of the story loop. Direct `goose-test` is
 for standalone test work.
 
 ### Review

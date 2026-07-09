@@ -4,6 +4,29 @@
 
 _No unreleased changes._
 
+## v2.6.6 - 2026-07-09
+
+### Changed
+
+- Reworked `README.md` into a shorter first-pass guide focused on quick start, aliases, `goose-cycle`, and links to deeper documentation.
+- Added `docs/INSTALL.md`, `docs/IMA-DEV-CYCLE.md`, and `docs/RECIPES-AND-SKILLS.md` for fuller setup, workflow, and catalog details.
+- Made `goose-test` the primary test alias for grammar consistency while keeping `goose-tests` as a legacy fallback.
+- Bumped the package and lockfile release metadata to v2.6.6.
+- Updated `goose-cycle` so `.goose-cycle/active.json` is a resumable phase pointer and `next` resumes from the recorded state instead of restarting the cycle.
+- Clarified review lifecycle annotations/tags as current-state markers, with latest explicit annotations winning over stale tags.
+
+### Fixed
+
+- Prevented goose-cycle task planning from falling through to open-planning prompts when `task_project` and `task` are supplied.
+- Continued approved review/rereview flows through `document-learn` and `cycle-close`, with autonomous closeout requesting `commit=true` and guided closeout committing only when requested.
+
+### Validation
+
+- Ran `npm test` (36 tests passed).
+- Ran `npm run install:recipes:validate`; all rendered recipes validated successfully.
+- Ran `bash -n .goose-aliases.example`.
+- Ran `git diff --check`.
+
 ## v2.6.5 - 2026-07-07
 
 ### Changed
