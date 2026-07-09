@@ -124,11 +124,11 @@ $ goose-brainstorm "Let's make a change calculator PWA"
 > /exit
 
 $ goose run --recipe task-planner --interactive
-> Review the brainstorming session from vestige memory `<VESTIGE_MEMORY_ID>`.  
-  Present a Epic and Story breakdown for me to review and approve.
+> Review the brainstorming session from vestige memory `<VESTIGE_MEMORY_ID>`.
+  Present an Epic and Story breakdown for me to review and approve.
 # discussion, Q&A, etc until plan is presented
 > Write these epics/stories to Jira/Taskwarrior/Markdown/etc
-> Uppdate Vestige memory with our task structure and details
+> Update Vestige memory with our task structure and details
 > /exit
 ```
 
@@ -147,8 +147,8 @@ $ goose-plan
 
 ```bash
 $ goose-implement # or goose-wp or goose-js depending on tech stack
-> <PASTE_PROMPT> or "Let's immplement this task from vestige memory `<VESTIGE_MEMORY_ID>`"
-# work will kick off and it will call sub-recipes `test-writer` and `code-review` 
+> <PASTE_PROMPT> or "Let's implement this task from vestige memory `<VESTIGE_MEMORY_ID>`"
+# work will kick off and it will call sub-recipes `test-writer` and `code-review`
 # and fix any issues found early
 # HITL: review the work to check for any issues.
 > Update vestige memories and generate me a handoff prompt for the tester
@@ -158,29 +158,29 @@ $ goose-implement # or goose-wp or goose-js depending on tech stack
 ```bash
 $ goose-test
 > <PASTE_PROMPT> or "Make sure our work is sufficiently tested to our standards. See vestige memories: <INSERT_IDS>"
-# Testing will be exeucted and updated as needed
+# Testing will be executed and updated as needed
 > Update vestige memories with your work
-> Genereate me a handoff prompt for the reviewer
+> Generate me a handoff prompt for the reviewer
 > /exit
 ```
 
 ```bash
 $ goose-review
-> <PASTE_PROMPT> 
-> or "Do a full review of this PR: <INSERT_URL>" 
+> <PASTE_PROMPT>
+> or "Do a full review of this PR: <INSERT_URL>"
 > or "Do  a full review of our local work, see vestige memory <INSERT_IDS>"
-# Full review will crunch for a while and will return a summary.  
+# Full review will crunch for a while and will return a summary.
 # If a PR, it will ask to submit a comment
 > Save your review findings to vestige for handoff back to implementer.
-> Generate me a hanoff prompt
+> Generate me a handoff prompt
 # NOTE: the review plan is instructed to be very detailed on HOW to fix it,
 # so the higher model is making the key decisions, not the lower implementer model
-> /exit 
+> /exit
 ```
 
 ```bash
 $ goose-implement
-> <PAST_PROMPT> or "Review found some issues to resolve. See vestige memory <INSERT_MEMORY_ID>"
+> <PASTE_PROMPT> or "Review found some issues to resolve. See vestige memory <INSERT_MEMORY_ID>"
 # implementer will verify and resolve each issue
 > Update vestige with your work
 > /exit
@@ -196,17 +196,17 @@ $ goose-review # or flip to review tab already open
 
 ```bash
 $ goose-learn
-> Make sure our documentation, memories, serena core instruction files, qdrant, wikis, stories, etc 
+> Make sure our documentation, memories, serena core instruction files, qdrant, wikis, stories, etc
   are up to date based on the work we just did.  See vestige memories <INSERT_IDS>
 # Be explicit on what documentation/memories/systems you want updated for a more targeted update.
 > Update vestige memories for closeout
 > /exit
 ```
 
-The benefit of this workflow is your memory system is constantly and consistently updated with your vision, plans, 
+The benefit of this workflow is your memory system is constantly and consistently updated with your vision, plans,
 implementation, found issues, resolutions, etc. It isn't just your documentation that gets kept up to date, but your core
 semantic memory system as well.  In the future, when working on other tasks, hunting down bugs, planning a new feature, etc.
-it can find this detailed information.  It gets smarter and more capable over time, with a deeper understanding of the 
+it can find this detailed information.  It gets smarter and more capable over time, with a deeper understanding of the
 application.
 
 The `goose-cycle` helper takes this same approach, but tracks and automates it.  Each step it does while auto-approving

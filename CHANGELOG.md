@@ -4,6 +4,18 @@
 
 _No unreleased changes._
 
+## v2.6.7 - 2026-07-09
+
+### Fixed
+
+- Removed trailing whitespace from `docs/IMA-DEV-CYCLE.md` and cleaned up typos in the example workflow text.
+- Bumped the package and lockfile release metadata to v2.6.7.
+
+### Validation
+
+- Ran `git diff --check`.
+- Ran `git show --check --stat --oneline HEAD`.
+
 ## v2.6.6 - 2026-07-09
 
 ### Changed
