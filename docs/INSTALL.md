@@ -1,7 +1,7 @@
 # Install Guide
 
 This guide explains what a full `ima-goose` setup installs and what still needs
-manual configuration.
+manual configuration. For a detailed self-hosted/developer walkthrough, see [`IMA-GOOSE-FULL-SETUP.md`](IMA-GOOSE-FULL-SETUP.md). For VM users, see [`IMA-GOOSE-WORKSTATION-SETUP.md`](IMA-GOOSE-WORKSTATION-SETUP.md).
 
 If you only need the shortest path, use the README quick start:
 

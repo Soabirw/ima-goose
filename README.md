@@ -44,7 +44,9 @@ goose-help
 ```
 
 For the full setup, including provider profiles, MCPs, skills, API keys, MOIM,
-and local IMA tools, see the [Install Guide](docs/INSTALL.md).
+and local IMA tools, start with the [Install Guide](docs/INSTALL.md), then use
+the [IMA Goose Full Setup Guide](docs/IMA-GOOSE-FULL-SETUP.md) for detailed
+self-hosted setup.
 
 ## Recommended Daily Workflow
 
@@ -102,6 +104,10 @@ Start here, then go deeper only where needed:
 | Need | Read |
 |---|---|
 | Full installation and local tool setup | [Install Guide](docs/INSTALL.md) |
+| Detailed self-hosted setup | [IMA Goose Full Setup Guide](docs/IMA-GOOSE-FULL-SETUP.md) |
+| VM/workstation user setup | [IMA Goose Workstation Setup Guide](docs/IMA-GOOSE-WORKSTATION-SETUP.md) |
+| Verification checklist | [IMA Goose Verification Checklist](docs/IMA-GOOSE-VERIFICATION.md) |
+| Guided IMA Goose help | Use `goose-instructor` with an IMA Goose question; it loads the `ima-goose-guide` skill |
 | Recommended workflow and handoff rules | [IMA Dev Cycle with Goose](docs/IMA-DEV-CYCLE.md) |
 | Automated Taskwarrior/Vestige story conductor | [Goose Cycle Helper](docs/GOOSE-CYCLE.md) |
 | Recipe and skill catalog | [Recipes and Skills Catalog](docs/RECIPES-AND-SKILLS.md) |

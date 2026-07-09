@@ -4,6 +4,27 @@
 
 _No unreleased changes._
 
+## v2.6.8 - 2026-07-09
+
+### Added
+
+- Added the `ima-goose-guide` skill for IMA Goose setup, configuration, operation, workstation/VM support, MCP gateway troubleshooting, installed recipe/skill paths, and related ecosystem repositories.
+- Added canonical setup and support docs: `docs/IMA-GOOSE-FULL-SETUP.md`, `docs/IMA-GOOSE-WORKSTATION-SETUP.md`, and `docs/IMA-GOOSE-VERIFICATION.md`.
+
+### Changed
+
+- Updated `instructor` to load `ima-goose-guide` for IMA Goose ecosystem questions while reserving `goose-doc-guide` for upstream Goose-specific semantics.
+- Updated README, install docs, recipes/skills catalog, and MCP/skills setup docs to point users to `goose-instructor` and the new canonical guides.
+- Bumped the package and lockfile release metadata to v2.6.8.
+- Bumped the changed `instructor` recipe template version to `1.0.1`.
+
+### Validation
+
+- Ran `node scripts/install.ts --validate`; all rendered recipes validated and the new skill installed.
+- Ran `git diff --check`.
+- Ran targeted `rg` checks for new guide/doc references and stale new-user Conda guidance.
+- Verified the repository skill count is 52 and updated exact-count docs.
+
 ## v2.6.7 - 2026-07-09
 
 ### Fixed

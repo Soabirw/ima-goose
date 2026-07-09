@@ -82,9 +82,17 @@ Important skill groups:
 
 - MCP skills: Serena, Vestige, Qdrant, Taskwarrior, Atlassian, Context7,
   Fetch, Tavily
+- IMA Goose support: `ima-goose-guide` for IMA Goose setup, configuration,
+  operation, workstation/VM support, MCP gateway troubleshooting, installed
+  recipe/skill paths, and related ecosystem repos
 - development standards: FP JavaScript, WordPress/PHP, security, testing
 - product and communication: IMA brand, copywriting, SEO, UX
 - workflow support: architecture, git, release, migration, documentation
+
+Normal users should ask IMA Goose support questions through `goose-instructor`,
+using IMA Goose keywords such as setup, recipes, skills, MCP, preflight,
+goose-cycle, or workstation. Manual skill loading is mainly for sessions that
+already support explicit skill loading.
 
 For installation and MCP details, see [`SKILLS-AND-MCP-SETUP.md`](SKILLS-AND-MCP-SETUP.md).
 

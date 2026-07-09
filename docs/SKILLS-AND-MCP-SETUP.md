@@ -58,6 +58,13 @@ Summon scans `~/.agents/skills/` at session start and makes all SKILL.md files a
 
 The `/skills` slash command lists all discovered skills. `/prompts` and `/prompt <n>` exist for prompt templates.
 
+`ima-goose-guide` is the IMA Goose support/reference skill. It does not
+configure MCPs by itself; it tells Instructor and other agents which local docs,
+installed paths, Gitea repos, and read-only checks to use when answering IMA
+Goose setup and troubleshooting questions. Normal users should ask through
+`goose-instructor` with IMA Goose keywords such as setup, recipes, skills, MCP,
+preflight, goose-cycle, or workstation.
+
 ---
 
 ## Step-by-Step: Install Skills
@@ -75,7 +82,7 @@ cd ima-goose
 node scripts/install.ts
 ```
 
-Requires Node 24+. Copies all 50 `skills/*/` directories to `~/.agents/skills/`.
+Requires Node 24+. Copies all 52 `skills/*/` directories to `~/.agents/skills/`.
 
 What it does:
 - Checks Goose is installed and prints version
@@ -95,7 +102,7 @@ ls ~/.agents/skills/
 # ember-discourse, mcp-taskwarrior, and ima-email-creator
 
 ls ~/.agents/skills/ | wc -l
-# 50
+# 52
 ```
 
 ---
@@ -365,7 +372,7 @@ goose session
 /skills
 ```
 
-Goose should list all 50 installed skills from `~/.agents/skills/`.
+Goose should list all 52 installed skills from `~/.agents/skills/`.
 
 **Run preflight:**
 ```
@@ -457,8 +464,8 @@ node ~/.agents/skills/mcp-atlassian/scripts/atlassian-api.mjs jira:get FNR-1
 - Restart Goose and re-run the connection flow
 - If user-installed apps are blocked, ask an Atlassian site admin to allow the Atlassian MCP app
 
-**Only 9 skills showing (not 50):**
+**Only 9 skills showing (not 52):**
 - Run `node scripts/install.ts` from the ima-goose repo root — it renders recipes
   and copies the full `skills/` directory
 - Verify the script completed without errors
-- Check `ls ~/.agents/skills/ | wc -l` — expect 50
+- Check `ls ~/.agents/skills/ | wc -l` — expect 52
