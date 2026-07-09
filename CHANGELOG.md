@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-_No unreleased changes._
+### Changed
+
+- Started tracking stable Serena project configuration and standard onboarding memories while keeping local Serena runtime state and task-local memories ignored.
+
 
 ## v2.6.8 - 2026-07-09
 

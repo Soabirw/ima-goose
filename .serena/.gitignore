@@ -1,0 +1,9 @@
+/cache
+/project.local.yml
+/memories/*
+!/memories/core.md
+!/memories/conventions.md
+!/memories/tech_stack.md
+!/memories/suggested_commands.md
+!/memories/task_completion.md
+!/memories/memory_maintenance.md

@@ -12,7 +12,7 @@ Thumbs.db
 node_modules/
 
 # Local agent/runtime state
-.serena/
+# Stable Serena project config/memories are tracked; local Serena state is ignored by .serena/.gitignore.
 .goose-cycle/
 .fastembed_cache/
 .claude/
