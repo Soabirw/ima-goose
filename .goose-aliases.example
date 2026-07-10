@@ -21,8 +21,8 @@
 # ────────
 # When recipes change, re-run install.ts to refresh ~/.config/goose/recipes/.
 # When profile thinking effort/runtime env changes, copy or merge this file to
-# ~/.goose-aliases again. chatgpt_codex and sakana use alias-scoped
-# GOOSE_THINKING_EFFORT.
+# ~/.goose-aliases again. chatgpt_codex, chatgpt_codex_56, and sakana
+# use alias-scoped GOOSE_THINKING_EFFORT.
 
 # Opt-in: inject the Practitioner persona into every Goose turn.
 # Uncomment to enable globally (applies to ALL goose sessions, not just IMA recipes).
@@ -30,9 +30,10 @@
 
 
 # Profile runtime env helpers. codex-acp encodes effort in the model ID;
-# chatgpt_codex and sakana read GOOSE_THINKING_EFFORT from the command environment.
-# Override GOOSE_*_THINKING_EFFORT when a profile accepts a different effort set
-# (for sakana: high=xhigh, mid=high, low=high). These scoped prefixes are
+# chatgpt_codex, chatgpt_codex_56, and sakana read GOOSE_THINKING_EFFORT
+# from the command environment. Override GOOSE_*_THINKING_EFFORT when a profile
+# uses different efforts (GPT-5.6: high=high, mid=high, low=medium; Sakana:
+# high=xhigh, mid=high, low=high). These scoped prefixes are
 # harmless for providers that ignore the variable.
 _goose_high() { GOOSE_THINKING_EFFORT="${GOOSE_HIGH_THINKING_EFFORT:-high}" goose "$@"; }
 _goose_mid() { GOOSE_THINKING_EFFORT="${GOOSE_MID_THINKING_EFFORT:-medium}" goose "$@"; }
@@ -281,8 +282,9 @@ goose-learn() {
 # with a different profile. See docs/MODEL-TIERS.md for the tier mapping.
 #
 # Profiles:
-#   chatgpt_codex — Default. Native ChatGPT Codex provider. HIGH/MID/LOW → GPT-5.5.
-#   openai        — codex-acp fallback via ChatGPT Pro/Max. HIGH/MID/LOW → GPT-5.5 efforts.
+#   chatgpt_codex    — Default. Native ChatGPT Codex provider. HIGH/MID/LOW → GPT-5.5.
+#   chatgpt_codex_56 — Native ChatGPT Codex. HIGH → Sol; MID/LOW → Terra.
+#   openai           — codex-acp fallback via ChatGPT Pro/Max. HIGH/MID/LOW → GPT-5.5 efforts.
 #   hybrid        — HIGH via codex-acp, MID/LOW via claude-acp.
 #   anthropic     — Direct Anthropic API. HIGH/MID/LOW → full claude-* model IDs.
 #   claude-acp    — Claude friendly shortnames, if working locally.
@@ -294,34 +296,43 @@ goose-learn() {
 # Usage:
 #   goose-profile                  (shows current; lists available)
 #   goose-profile chatgpt_codex
+#   goose-profile chatgpt_codex_56
 #   goose-profile openai
 #   goose-profile hybrid
 #   goose-profile anthropic
 #   goose-profile claude-acp
 #   goose-profile sakana
 #
-# For sakana after switching, set these in ~/.goose-aliases or your shell:
-#   export GOOSE_HIGH_THINKING_EFFORT=xhigh
-#   export GOOSE_MID_THINKING_EFFORT=high
-#   export GOOSE_LOW_THINKING_EFFORT=high
+# goose-profile sets the tier effort overrides for chatgpt_codex,
+# chatgpt_codex_56, and sakana in the current shell.
 goose-profile() {
   local profile="${1:-}"
   local script="$HOME/IMA/dev/ima-goose/scripts/install.ts"
   if [ -z "$profile" ]; then
-    echo "Available profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp, sakana"
+    echo "Available profiles: chatgpt_codex (default), chatgpt_codex_56, openai, hybrid, anthropic, claude-acp, sakana"
     echo "Deployed recipes (first 5):"
     grep -h "^  goose_model:" "$HOME/.config/goose/recipes/"*.yaml 2>/dev/null | sort -u | head -5
     return 0
   fi
-  node "$script" --profile "$profile"
-  if [ "$profile" = "sakana" ]; then
-    cat <<'EOF'
-Sakana profile selected. Add these to ~/.goose-aliases or your shell before using tiered aliases:
-  export GOOSE_HIGH_THINKING_EFFORT=xhigh
-  export GOOSE_MID_THINKING_EFFORT=high
-  export GOOSE_LOW_THINKING_EFFORT=high
-EOF
-  fi
+  node "$script" --profile "$profile" || return
+  case "$profile" in
+    chatgpt_codex)
+      export GOOSE_HIGH_THINKING_EFFORT=high
+      export GOOSE_MID_THINKING_EFFORT=medium
+      export GOOSE_LOW_THINKING_EFFORT=low
+      ;;
+    chatgpt_codex_56)
+      export GOOSE_HIGH_THINKING_EFFORT=high
+      export GOOSE_MID_THINKING_EFFORT=high
+      export GOOSE_LOW_THINKING_EFFORT=medium
+      ;;
+    sakana)
+      export GOOSE_HIGH_THINKING_EFFORT=xhigh
+      export GOOSE_MID_THINKING_EFFORT=high
+      export GOOSE_LOW_THINKING_EFFORT=high
+      ;;
+  esac
+  echo "Tier efforts in this shell: HIGH=${GOOSE_HIGH_THINKING_EFFORT:-default}, MID=${GOOSE_MID_THINKING_EFFORT:-default}, LOW=${GOOSE_LOW_THINKING_EFFORT:-default}"
   echo "Reminder: copy or merge .goose-aliases.example to ~/.goose-aliases when profile thinking effort/runtime env changes."
 }
 
@@ -543,7 +554,8 @@ UPDATING RECIPES:
 
   node ~/IMA/dev/ima-goose/scripts/install.ts   Re-sync after pulling updates
   goose-profile                                 Show available model profiles
-  goose-profile chatgpt_codex                   Switch recipes to default native ChatGPT Codex provider
+  goose-profile chatgpt_codex                   Switch recipes to default native ChatGPT Codex GPT-5.5
+  goose-profile chatgpt_codex_56                Switch to GPT-5.6 Sol/Terra (high/high/medium)
   goose-profile openai                          Switch recipes to codex-acp fallback GPT-5.5 profile
   goose-profile hybrid                          Switch HIGH to GPT-5.5, MID/LOW to Claude ACP
   goose-profile claude-acp                      Switch recipes to Claude ACP shortnames

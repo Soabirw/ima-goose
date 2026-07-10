@@ -128,8 +128,13 @@ Useful install variants:
 ```bash
 node scripts/install.ts --validate
 node scripts/install.ts --profile chatgpt_codex --register-slash-commands
+node scripts/install.ts --profile chatgpt_codex_56
 node scripts/install.ts --profile anthropic
 ```
+
+After installing aliases, use `goose-profile chatgpt_codex_56` to switch to
+GPT-5.6 so the current shell also receives HIGH→high, MID→high, and LOW→medium
+effort overrides. Direct installer calls print the equivalent exports.
 
 Use [`RECIPES-AND-SKILLS.md`](RECIPES-AND-SKILLS.md) for the catalog and
 [`SKILLS-AND-MCP-SETUP.md`](SKILLS-AND-MCP-SETUP.md) for MCP setup details.

@@ -233,6 +233,8 @@ GOOSE_MODEL: "gpt-5.5/medium"
 # GOOSE_MODEL: "gpt-5.5"
 # GOOSE_THINKING_EFFORT: "high"
 # Installer profile: chatgpt_codex. Renders HIGH/MID/LOW to gpt-5.5.
+# Opt-in GPT-5.6 profile: chatgpt_codex_56. Renders HIGH→gpt-5.6-sol/high,
+# MID→gpt-5.6-terra/high, LOW→gpt-5.6-terra/medium via alias-scoped effort.
 
 # Option C: claude-acp (Claude subscription auth, if working locally)
 # GOOSE_PROVIDER: claude-acp

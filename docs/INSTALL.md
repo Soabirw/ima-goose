@@ -64,9 +64,15 @@ Useful variants:
 ```bash
 node scripts/install.ts --validate
 node scripts/install.ts --profile chatgpt_codex --register-slash-commands
+node scripts/install.ts --profile chatgpt_codex_56
 node scripts/install.ts --profile anthropic
 node scripts/install.ts --dest "$(mktemp -d)" --validate
 ```
+
+After shell aliases are installed, prefer `goose-profile chatgpt_codex_56` when
+switching to GPT-5.6. It renders the recipes and applies HIGH→high, MID→high,
+and LOW→medium effort overrides in the current shell. A direct installer call
+prints the equivalent `GOOSE_*_THINKING_EFFORT` exports for you to apply.
 
 ## 3. Install Shell Aliases
 

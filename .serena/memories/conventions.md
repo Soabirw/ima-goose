@@ -1,6 +1,6 @@
 # Conventions
 
-- Project/package release is currently `v2.6.8`; recipe template versions are bumped only when that specific recipe's behavior, instructions, parameters, or workflow changes.
+- Project/package release is currently `v2.7.0`; recipe template versions are bumped only when that specific recipe's behavior, instructions, parameters, or workflow changes.
 - Source recipes use portable model tiers (`opus`, `sonnet`, `haiku`). `scripts/install.ts` rewrites tiers and provider fields according to `profiles/*.yaml` at install time.
 - Root-level recipe directories are installed as flat files: `<recipe>/recipe.yaml` -> `~/.config/goose/recipes/<recipe>.yaml`; installer rewrites sibling subrecipe paths `../name/recipe.yaml` -> `name.yaml`.
 - Full workflow should prefer `software-development-cycle`; it is intentionally flattened and declares phase recipes directly because Goose child sessions are isolated.

@@ -104,7 +104,7 @@ returning a copy-ready prompt.
 | MID | Implementation, tests, release prep, documentation |
 | LOW | Focused exploration |
 
-`chatgpt_codex` is the default profile for Goose's native ChatGPT Codex provider. Use `openai` only as the codex-acp fallback. Use `sakana` only when a custom Sakana model provider is configured locally. See `docs/MODEL-TIERS.md`.
+`chatgpt_codex` is the default GPT-5.5 profile for Goose's native ChatGPT Codex provider. Use `chatgpt_codex_56` for the opt-in GPT-5.6 Sol/Terra mapping, `openai` only as the codex-acp fallback, and `sakana` only when a custom Sakana model provider is configured locally. See `docs/MODEL-TIERS.md`.
 
 ## Sub-Recipe Rule
 

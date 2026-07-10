@@ -2,10 +2,31 @@
 
 ## Unreleased
 
+_No unreleased changes._
+
+## v2.7.0 - 2026-07-10
+
+### Added
+
+- Added the opt-in `chatgpt_codex_56` profile: HIGH uses GPT-5.6 Sol at high effort, MID uses GPT-5.6 Terra at high effort, and LOW uses GPT-5.6 Terra at medium effort.
+- Added profile-switcher support for applying GPT-5.5, GPT-5.6, and Sakana tier effort overrides in the current shell.
+
 ### Changed
 
+- Documented GPT-5.6 profile selection across README, the installer, aliases, configuration template, model-tier guide, setup guide, implementation guide, migration guide, and workflow mapping.
 - Started tracking stable Serena project configuration and standard onboarding memories while keeping local Serena runtime state and task-local memories ignored.
+- Bumped package and lockfile release metadata to v2.7.0.
 
+### Fixed
+
+- Prevented `goose-profile` from applying effort overrides when recipe installation fails.
+
+### Validation
+
+- Ran `npm test`; all 36 tests passed.
+- Rendered and validated all recipes for every supported profile: `chatgpt_codex`, `chatgpt_codex_56`, `openai`, `hybrid`, `anthropic`, `claude-acp`, and `sakana`.
+- Ran `node --check scripts/install.ts` and `bash -n .goose-aliases.example`.
+- Ran `git diff --check`.
 
 ## v2.6.8 - 2026-07-09
 

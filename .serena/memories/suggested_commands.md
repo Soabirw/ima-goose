@@ -1,7 +1,7 @@
 # Suggested Commands
 
 - Fresh setup from repo root: `node scripts/install.ts`.
-- Install with provider profile: `node scripts/install.ts --profile chatgpt_codex|openai|hybrid|anthropic|claude-acp|sakana`.
+- Install with provider profile: `node scripts/install.ts --profile chatgpt_codex|chatgpt_codex_56|openai|hybrid|anthropic|claude-acp|sakana`.
 - Validate Goose sees a recipe without executing: `goose run --recipe <recipe-name> --explain`.
 - Run preferred full cycle interactively: `goose run --recipe software-development-cycle --interactive`.
 - Run a Taskwarrior/Vestige-backed story cycle: `goose-cycle start --task-project <taskwarrior-project> [--task <id-or-uuid>]`.

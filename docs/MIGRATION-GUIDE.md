@@ -51,6 +51,13 @@ node scripts/install.ts --validate
 - MID -> `chatgpt_codex` / `gpt-5.5` with `GOOSE_THINKING_EFFORT=medium` in aliases
 - LOW -> `chatgpt_codex` / `gpt-5.5` with `GOOSE_THINKING_EFFORT=low` in aliases
 
+The opt-in GPT-5.6 profile maps HIGH to Sol/high, MID to Terra/high, and
+LOW to Terra/medium:
+
+```bash
+node scripts/install.ts --profile chatgpt_codex_56
+```
+
 Other profiles are available:
 
 ```bash
@@ -61,9 +68,11 @@ node scripts/install.ts --profile claude-acp
 node scripts/install.ts --profile sakana
 ```
 
-See `docs/MODEL-TIERS.md`. Because the default `chatgpt_codex` profile uses alias-scoped effort, copy or merge
-`.goose-aliases.example` to `~/.goose-aliases` after profile changes so alias
-scoped `GOOSE_THINKING_EFFORT` stays current.
+See `docs/MODEL-TIERS.md`. Because the native `chatgpt_codex` and
+`chatgpt_codex_56` profiles use alias-scoped effort, copy or merge
+`.goose-aliases.example` to `~/.goose-aliases`, then switch with
+`goose-profile <name>` so alias-scoped `GOOSE_THINKING_EFFORT` stays current.
+Direct installer calls print the equivalent exports.
 
 ## Workflow Translation
 

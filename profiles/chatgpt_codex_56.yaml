@@ -1,0 +1,21 @@
+# Native ChatGPT Codex GPT-5.6 provider profile
+# Uses Sol high for planning and high-stakes judgment, Terra high for
+# implementation, and Terra medium for reliable low-tier exploration.
+
+tiers:
+  high: gpt-5.6-sol
+  mid: gpt-5.6-terra
+  low: gpt-5.6-terra
+
+providers:
+  high: chatgpt_codex
+  mid: chatgpt_codex
+  low: chatgpt_codex
+
+env:
+  high:
+    GOOSE_THINKING_EFFORT: high
+  mid:
+    GOOSE_THINKING_EFFORT: high
+  low:
+    GOOSE_THINKING_EFFORT: medium

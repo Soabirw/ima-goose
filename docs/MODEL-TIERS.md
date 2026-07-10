@@ -42,6 +42,24 @@ values for shell aliases: HIGH→`high`, MID→`medium`, LOW→`low`. Copy or me
 `.goose-aliases.example` to `~/.goose-aliases` after changing those profile env
 values.
 
+### ChatGPT Codex GPT-5.6
+
+| Tier | Provider | Model | Runtime effort |
+|---|---|---|---|
+| `HIGH` | `chatgpt_codex` | `gpt-5.6-sol` | `high` |
+| `MID` | `chatgpt_codex` | `gpt-5.6-terra` | `high` |
+| `LOW` | `chatgpt_codex` | `gpt-5.6-terra` | `medium` |
+
+Use `--profile chatgpt_codex_56` to opt into GPT-5.6 while retaining the stable
+GPT-5.5 default profile for comparison and rollback. Sol handles planning,
+architecture, review, and other high-stakes judgment. Terra high handles
+implementation work. Terra medium keeps low-tier exploration reliable without
+introducing Luna yet. Like the default native profile, reasoning effort is set
+by command-scoped `GOOSE_THINKING_EFFORT`. After aliases are installed,
+prefer `goose-profile chatgpt_codex_56`; it renders recipes and sets the
+matching overrides in the current shell. Direct installer calls print the
+three equivalent `GOOSE_*_THINKING_EFFORT` exports.
+
 ### OpenAI codex-acp fallback
 
 | Tier | Provider | Model |
@@ -144,6 +162,7 @@ has been unreliable for this use case.
 ```bash
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile openai
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile chatgpt_codex
+node ~/IMA/dev/ima-goose/scripts/install.ts --profile chatgpt_codex_56
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile hybrid
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile anthropic
 node ~/IMA/dev/ima-goose/scripts/install.ts --profile claude-acp

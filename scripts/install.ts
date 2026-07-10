@@ -1,6 +1,6 @@
 // ima-goose developer setup
 // Run: node scripts/install.ts [--profile <name>] [--dest <recipe-dir>] [--validate] [--register-slash-commands]
-// Profiles: chatgpt_codex (default), openai, hybrid, anthropic, claude-acp, sakana
+// Profiles: chatgpt_codex (default), chatgpt_codex_56, openai, hybrid, anthropic, claude-acp, sakana
 // Requires: Node 24+ (native TypeScript support)
 
 import { execFileSync, execSync } from "node:child_process";
@@ -813,16 +813,26 @@ function printNextSteps(): void {
   console.log('       cp .goose-aliases.example ~/.goose-aliases');
   console.log('       echo \'[ -f "$HOME/.goose-aliases" ] && source "$HOME/.goose-aliases"\' >> ~/.bashrc');
   console.log("  4. Re-copy or merge ~/.goose-aliases whenever profile thinking effort/runtime env changes.");
-  console.log("     chatgpt_codex and sakana use alias-scoped GOOSE_THINKING_EFFORT rather than recipe model suffixes.");
+  console.log("     chatgpt_codex, chatgpt_codex_56, and sakana use alias-scoped GOOSE_THINKING_EFFORT rather than recipe model suffixes.");
   console.log("  5. Optional: enable the Practitioner persona via MOIM (see ~/.goose-aliases)");
   console.log("  6. Ensure ~/.local/bin is on PATH for the goose-cycle helper.");
   console.log("  7. Switch model profile any time:");
-  console.log("       node scripts/install.ts --profile chatgpt_codex # Default — native ChatGPT Codex provider");
-  console.log("       node scripts/install.ts --profile openai     # codex-acp fallback");
+  console.log("       node scripts/install.ts --profile chatgpt_codex    # Default — native ChatGPT Codex GPT-5.5");
+  console.log("       node scripts/install.ts --profile chatgpt_codex_56 # Native ChatGPT Codex GPT-5.6 Sol/Terra");
+  console.log("       node scripts/install.ts --profile openai            # codex-acp fallback");
   console.log("       node scripts/install.ts --profile hybrid     # GPT high, Claude mid/low");
   console.log("       node scripts/install.ts --profile anthropic  # Direct Anthropic API");
   console.log("       node scripts/install.ts --profile claude-acp # Claude friendly shortnames");
   console.log("       node scripts/install.ts --profile sakana     # Sakana API fugu profile");
+  const tierEfforts = ["high", "mid", "low"]
+    .map((tier) => [tier, profile.env[tier]?.GOOSE_THINKING_EFFORT] as const)
+    .filter((entry): entry is readonly [string, string] => Boolean(entry[1]));
+  if (tierEfforts.length > 0) {
+    console.log(`     Selected profile ${profile.name} uses these alias overrides:`);
+    for (const [tier, effort] of tierEfforts) {
+      console.log(`       export GOOSE_${tier.toUpperCase()}_THINKING_EFFORT=${effort}`);
+    }
+  }
   console.log('  8. Run: goose-wp, goose-ui, goose-explore, goose-implement, goose-cycle, etc.');
   console.log('     Inside a session, run /architect for architecture guidance.');
   console.log('     Run /prompt-starter to build a prompt for a dedicated recipe session.');
