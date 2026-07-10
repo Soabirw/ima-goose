@@ -24,6 +24,12 @@ During the phase:
   task/thread identities exist.
 - Keep child-session briefs self-contained.
 
+Before finishing, in this exact order:
+1. Prepare the complete phase artifact.
+2. Save it to Vestige and produce the receipt.
+3. Only after save success, update narrow Taskwarrior success annotations/tags.
+4. On save failure, do not add success state and do not claim cycle advancement.
+
 Before finishing:
 - Update Vestige with this phase's outcome, changed files or reviewed files,
   verification commands/results, blockers, and residual risk.

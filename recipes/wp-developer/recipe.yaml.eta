@@ -1,6 +1,6 @@
-version: "2.3.3"
+version: "2.3.4"
 title: "WordPress Developer"
-description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, then delegates tests and review when appropriate."
+description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, verifies it immediately, saves the lifecycle artifact, and stops."
 
 <%~ it.enabledExtensions() %>
 
@@ -11,8 +11,7 @@ settings:
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:
-  - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
-  - { name: code_review, path: ../code-review/recipe.yaml.eta }
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
@@ -21,6 +20,8 @@ instructions: |
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
+<%~ it.include("instructions/hitl-phase-handoff.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
 
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
 
@@ -161,22 +162,23 @@ instructions: |
     `ddev wp ima-scss status`. Do not use standalone Sass, the Picostrap browser
     compiler, or the Customizer compiler.
 
-  ## Parent-Owned Verification Mode
+  ## Phase Boundary
 
-  Some parent recipes, such as software-development-cycle, own tests and review
-  at the umbrella level because Goose subrecipe sessions are isolated. When the
-  brief says "parent owns tests and review" or sets `phase_mode` to
-  `implementation_only`, do implementation only. Do not call `write_tests` or
-  `code_review`; instead return changed files, implementation summary, known
-  risks, and suggested verification commands for the parent to pass forward.
+  This is a terminal implementation phase. Implement only the approved plan or
+  resolution scope, run immediate existing verification appropriate to changed
+  code, inspect the resulting diff, save the required lifecycle artifact, and
+  stop.
+
+  Do not invoke the separate formal test or review phases. Create tests here
+  only when the approved implementation plan explicitly includes test files in
+  this phase's scope. Normal work saves `implementation`; `cycle_phase=resolve-review`
+  saves `resolution` and preserves every original `REVIEW-NNN` finding ID with
+  its status, explanation, changed files, and verification. Report the Vestige
+  memory ID, lifecycle key, phase status, and workflow-aware handoff. In manual
+  mode, recommend `goose-test` after normal implementation or `goose-review`
+  for rereview by original IDs after a resolution.
 
   ## Delegation
-
-  Unless the brief says parent owns tests and review:
-  - After implementation: call `write_tests` with changed files, relevant plan
-    excerpts, acceptance criteria, and verification commands.
-  - After tests: call `code_review` with the diff, plan summary, changed files,
-    security-sensitive areas, and test results.
 
   Sub-agents have NO memory of this session — provide complete, self-contained briefs.
 
@@ -193,7 +195,7 @@ instructions: |
   - What changed.
   - Files changed.
   - Tests/checks run and their results.
-  - Review/test subrecipe outcomes if invoked.
+  - Vestige memory ID, lifecycle key, phase status, and workflow-aware handoff.
   - Risks, follow-ups, and any skipped plan items.
   - Memory or Jira updates made, if explicitly requested.
 
@@ -213,6 +215,8 @@ prompt: |
   First run Serena bootstrap fully: activate the Serena project first, then call
   Serena `initial_instructions`, list memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
+
+  Cycle receipt path: {{ cycle_receipt_path }}
 
   Mode: {{ mode }}.
   {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when a concrete source is provided; implement the smallest plan-bound change and record assumptions/blockers in the output.
@@ -276,6 +280,12 @@ parameters:
     options:
       - normal
       - resolve-review
+
+  - key: cycle_receipt_path
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Absolute .goose-cycle receipt path supplied by the goose-cycle conductor. Required when both task_project and task are supplied; leave blank in manual mode."
 
 activities:
   - "Implement this approved WordPress plan from memory"

@@ -187,3 +187,7 @@ The new `goose-cycle` binary is the recommended operational helper for
 Taskwarrior/Vestige-backed per-story delivery.
 
 > `--task-project` is the Taskwarrior project used for native `task project:<name>` filtering. It is not a Serena project. Serena bootstrap discovers the current project through the `ima-mcp serena` gateway and Serena's cwd/project configuration behavior.
+
+## Vestige receipt gate
+
+Before recording a completed phase state, `goose-cycle` clears the prior `.goose-cycle/phase-receipt.json`, supplies its absolute path to the phase recipe, and validates a fresh successful `vestige.save` receipt of the expected type. Missing, malformed, failed, stale, or wrong-type receipts leave the active state at the pre-phase status and stop progression.

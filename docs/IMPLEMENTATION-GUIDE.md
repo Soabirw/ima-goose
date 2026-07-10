@@ -90,10 +90,10 @@ Current parents:
 | Parent | Children |
 |---|---|
 | `software-development-cycle` | brainstorm, plan, task-planner, explore, implement, wp-developer, test-writer, code-review, document-learn |
-| `implement` | test-writer, code-review |
-| `wp-developer` | test-writer, code-review |
-| `js-developer` | test-writer, code-review |
-| `code-review` | review-verify, scorecard |
+| `implement` | vision-handoff |
+| `wp-developer` | vision-handoff |
+| `js-developer` | vision-handoff |
+| `code-review` | vision-handoff, review-verify, conditional scorecard |
 | `instructor` | vision-handoff, explore |
 | `design-to-code` | explore, wp-developer, test-writer, code-review |
 | `brainstorm` / `plan` | explore |
@@ -147,3 +147,10 @@ goose run --recipe goose-ship-it \
 
 It prepares refs and may run dry-runs when requested. It must not perform an
 actual deploy without explicit user approval.
+
+## HITL child matrix
+
+- `implement`, `js-developer`, and `wp-developer`: `vision-handoff` only.
+- `code-review`: `vision-handoff`, `review-verify`, plus `scorecard` only on explicit scoring, grading, health, or trend requests.
+
+Formal test and review are separate top-level phases.

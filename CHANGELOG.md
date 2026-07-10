@@ -1,8 +1,39 @@
 # Changelog
 
-## Unreleased
+## v2.7.1 - 2026-07-10
 
-_No unreleased changes._
+### Added
+
+- Added a shared HITL phase-handoff contract with correlated Vestige lifecycle
+  artifacts, common metadata, manual handoff prompts, and stable review IDs.
+
+### Changed
+
+- Made `implement`, `js-developer`, and `wp-developer` terminal implementation
+  phases: they perform immediate verification and diff inspection but leave
+  formal testing and review to separate top-level phases.
+- Added validated Vestige save-receipt gating to `goose-cycle` before completed
+  phase state can advance.
+- Aligned recipes, the Vestige skill, and workflow docs with the expanded
+  lifecycle save types and preserved review verify fan-out; scorecards remain
+  explicit-request-only.
+- Bumped package, lockfile, and README release metadata to v2.7.1.
+
+### Fixed
+
+- Made successful manual `resolve-review` completion advance to
+  `review-resolved`, so the next lifecycle invocation runs rereview instead of
+  repeating resolution.
+- Made approved-plan Vestige persistence mandatory; optional Serena and file
+  copies are offered only after a successful lifecycle save.
+
+### Validation
+
+- Ran focused lifecycle-contract and conductor coverage; all 37 tests passed.
+- Ran `node scripts/install.ts --validate --dest "$(mktemp -d)"`; all recipes
+  rendered and validated.
+- Ran `npm test`; all 50 tests passed.
+- Ran `git diff --check`.
 
 ## v2.7.0 - 2026-07-10
 

@@ -1,4 +1,4 @@
-version: "2.3.3"
+version: "2.3.4"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 
@@ -10,14 +10,15 @@ settings:
 
 # Declarative delegation — Goose generates a tool per sub-recipe.
 sub_recipes:
-  - { name: write_tests, path: ../test-writer/recipe.yaml.eta }
-  - { name: code_review, path: ../code-review/recipe.yaml.eta }
+  - { name: vision_handoff, path: ../vision-handoff/recipe.yaml.eta }
 
 instructions: |
 <%~ it.include("instructions/serena-bootstrap.md", 2) %>
 <%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
+<%~ it.include("instructions/hitl-phase-handoff.md", 2) %>
+<%~ it.include("instructions/vision-handoff.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
   You are the IMA JavaScript specialist. FP-first, anti-over-engineering, evidence over assumptions.
 
@@ -81,9 +82,23 @@ instructions: |
 
   **other** — Apply js-fp core principles; ask which target if the answer affects the approach.
 
+  ## Phase Boundary
+
+  This is a terminal implementation phase. Implement only the approved plan or
+  resolution scope, run immediate existing verification appropriate to changed
+  code, inspect the resulting diff, save the required lifecycle artifact, and
+  stop.
+
+  Do not invoke the separate formal test or review phases. Create tests here
+  only when the approved implementation plan explicitly includes test files in
+  this phase's scope. Normal work saves `implementation`; `cycle_phase=resolve-review`
+  saves `resolution` and preserves every original `REVIEW-NNN` finding ID with
+  its status, explanation, changed files, and verification. Report the Vestige
+  memory ID, lifecycle key, phase status, and workflow-aware handoff. In manual
+  mode, recommend `goose-test` after normal implementation or `goose-review`
+  for rereview by original IDs after a resolution.
+
   ## Delegation
-    - After implementation: call `write_tests` with the files changed and acceptance criteria.
-    - For review: call `code_review` with the diff and context.
   Sub-agents have NO memory of this session — provide complete, self-contained briefs.
 
   ## Jira Awareness
@@ -100,6 +115,8 @@ instructions: |
 
 prompt: |
   First run Serena bootstrap fully. Then continue.
+
+  Cycle receipt path: {{ cycle_receipt_path }}
 
   Mode: {{ mode }}.
   {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when a concrete task source is provided; implement the smallest task-bound change and record assumptions/blockers.
@@ -162,6 +179,12 @@ parameters:
     options:
       - normal
       - resolve-review
+
+  - key: cycle_receipt_path
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Absolute .goose-cycle receipt path supplied by the goose-cycle conductor. Required when both task_project and task are supplied; leave blank in manual mode."
 
 activities:
   - "Build a Svelte component with Bootstrap utilities"

@@ -27,8 +27,11 @@ IMA_MCP_VESTIGE_TIMEOUT_MS=300000 ima-mcp vestige search "<task key or topic>" -
 ima-mcp vestige get <memory-id> --timeout-ms 300000 --json
 ima-mcp vestige save --type plan --file <path> --json
 ima-mcp vestige save --type implementation --file <path> --json
+ima-mcp vestige save --type test --file <path> --json
 ima-mcp vestige save --type review --file <path> --json
 ima-mcp vestige save --type resolution --file <path> --json
+ima-mcp vestige save --type rereview --file <path> --json
+ima-mcp vestige save --type decision --file <path> --json
 ima-mcp vestige save --type closeout --file <path> --timeout-ms 300000 --json
 ```
 
@@ -56,7 +59,7 @@ different syntax.
 
 ## Vestige v2.2 Tool Surface
 
-Routine memory workflows should keep using the stable high-level commands above.
+Routine memory workflows should keep using the stable high-level commands above. Supported lifecycle save types are `plan`, `implementation`, `test`, `review`, `resolution`, `rereview`, `decision`, and `closeout`; `plan` maps to a plan node, `decision` to a decision node, and all other lifecycle types to event nodes with type-specific tags.
 Use the generic v2.2 tool surface and aliases for task-specific advanced
 operations, parity checks, and diagnostics when the local gateway advertises
 them.
@@ -226,14 +229,22 @@ review concerns, resolution, and closeout state across those boundaries.
 3. Store review results in Vestige with findings, severity, evidence, required
    fixes, and accepted residual risk.
 
-### Resolution and Closeout
+### Test, Review, Resolution, Rereview, and Closeout
 
-1. Re-read Vestige review results before resolving concerns.
-2. Store the resolution summary in Vestige, including fixes made, verification,
-   remaining risk, and final outcome.
-3. Before closing the Taskwarrior task or equivalent tracker item, update Vestige
-   with the final state so future planning/review sessions can reconstruct the
-   task history.
+1. Store formal test work as type `test`, including plan/implementation IDs,
+   tests changed, commands/results, coverage gaps, defects, and residual risk.
+2. Store normal review as type `review`; retain stable `REVIEW-NNN` IDs after
+   independent verification of candidate Critical and Warning findings.
+3. Re-read the review artifact before resolving concerns. Store only the
+   resolution summary as type `resolution`, preserving original finding IDs,
+   fixes, verification, and remaining risk.
+4. Store the follow-up review as type `rereview`, reporting each original ID and
+   assigning a new ID only to a new regression.
+5. Store justified documentation/memory closeout as type `closeout`. Before
+   closing a Taskwarrior task or equivalent tracker item, update Vestige so the
+   complete `plan -> implementation -> test -> review -> resolution -> rereview
+   -> closeout` lifecycle remains reconstructable. Omit inapplicable resolution
+   and rereview stages when the review was approved without requested changes.
 
 Use one evolving task thread when possible. Add updates that include the task key
 and lifecycle stage instead of scattering unrelated memories with no shared

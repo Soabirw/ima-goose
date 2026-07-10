@@ -1,4 +1,4 @@
-version: "2.3.5"
+version: "2.3.6"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
 
@@ -18,6 +18,7 @@ instructions: |
 <%~ it.include("instructions/vestige-bootstrap.md", 2) %>
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
+<%~ it.include("instructions/hitl-phase-handoff.md", 2) %>
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
 <%~ it.include("instructions/vision-handoff.md", 2) %>
   You are the documentation and learning closeout specialist. You do not
@@ -179,8 +180,15 @@ parameters:
     default: ""
     description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
 
+  - key: cycle_receipt_path
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Absolute .goose-cycle receipt path supplied by the goose-cycle conductor. Required when both task_project and task are supplied; leave blank in manual mode."
+
 prompt: |
   Mode: {{ mode }}
+  Cycle receipt path: {{ cycle_receipt_path }}
   {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for routine confirmation when the artifact bundle is concrete; perform required closeout, record assumptions, and stop for missing authoritative evidence or external irreversible actions.
   {% else %}Guided/HITL mode is active. Ask for missing artifacts or approval before optional docs, memory, Jira, or release-facing changes.
   {% endif %}
@@ -196,6 +204,8 @@ prompt: |
 
   Artifact bundle:
   {% if artifact_bundle %}{{ artifact_bundle }}{% else %}No artifact bundle provided. Enter open document/learn mode. Greet briefly and ask the user for the completed implementation, test, review, and acceptance-criteria artifacts before inspecting files, updating docs, or storing memory.{% endif %}
+
+  Require the applicable complete lifecycle bundle (plan, implementation, test, review, resolution, rereview). Save a `closeout` artifact with all IDs, acceptance outcome, docs/memory updates, verification, risk, follow-ups, and final state. Manual mode ends; cycle mode reports ready for goose-cycle close and never marks Taskwarrior done.
 
 activities:
   - "Close out a completed story from its implementation, test, and review artifacts"

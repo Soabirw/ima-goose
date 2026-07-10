@@ -148,8 +148,8 @@ $ goose-plan
 ```bash
 $ goose-implement # or goose-wp or goose-js depending on tech stack
 > <PASTE_PROMPT> or "Let's implement this task from vestige memory `<VESTIGE_MEMORY_ID>`"
-# work will kick off and it will call sub-recipes `test-writer` and `code-review`
-# and fix any issues found early
+# implementation performs immediate appropriate verification and diff inspection,
+# saves its lifecycle artifact, and stops for the separate formal test phase
 # HITL: review the work to check for any issues.
 > Update vestige memories and generate me a handoff prompt for the tester
 > /exit
@@ -212,3 +212,7 @@ application.
 The `goose-cycle` helper takes this same approach, but tracks and automates it.  Each step it does while auto-approving
 its recommendations.  When you type `/exit` after final review of each step, it immediately goes into the next cycle phase
 pre-prompted to kick off the work.  This can be automated further by removing `--interactive` so they auto-exit.
+
+## HITL lifecycle handoffs
+
+The formal sequence is `plan -> implement -> test-writer -> code-review -> document-learn`. Implementation runs immediate verification and diff inspection, saves its correlated Vestige artifact, and stops; it does not invoke formal test or review children. Manual phases return a next alias and pasteable prompt. Cycle phases rely on the conductor and a validated Vestige save receipt before active-state advancement.

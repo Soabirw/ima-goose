@@ -1,6 +1,6 @@
-version: "2.3.4"
+version: "2.3.5"
 title: "Plan"
-description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, saves the plan to Vestige memory, Serena memory, or a file. Never implements. Stand-alone; no prior brainstorm required."
+description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, automatically saves approved plans to Vestige, then optionally copies them to Serena memory or a file. Never implements. Stand-alone; no prior brainstorm required."
 
 <%~ it.enabledExtensions() %>
 
@@ -25,6 +25,7 @@ instructions: |
 <%~ it.include("instructions/memory-workflow.md", 2) %>
 
 <%~ it.include("instructions/cycle-task-context.md", 2) %>
+<%~ it.include("instructions/hitl-phase-handoff.md", 2) %>
 
 <%~ it.include("instructions/subrecipe-delegation.md", 2) %>
 <%~ it.include("instructions/vision-handoff.md", 2) %>
@@ -245,14 +246,15 @@ instructions: |
   After each batch, integrate the answers and reflect the updated plan.
   Iterate to user-signaled satisfaction.
 
-  ### 4. Save at user signal
+  ### 4. Persist approved plan, then offer optional copies
 
-  When the user signals the plan is ready, ask:
+  When the user signals the plan is ready, automatically save the complete
+  implementation handoff to Vestige as a `plan`; do not ask whether or where to
+  save it. Confirm the Vestige save succeeded before offering optional copies.
 
-  > Save this plan to Serena memory or to a file?
-  > - Vestige memory
-  > - Serena memory: name? (suggestion: `<slug>-plan`)
-  > - File: path? (suggestion: `~/IMA/dev/notes/<slug>-plan.md`)
+  Only after successful Vestige persistence, ask whether the user also wants:
+  - Serena memory: name? (suggestion: `<slug>-plan`)
+  - File: path? (suggestion: `~/IMA/dev/notes/<slug>-plan.md`)
 
   Save format (only consulted at save time — do not preload it). Populate every
   section with implementation-grade detail. If a section is not applicable,
@@ -313,12 +315,19 @@ parameters:
     default: ""
     description: "Optional. Task key, Taskwarrior UUID, Jira key, or source identifier for goose-cycle lifecycle context."
 
+  - key: cycle_receipt_path
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Absolute .goose-cycle receipt path supplied by the goose-cycle conductor. Required when both task_project and task are supplied; leave blank in manual mode."
+
 prompt: |
   First run Serena bootstrap fully: activate the Serena project first, then call
   Serena `initial_instructions`, list memories, and read standard memories (`core`, `conventions`, `tech_stack`,
   `suggested_commands`, `task_completion`). Then continue.
 
   Mode: {{ mode }}
+  Cycle receipt path: {{ cycle_receipt_path }}
   {% if mode == "autonomous" %}Autonomous mode is active. Do not ask for interactive approval or routine clarification when concrete source material is supplied.
   {% else %}Guided/HITL mode is active. Use the normal planning conversation and wait for user answers where decisions are needed.
   {% endif %}
@@ -347,6 +356,8 @@ prompt: |
   {% else %}
   Open planning mode. First run Serena bootstrap. Then greet in one or two lines and ask the user what they want to plan and where the source lives (paste, Serena memory name, file path, or Jira key). After bootstrap, do not do task-specific research, memory search, or tool calls before the user answers — wait for their input first. Planning-only mode persists for the entire session; do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts.
   {% endif %}
+
+  When the user approves the plan, automatically save the complete implementation handoff as `plan`; do not ask whether to save. Save to Serena/files only after successful Vestige save unless specified. Manual handoff names `goose-implement`, `goose-js`, or `goose-wp`; cycle context reports expected implementation and conductor ownership.
 
 activities:
   - "Open plan — ask me what I want to plan"

@@ -38,6 +38,8 @@ type CycleStatus =
   | "review-unknown";
 
 type ReviewState = "approved" | "needs-fix" | "blocked" | "unknown";
+type VestigeSaveType = "plan" | "implementation" | "test" | "review" | "resolution" | "rereview" | "decision" | "closeout";
+type PhaseReceipt = { ok: true; command: "vestige.save"; data: { type: VestigeSaveType; stored: true; memoryId?: string } };
 
 type CliArgs = {
   command: CommandName;
@@ -269,6 +271,26 @@ function statePath(): string {
   return path.join(projectRoot(), ".goose-cycle", "active.json");
 }
 
+function phaseReceiptPath(): string {
+  return path.join(projectRoot(), ".goose-cycle", "phase-receipt.json");
+}
+
+function clearPhaseReceipt(): void {
+  fs.rmSync(phaseReceiptPath(), { force: true });
+}
+
+function validatePhaseReceipt(expectedType: VestigeSaveType): PhaseReceipt {
+  const file = phaseReceiptPath();
+  if (!fs.existsSync(file)) throw new Error(`Vestige persistence receipt is missing: ${file}. Retry the same phase after fixing Vestige.`);
+  let parsed: unknown;
+  try { parsed = JSON.parse(fs.readFileSync(file, "utf8")); } catch { throw new Error(`Vestige persistence receipt is malformed: ${file}. Retry the same phase after fixing Vestige.`); }
+  const receipt = parsed as Partial<PhaseReceipt>;
+  if (receipt.ok !== true || receipt.command !== "vestige.save" || receipt.data?.stored !== true || receipt.data.type !== expectedType) {
+    throw new Error(`Vestige persistence receipt is invalid for '${expectedType}': ${file}. Retry the same phase after fixing Vestige.`);
+  }
+  return receipt as PhaseReceipt;
+}
+
 function readActiveState(): ActiveState | null {
   const file = statePath();
   if (!fs.existsSync(file)) return null;
@@ -372,11 +394,17 @@ function printStatus(taskProject: string, taskRef: string): void {
   }
 }
 
-function phaseParams(args: CliArgs, task: TaskwarriorTask, extras: Record<string, string | boolean> = {}): Record<string, string | boolean> {
+function phaseParams(
+  args: CliArgs,
+  task: TaskwarriorTask,
+  extras: Record<string, string | boolean> = {},
+  includeReceipt = true,
+): Record<string, string | boolean> {
   return {
     mode: args.mode,
     task_project: args.taskProject,
     task: taskIdentity(task),
+    ...(includeReceipt ? { cycle_receipt_path: phaseReceiptPath() } : {}),
     ...extras,
   };
 }
@@ -384,6 +412,7 @@ function phaseParams(args: CliArgs, task: TaskwarriorTask, extras: Record<string
 type ManualPhaseSpec = {
   recipe: string;
   status: CycleStatus;
+  expectedType: VestigeSaveType;
   params: (args: CliArgs, task: TaskwarriorTask) => Record<string, string | boolean>;
 };
 
@@ -391,11 +420,13 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   plan: {
     recipe: "plan",
     status: "planned",
+    expectedType: "plan",
     params: () => ({}),
   },
   implement: {
     recipe: "implement",
     status: "implemented",
+    expectedType: "implementation",
     params: (args, task) => ({
       implementation_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
@@ -403,6 +434,7 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   test: {
     recipe: "test-writer",
     status: "tested",
+    expectedType: "test",
     params: (args, task) => ({
       test_source: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
@@ -410,6 +442,7 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   review: {
     recipe: "code-review",
     status: "reviewed",
+    expectedType: "review",
     params: (args, task) => ({
       target: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
@@ -417,13 +450,15 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   learn: {
     recipe: "document-learn",
     status: "learned",
+    expectedType: "closeout",
     params: (args, task) => ({
       artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
     }),
   },
   "resolve-review": {
     recipe: "implement",
-    status: "resolve-review",
+    status: "review-resolved",
+    expectedType: "resolution",
     params: (args, task) => ({
       cycle_phase: "resolve-review",
       implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
@@ -432,6 +467,7 @@ const manualPhaseSpecs: Record<ManualPhaseName, ManualPhaseSpec> = {
   rereview: {
     recipe: "code-review",
     status: "rereviewed",
+    expectedType: "rereview",
     params: (args, task) => ({
       cycle_phase: "rereview",
       target: `Rereview resolved findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
@@ -445,8 +481,20 @@ function runManualPhase(args: CliArgs): void {
     throw new Error(`Unsupported manual phase '${args.command}'.`);
   }
   const spec = manualPhaseSpecs[args.command];
+  if (!args.dryRun) clearPhaseReceipt();
   runRecipe(spec.recipe, phaseParams(args, task, spec.params(args, task)), args.dryRun);
+  if (!args.dryRun) validatePhaseReceipt(spec.expectedType);
   writePhaseState(args, task, spec.status, args.dryRun);
+}
+
+function expectedReceiptType(recipe: string, params: Record<string, string | boolean>): VestigeSaveType | undefined {
+  if (recipe === "cycle-start") return "decision";
+  if (recipe === "plan") return "plan";
+  if (recipe === "implement") return params.cycle_phase === "resolve-review" ? "resolution" : "implementation";
+  if (recipe === "test-writer") return "test";
+  if (recipe === "code-review") return params.cycle_phase === "rereview" ? "rereview" : "review";
+  if (recipe === "document-learn") return "closeout";
+  return undefined;
 }
 
 function runTrackedRecipe(
@@ -457,9 +505,13 @@ function runTrackedRecipe(
   afterStatus: CycleStatus,
   params: Record<string, string | boolean>,
   dryRun: boolean,
+  expectedType?: VestigeSaveType,
 ): void {
+  const receiptType = expectedType ?? expectedReceiptType(recipe, params);
   writePhaseState(args, task, beforeStatus, dryRun);
-  runRecipe(recipe, phaseParams(args, task, params), dryRun);
+  if (!dryRun && receiptType !== undefined) clearPhaseReceipt();
+  runRecipe(recipe, phaseParams(args, task, params, receiptType !== undefined), dryRun);
+  if (!dryRun && receiptType !== undefined) validatePhaseReceipt(receiptType);
   writePhaseState(args, task, afterStatus, dryRun);
 }
 
@@ -474,7 +526,7 @@ function runClosePhase(args: CliArgs, task: TaskwarriorTask, dryRun: boolean, co
 function runLearnAndClose(args: CliArgs, task: TaskwarriorTask, dryRun: boolean): void {
   runTrackedRecipe(args, task, "document-learn", "learn", "learned", {
     artifact_bundle: `Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
-  }, dryRun);
+  }, dryRun, "closeout");
 
   runClosePhase(args, task, dryRun);
 }
@@ -493,7 +545,7 @@ function handleReviewOutcome(args: CliArgs, task: TaskwarriorTask, dryRun: boole
     runTrackedRecipe(args, task, "implement", "resolve-review", "review-resolved", {
       cycle_phase: "resolve-review",
       implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(task)}`,
-    }, dryRun);
+    }, dryRun, "resolution");
     return;
   }
 

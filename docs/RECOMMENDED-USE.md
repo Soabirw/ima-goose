@@ -454,3 +454,7 @@ history.
 ## Vision-heavy sources
 
 When a workflow depends on screenshots, mockups, design comps, browser captures, visual regression diffs, diagrams, scanned docs/forms, Jira image attachments, or image URLs, route interpretation through `vision_handoff`. The child recipe is pinned to `codex-acp` / `gpt-5.5/medium` because `chatgpt_codex` currently cannot pass images to GPT-5.5 vision. Parent recipes use the returned visual evidence for planning, implementation, tests, review, or closeout decisions.
+
+### HITL handoffs
+
+Use the separate top-level plan, implementation, test, review, and learn phases. Each meaningful phase saves a correlated Vestige artifact. Manual mode gives the next alias; cycle mode lets `goose-cycle` advance only after its receipt validates.

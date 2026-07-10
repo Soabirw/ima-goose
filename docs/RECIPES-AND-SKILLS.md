@@ -119,3 +119,7 @@ node scripts/install.ts --validate
 goose recipe validate ~/.config/goose/recipes/<recipe>.yaml
 git diff --check
 ```
+
+### Lifecycle persistence
+
+HITL phase recipes use the stable `ima-mcp vestige save` lifecycle types and a shared handoff contract. `scorecard` remains an explicit scoring/health/trend request, not routine review work.

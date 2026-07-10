@@ -14,11 +14,12 @@ function writeExecutable(file, content) {
   fs.chmodSync(file, 0o755);
 }
 
-function makeHarness(tasks) {
+function makeHarness(tasks, receipt = "") {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "ima-goose-cycle-test-"));
   const cwd = path.join(root, "work");
   const bin = path.join(root, "bin");
   const gooseLog = path.join(root, "goose.log");
+  const receiptPath = path.join(cwd, ".goose-cycle", "phase-receipt.json");
 
   fs.mkdirSync(path.join(cwd, ".git"), { recursive: true });
   fs.mkdirSync(bin, { recursive: true });
@@ -51,12 +52,22 @@ process.stdout.write(JSON.stringify(result) + "\\n");
   );
   writeExecutable(
     path.join(bin, "goose"),
-    `#!/usr/bin/env bash
-printf '%s\\n' "$*" >> ${JSON.stringify(gooseLog)}
+    `#!/usr/bin/env node
+const fs = require("node:fs");
+const path = require("node:path");
+const args = process.argv.slice(2);
+fs.appendFileSync(${JSON.stringify(gooseLog)}, args.join(" ") + "\\n");
+const receipt = process.env.GOOSE_TEST_RECEIPT;
+const receiptParam = args.find((arg) => arg.startsWith("cycle_receipt_path="));
+if (receipt && receiptParam) {
+  const target = receiptParam.slice("cycle_receipt_path=".length);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, receipt);
+}
 `,
   );
 
-  return { root, cwd, bin, gooseLog };
+  return { root, cwd, bin, gooseLog, receipt, receiptPath };
 }
 
 function runCycle(harness, args) {
@@ -65,6 +76,7 @@ function runCycle(harness, args) {
     env: {
       ...process.env,
       PATH: `${harness.bin}${path.delimiter}${process.env.PATH ?? ""}`,
+      ...(harness.receipt ? { GOOSE_TEST_RECEIPT: harness.receipt } : {}),
     },
     encoding: "utf8",
   });
@@ -477,7 +489,7 @@ function readGooseLog(harness) {
   return fs.existsSync(harness.gooseLog) ? fs.readFileSync(harness.gooseLog, "utf8") : "";
 }
 
-test("manual review and learn phases write completed active statuses", () => {
+test("manual review and learn phases write completed active statuses after matching receipts", () => {
   const task = {
     id: 41,
     uuid: "41414141-2222-3333-4444-555555555555",
@@ -486,13 +498,21 @@ test("manual review and learn phases write completed active statuses", () => {
     status: "pending",
   };
 
-  const reviewHarness = makeHarness([task]);
+  const reviewHarness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "review", stored: true },
+  }));
   const reviewResult = runCycle(reviewHarness, ["review", "--task-project", "ima-goose", "--task", "S41"]);
 
   assert.equal(reviewResult.status, 0, reviewResult.stderr);
   assert.equal(readActive(reviewHarness.cwd).status, "reviewed");
 
-  const learnHarness = makeHarness([task]);
+  const learnHarness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "closeout", stored: true },
+  }));
   const learnResult = runCycle(learnHarness, ["learn", "--task-project", "ima-goose", "--task", "S41"]);
 
   assert.equal(learnResult.status, 0, learnResult.stderr);
@@ -513,7 +533,11 @@ test("next from reviewed with latest approved annotation runs learn and close on
         { entry: "20260709T160000Z", description: "approved after rereview" },
       ],
     },
-  ]);
+  ], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "closeout", stored: true },
+  }));
   writeActive(harness.cwd, {
     taskProject: "ima-goose",
     task: "42424242-2222-3333-4444-555555555555",
@@ -531,6 +555,178 @@ test("next from reviewed with latest approved annotation runs learn and close on
   assert.doesNotMatch(log, /run --recipe implement/);
   assert.doesNotMatch(log, /run --recipe code-review/);
   assert.equal(readActive(harness.cwd).status, "closed");
+});
+
+test("receipt validation rejects missing, malformed, failed, and wrong-type artifacts without advancing state", () => {
+  const task = {
+    id: 47,
+    uuid: "47474747-2222-3333-4444-555555555555",
+    description: "S47 receipt failures",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const receipts = [
+    ["missing", "", /receipt is missing/],
+    ["malformed", "not json", /receipt is malformed/],
+    ["failed", JSON.stringify({ ok: false, command: "vestige.save", data: { type: "plan", stored: false } }), /receipt is invalid/],
+    ["wrong type", JSON.stringify({ ok: true, command: "vestige.save", data: { type: "review", stored: true } }), /receipt is invalid/],
+  ];
+
+  for (const [label, receipt, expectedError] of receipts) {
+    const harness = makeHarness([task], receipt);
+    const result = runCycle(harness, ["plan", "--task-project", "ima-goose", "--task", "S47"]);
+
+    assert.equal(result.status, 1, label);
+    assert.match(result.stderr, expectedError, label);
+    assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false, label);
+    assert.match(readGooseLog(harness), /run --recipe plan/, label);
+  }
+});
+
+test("a fresh matching receipt advances the phase and replaces stale receipts", () => {
+  const task = {
+    id: 48,
+    uuid: "48484848-2222-3333-4444-555555555555",
+    description: "S48 receipt success",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const harness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "implementation", stored: true, memoryId: "implementation-memory" },
+  }));
+  fs.mkdirSync(path.dirname(harness.receiptPath), { recursive: true });
+  fs.writeFileSync(harness.receiptPath, JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "review", stored: true },
+  }));
+
+  const result = runCycle(harness, ["implement", "--task-project", "ima-goose", "--task", "S48"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readActive(harness.cwd).status, "implemented");
+  assert.equal(JSON.parse(fs.readFileSync(harness.receiptPath, "utf8")).data.type, "implementation");
+  assert.match(readGooseLog(harness), new RegExp(`cycle_receipt_path=${harness.receiptPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+});
+
+test("a stale successful receipt cannot advance a phase when Goose writes no replacement", () => {
+  const task = {
+    id: 51,
+    uuid: "51515151-2222-3333-4444-555555555555",
+    description: "S51 stale receipt",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const harness = makeHarness([task]);
+  fs.mkdirSync(path.dirname(harness.receiptPath), { recursive: true });
+  fs.writeFileSync(harness.receiptPath, JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "plan", stored: true },
+  }));
+
+  const result = runCycle(harness, ["plan", "--task-project", "ima-goose", "--task", "S51"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /receipt is missing/);
+  assert.equal(fs.existsSync(harness.receiptPath), false);
+  assert.equal(fs.existsSync(path.join(harness.cwd, ".goose-cycle", "active.json")), false);
+});
+
+test("a receipt failure during start stops before later recipes launch", () => {
+  const task = {
+    id: 52,
+    uuid: "52525252-2222-3333-4444-555555555555",
+    description: "S52 start receipt failure",
+    project: "ima-goose",
+    status: "pending",
+    tags: ["READY"],
+  };
+  const harness = makeHarness([task]);
+
+  const result = runCycle(harness, ["start", "--task-project", "ima-goose"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /receipt is missing/);
+  assert.match(readGooseLog(harness), /run --recipe cycle-start/);
+  assert.doesNotMatch(readGooseLog(harness), /run --recipe plan|run --recipe implement|run --recipe test-writer|run --recipe code-review/);
+  assert.equal(readActive(harness.cwd).status, "selected");
+});
+
+test("dry-run propagates the absolute receipt path without writing it", () => {
+  const task = {
+    id: 49,
+    uuid: "49494949-2222-3333-4444-555555555555",
+    description: "S49 dry receipt",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const harness = makeHarness([task]);
+  const result = runCycle(harness, ["plan", "--task-project", "ima-goose", "--task", "S49", "--dry-run"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, new RegExp(`cycle_receipt_path=${harness.receiptPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  assert.equal(fs.existsSync(harness.receiptPath), false);
+});
+
+test("successful manual resolve-review resumes with rereview instead of repeating resolution", () => {
+  const task = {
+    id: 53,
+    uuid: "53535353-2222-3333-4444-555555555555",
+    description: "S53 resume resolved review",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const harness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "resolution", stored: true },
+  }));
+
+  const resolution = runCycle(harness, ["resolve-review", "--task-project", "ima-goose", "--task", "S53"]);
+  assert.equal(resolution.status, 0, resolution.stderr);
+  assert.equal(readActive(harness.cwd).status, "review-resolved");
+
+  harness.receipt = JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "rereview", stored: true },
+  });
+  const resumed = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+
+  assert.equal(resumed.status, 0, resumed.stderr);
+  const log = readGooseLog(harness);
+  assert.match(log, /run --recipe code-review/);
+  assert.match(log, /cycle_phase=rereview/);
+  assert.equal((log.match(/run --recipe implement/g) ?? []).length, 1);
+  assert.equal(readActive(harness.cwd).status, "rereviewed");
+});
+
+test("manual phase specs require their expected receipt types", () => {
+  const task = {
+    id: 50,
+    uuid: "50505050-2222-3333-4444-555555555555",
+    description: "S50 expected types",
+    project: "ima-goose",
+    status: "pending",
+  };
+  const phases = [
+    ["plan", "plan"],
+    ["implement", "implementation"],
+    ["test", "test"],
+    ["review", "review"],
+    ["learn", "closeout"],
+    ["resolve-review", "resolution"],
+    ["rereview", "rereview"],
+  ];
+
+  for (const [phase, type] of phases) {
+    const harness = makeHarness([task], JSON.stringify({ ok: true, command: "vestige.save", data: { type, stored: true } }));
+    const result = runCycle(harness, [phase, "--task-project", "ima-goose", "--task", "S50"]);
+    assert.equal(result.status, 0, `${phase}: ${result.stderr}`);
+  }
 });
 
 test("next automatic close commit follows mode and explicit commit flag", () => {
@@ -621,7 +817,11 @@ test("next from learned runs close only and marks cycle closed", () => {
         { entry: "20260709T160000Z", description: "changes requested after regression check" },
       ],
     },
-  ]);
+  ], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "resolution", stored: true },
+  }));
   writeActive(harness.cwd, {
     taskProject: "ima-goose",
     task: "44444444-2222-3333-4444-555555555555",

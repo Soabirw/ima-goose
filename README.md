@@ -3,7 +3,7 @@
 IMA's Goose workflow kit: recipes, skills, memory conventions, MCP guidance, and
 local helpers for practical human-in-the-loop software delivery.
 
-**Current release: v2.7.0**
+**Current release: v2.7.1**
 
 The goal is simple: keep the human in charge of product judgment while Goose
 handles focused planning, implementation, tests, review, and documentation
