@@ -34,17 +34,41 @@ goose-learn "completed artifact bundle" story
 
 ## Handoff Rule
 
-Every phase is a new session. Pass artifacts forward explicitly. Good inputs are:
+Every phase is a new session. The saved lifecycle artifact is the detailed source
+of truth; the next-phase prompt is a compact pointer to it. A completed phase
+that recommends a concrete next phase emits the prompt automatically, so no
+second request is needed.
 
-- Jira keys or Taskwarrior task keys
-- Vestige memory IDs or lifecycle-thread summaries
-- Serena memory names
-- PR URLs or local diff targets
-- file paths
-- pasted acceptance criteria, test results, and review verdicts
+A concise lifecycle prompt contains only:
 
-Do not assume Goose remembers a previous session unless the artifact was saved
-or included in the next prompt.
+- next recipe alias
+- one-line task title or outcome
+- lifecycle key
+- latest relevant artifact reference
+- retained `REVIEW-NNN` IDs when resolving review findings
+
+For example:
+
+```text
+Next: goose-test
+
+Continue “Change calculator PWA.”
+Lifecycle: example:manual:change-calculator:20260715
+Source: Vestige implementation <memory-id>
+```
+
+The prompt does not repeat acceptance criteria, files, strategy, verification
+instructions, or the detailed artifact. The destination recipe loads the
+referenced source and owns how it performs its phase.
+
+Direct source inputs still include Jira or Taskwarrior keys, Vestige memory IDs,
+Serena memory names, PR URLs, local diff targets, and file paths. Do not assume
+Goose remembers a prior session without a saved artifact or explicit source.
+
+If a manual Vestige save fails, the phase preserves the complete artifact in a
+task-scoped Serena memory and then under `docs/` if Serena is unavailable. That
+fallback keeps manual continuity, but `goose-cycle` still requires a valid
+Vestige receipt before it can advance.
 
 ## Product Requirements vs Story Delivery
 
@@ -139,67 +163,54 @@ Here we take each task and iterate through our "human-in-the-loop" dev cycle.
 ```bash
 $ goose-plan
 > We need to plan out this Jira/Taskwarrior task: <LINK_OR_ID>
-# discussion, Q&A, etc until plan is presented
-> Save this plan to vestige for handoff
-# this will print out vestige ID(s) for you and an example handoff prompt
+# discussion and approval; the saved plan and concise next prompt are emitted automatically
 > /exit
 ```
 
 ```bash
 $ goose-implement # or goose-wp or goose-js depending on tech stack
-> <PASTE_PROMPT> or "Let's implement this task from vestige memory `<VESTIGE_MEMORY_ID>`"
+> Continue “Change calculator PWA.”
+> Lifecycle: example:manual:change-calculator:20260715
+> Source: Vestige plan <memory-id>
 # implementation performs immediate appropriate verification and diff inspection,
-# saves its lifecycle artifact, and stops for the separate formal test phase
-# HITL: review the work to check for any issues.
-> Update vestige memories and generate me a handoff prompt for the tester
+# saves its lifecycle artifact, emits the tester prompt, then stops
 > /exit
 ```
 
 ```bash
 $ goose-test
-> <PASTE_PROMPT> or "Make sure our work is sufficiently tested to our standards. See vestige memories: <INSERT_IDS>"
-# Testing will be executed and updated as needed
-> Update vestige memories with your work
-> Generate me a handoff prompt for the reviewer
+> Continue “Change calculator PWA.”
+> Lifecycle: example:manual:change-calculator:20260715
+> Source: Vestige implementation <memory-id>
+# testing saves its detailed artifact and emits the reviewer prompt
 > /exit
 ```
 
 ```bash
 $ goose-review
-> <PASTE_PROMPT>
-> or "Do a full review of this PR: <INSERT_URL>"
-> or "Do  a full review of our local work, see vestige memory <INSERT_IDS>"
-# Full review will crunch for a while and will return a summary.
-# If a PR, it will ask to submit a comment
-> Save your review findings to vestige for handoff back to implementer.
-> Generate me a handoff prompt
-# NOTE: the review plan is instructed to be very detailed on HOW to fix it,
-# so the higher model is making the key decisions, not the lower implementer model
+> Continue “Change calculator PWA.”
+> Lifecycle: example:manual:change-calculator:20260715
+> Source: Vestige test <memory-id>
+# review findings and proposed fixes remain detailed in the saved review artifact
+# a resolution prompt points to that artifact and retains its REVIEW-NNN IDs
 > /exit
 ```
 
 ```bash
 $ goose-implement
-> <PASTE_PROMPT> or "Review found some issues to resolve. See vestige memory <INSERT_MEMORY_ID>"
-# implementer will verify and resolve each issue
-> Update vestige with your work
-> /exit
-```
-
-```bash
-$ goose-review # or flip to review tab already open
-> Fixes from previous review have been implemented.  Please re-review.  See vestige memory `<INSERT_ID>`
-> Update vestige memories with your findings/resolution
-> Generate me a handoff prompt for the document/learn agent
+> Resolve REVIEW-001 and REVIEW-003 for “Change calculator PWA.”
+> Lifecycle: example:manual:change-calculator:20260715
+> Source: Vestige review <memory-id>
+# the implementation recipe owns resolution execution and emits the rereview prompt
 > /exit
 ```
 
 ```bash
 $ goose-learn
-> Make sure our documentation, memories, serena core instruction files, qdrant, wikis, stories, etc
-  are up to date based on the work we just did.  See vestige memories <INSERT_IDS>
-# Be explicit on what documentation/memories/systems you want updated for a more targeted update.
-> Update vestige memories for closeout
+> Continue “Change calculator PWA.”
+> Lifecycle: example:manual:change-calculator:20260715
+> Source: Vestige rereview <memory-id>
+# closeout saves final documentation and memory outcome
 > /exit
 ```
 
@@ -215,4 +226,4 @@ pre-prompted to kick off the work.  This can be automated further by removing `-
 
 ## HITL lifecycle handoffs
 
-The formal sequence is `plan -> implement -> test-writer -> code-review -> document-learn`. Implementation runs immediate verification and diff inspection, saves its correlated Vestige artifact, and stops; it does not invoke formal test or review children. Manual phases return a next alias and pasteable prompt. Cycle phases rely on the conductor and a validated Vestige save receipt before active-state advancement.
+The formal sequence is `plan -> implement -> test-writer -> code-review -> document-learn`. Implementation runs immediate verification and diff inspection, saves its correlated Vestige artifact, and stops; it does not invoke formal test or review children. Manual phases return a pointer-only next alias and pasteable prompt automatically when they recommend a concrete next phase. Cycle phases rely on the conductor and a validated Vestige save receipt before active-state advancement; Serena or Markdown fallback storage never advances the cycle.

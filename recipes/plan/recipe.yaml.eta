@@ -1,4 +1,4 @@
-version: "2.3.5"
+version: "2.3.6"
 title: "Plan"
 description: "Planning-only technical session — works on anything that needs implementation thinking: feature, bug, refactor, new system. Researches the codebase + memories + docs on demand, iterates Q&A with the user, automatically saves approved plans to Vestige, then optionally copies them to Serena memory or a file. Never implements. Stand-alone; no prior brainstorm required."
 
@@ -250,9 +250,11 @@ instructions: |
 
   When the user signals the plan is ready, automatically save the complete
   implementation handoff to Vestige as a `plan`; do not ask whether or where to
-  save it. Confirm the Vestige save succeeded before offering optional copies.
+  save it. On a manual Vestige failure, follow the shared contract's automatic
+  Serena-then-`docs/` fallback so the complete plan is persisted before any
+  manual handoff is presented.
 
-  Only after successful Vestige persistence, ask whether the user also wants:
+  After successful Vestige persistence, optionally offer user-requested copies:
   - Serena memory: name? (suggestion: `<slug>-plan`)
   - File: path? (suggestion: `~/IMA/dev/notes/<slug>-plan.md`)
 
@@ -282,13 +284,16 @@ instructions: |
   ## Memory & Docs Hits
   ```
 
-  ### 5. Hand-off hint, then stop
+  ### 5. Handoff, then stop
 
-  After saving, emit one follow-up line, chosen by what fits the work:
-  - Decompose into Epic→Story→Task: `Next: goose run --recipe task-planner --params "architecture_spec=<saved>" --interactive`
-  - Implement directly (small scope): `Next: goose run --recipe implement --interactive` (paste the plan or its Serena name)
-  - Handoff prompt:
-      `Use this plan as the source: <saved-reference>. Ask clarifying questions before implementing the plan.`
+  After persistence, choose the next alias by the approved route:
+  - Decompose Epic/Story/Task work: `task-planner`.
+  - General implementation: `goose-implement`.
+  - JavaScript/TypeScript implementation: `goose-js`.
+  - WordPress implementation: `goose-wp`.
+
+  For a concrete next phase, use the shared pointer-only handoff format. Do not
+  add recipe-local execution guidance or duplicate the saved plan in the prompt.
 
 parameters:
   - key: mode
@@ -357,7 +362,7 @@ prompt: |
   Open planning mode. First run Serena bootstrap. Then greet in one or two lines and ask the user what they want to plan and where the source lives (paste, Serena memory name, file path, or Jira key). After bootstrap, do not do task-specific research, memory search, or tool calls before the user answers — wait for their input first. Planning-only mode persists for the entire session; do not implement, edit files, run tests/builds/migrations, start servers, commit, branch, or generate artifacts.
   {% endif %}
 
-  When the user approves the plan, automatically save the complete implementation handoff as `plan`; do not ask whether to save. Save to Serena/files only after successful Vestige save unless specified. Manual handoff names `goose-implement`, `goose-js`, or `goose-wp`; cycle context reports expected implementation and conductor ownership.
+  When the user approves the plan, automatically save the complete implementation handoff as `plan`; do not ask whether to save. Offer optional Serena/file copies only after a successful Vestige save; on manual Vestige failure, use the shared automatic Serena-then-`docs/` fallback. Manual handoff uses the shared pointer-only format and names `goose-implement`, `goose-js`, or `goose-wp`; cycle context reports expected implementation and conductor ownership.
 
 activities:
   - "Open plan — ask me what I want to plan"

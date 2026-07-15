@@ -1,4 +1,4 @@
-version: "2.3.6"
+version: "2.3.8"
 title: "Document Learn"
 description: "Terminal closeout recipe. Updates docs and routes learning to Serena, Vestige, and Qdrant from completed implementation/test/review artifacts. Does not implement code."
 
@@ -113,7 +113,7 @@ instructions: |
   4. Inspect only the relevant docs and changed files.
   5. Apply tightly scoped documentation edits.
   6. Store memory updates in the correct layer when tooling is available.
-  7. Return the output contract below.
+  7. Return a clear, human-readable closeout tailored to the work actually performed.
 
   ## Update Scope
   - `story`: close out one story/task. Prefer Vestige task lifecycle updates and
@@ -123,28 +123,19 @@ instructions: |
   - `release`: prepare release-facing docs or handoff summaries. Do not tag,
     publish, or change release state unless the user explicitly asks.
 
-  ## Output Contract
+  ## Closeout Response
 
-  Return YAML in this shape:
-
-  ```yaml
-  docs_changed:
-    - path: string
-      reason: string
-  memory_updates:
-    serena:
-      - name: string
-        summary: string
-    vestige:
-      - type: decision|bug|pattern|preference
-        summary: string
-    qdrant:
-      - topic: string
-        summary: string
-  handoff_summary: string
-  open_followups:
-    - string
-  ```
+  Default to concise, natural Markdown or prose for a human reader. Adapt it to
+  the user's request and the destinations actually updated, such as repository
+  docs, a wiki, Jira, Confluence, another third-party store, Serena, Vestige,
+  Qdrant, or another appropriate system. Include useful details—what changed
+  and why, knowledge-store updates, final outcome or handoff state, blockers,
+  residual risk, and follow-ups—only when relevant. Do not emit empty headings,
+  placeholders, or unused destination categories, and do not require fixed
+  headings, keys, or one exact layout. Use YAML, JSON, or another strict schema
+  only when a human or invoking automation explicitly requests it or supplies
+  that schema; do not infer structured conversational output from mode or
+  `goose-cycle` context alone.
 
 parameters:
   - key: mode

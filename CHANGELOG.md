@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.7.2 - 2026-07-15
+
+### Added
+
+- Added one authoritative pointer-only lifecycle handoff contract for all formal
+  lifecycle recipes, including concise normal and review-resolution examples.
+
+### Changed
+
+- Kept full lifecycle detail in persisted artifacts while manual next-phase
+  prompts now carry only the next alias, one-line outcome, lifecycle key,
+  relevant artifact reference, and retained review IDs when applicable.
+- Added manual persistence fallback from Vestige to task-scoped Serena memory
+  and then deterministic Markdown under `docs/`; cycle advancement still
+  requires a valid Vestige receipt.
+- Aligned planning instructions and active lifecycle workflow documentation with
+  the shared contract, and bumped every affected lifecycle recipe template.
+- Updated `document-learn` to default to a flexible human-readable closeout;
+  strict YAML or JSON output is now used only when explicitly requested or
+  supplied by invoking automation.
+- Bumped package, lockfile, and README release metadata to v2.7.2.
+
+### Fixed
+
+- Removed recipe-local handoff coaching that duplicated artifacts or instructed
+  destination recipes how to execute their own phase.
+
+### Validation
+
+- Ran focused lifecycle and plan contract tests; 12 tests passed.
+- Ran `node --test tests/cycle.test.js`; 30 tests passed.
+- Ran `node scripts/install.ts --validate --dest "$(mktemp -d)"`; all recipes rendered and validated.
+- Ran `npm test`; 52 tests passed.
+- Ran `git diff --check`.
+
 ## v2.7.1 - 2026-07-10
 
 ### Added

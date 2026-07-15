@@ -1,4 +1,4 @@
-version: "2.3.4"
+version: "2.3.5"
 title: "Cycle Start"
 description: "Normalize Taskwarrior and Vestige task context for a goose-cycle run. Terminal setup recipe; does not implement."
 

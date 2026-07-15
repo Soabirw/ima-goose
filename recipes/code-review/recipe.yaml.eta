@@ -1,4 +1,4 @@
-version: "2.3.5"
+version: "2.3.7"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -56,6 +56,10 @@ instructions: |
 
   ## Read-Only Constraint (ABSOLUTE)
   Do not Edit, Write, or push commits. Never modify files.
+  This phase may persist its required lifecycle artifact through the approved
+  Vestige save protocol only; it must not use Serena-memory or `docs/` fallback
+  persistence. If the Vestige save fails, report the failure and block the
+  handoff rather than modifying a fallback destination.
   Run validators (composer check / npm run check / make check) ONLY if they are
   already configured — do not install or create new tooling.
   Do not post PR comments until the user explicitly approves (see PR-posting protocol).

@@ -122,17 +122,11 @@ At each stage, stop and inspect the artifact before moving forward:
 - run document/learn only after the relevant requirements or delivery artifact
   is complete
 
-The important rule: pass artifacts forward explicitly. Good handoff inputs are:
-
-- Serena memory names
-- Vestige task keys
-- Jira issue keys
-- PR URLs
-- file paths
-- pasted summaries with acceptance criteria and test results
-
-Do not assume a new recipe session remembers the previous session. Child
-sessions and separate recipe sessions need complete context.
+The important rule: pass artifacts forward explicitly. A lifecycle artifact is
+the complete context; a next-phase prompt is a concise pointer to it. Direct
+sources before an artifact exists can be Serena memory names, Vestige task keys,
+Jira issue keys, PR URLs, or file paths. Do not assume a new recipe session
+remembers the prior session without a saved artifact or explicit source.
 
 ## Mentoring Side Path
 
@@ -434,21 +428,28 @@ Use a specialty recipe when the task has one clear shape:
 - `goose-design-to-code` when the source of truth is visual
 - `goose-ship-it` only for explicit release prep
 
-## Handoff Checklist
+## Lifecycle Handoff Checklist
 
-Before moving from one recipe to the next, make the handoff explicit:
+The detailed saved artifact contains:
 
-- objective
-- source artifact, memory name, ticket, PR, or file path
-- acceptance criteria
-- relevant constraints
-- changed files or expected files
-- test command and result, if available
-- review verdict and unresolved findings, if available
-- desired closeout scope: `story`, `feature`, or `release`
+- lifecycle metadata, source, approved outcome, scope, and non-goals
+- phase result plus changed, reviewed, or tested files
+- decisions, verification commands/results, blockers, and residual risk
+- prior artifact IDs and recommended next phase
+- review findings and proposed fixes, including stable `REVIEW-NNN` IDs when applicable
 
-This keeps recipe sessions small, auditable, and less dependent on hidden chat
-history.
+The concise next-phase prompt contains only:
+
+- next recipe alias
+- one-line task title or outcome
+- lifecycle key
+- latest relevant artifact reference or references
+- retained `REVIEW-NNN` IDs when resolving review findings
+
+The prompt must not duplicate acceptance criteria, files, strategy, methodology,
+verification instructions, or the complete artifact. The destination recipe
+loads the artifact and owns its own execution. This keeps sessions small,
+auditable, and less dependent on hidden chat history.
 
 
 ## Vision-heavy sources

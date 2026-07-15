@@ -33,3 +33,12 @@ test("plan recipe keeps open-planning wait language in the final fallback", () =
   assert.ok(finalEnd > openBranch);
   assert.ok(waitLanguage > openBranch && waitLanguage < finalEnd);
 });
+
+test("plan recipe keeps the detailed artifact but delegates concise handoffs to the shared contract", () => {
+  assert.match(planRecipe, /implementation handoff to Vestige as a `plan`/);
+  assert.match(planRecipe, /automatic\s+Serena-then-`docs\/` fallback/is);
+  assert.match(planRecipe, /shared pointer-only handoff format/);
+  assert.match(planRecipe, /Do not\s+add recipe-local execution guidance or duplicate the saved plan in the prompt/is);
+  assert.doesNotMatch(planRecipe, /Ask clarifying questions before implementing the plan/);
+  assert.doesNotMatch(planRecipe, /Use this plan as the source: <saved-reference>/);
+});

@@ -1,4 +1,4 @@
-version: "2.3.4"
+version: "2.3.5"
 title: "WordPress Developer"
 description: "Plan-bound WordPress implementation recipe. Reads an approved plan from memory/file/Jira or pasted input, implements the WordPress scope, verifies it immediately, saves the lifecycle artifact, and stops."
 
