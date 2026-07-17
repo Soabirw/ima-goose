@@ -311,6 +311,7 @@ inspection, or local workflow discovery.
    - Always read `core`, `conventions`, and `suggested_commands` before implementation, review, testing, planning, or automation.
    - Read `tech_stack` when choosing libraries, commands, file locations, or integration points.
    - Read `task_completion` before final verification, release work, or handoff.
+   - Testing agents must consult all five standard memories before selecting strategy, then reconcile them with repository evidence and the approved source.
    - Read `memory_maintenance` when updating or migrating project knowledge.
 5. If standard memories are missing and `.goosehints`, `CLAUDE.md`, or `AGENTS.md` exists, migrate the source file content into Serena memories before depending on it. In read-only recipes, report that migration is needed instead of writing memories.
 
@@ -326,11 +327,11 @@ Use these memory names consistently across projects:
 
 | Memory | Contents |
 |--------|----------|
-| `core` | Project purpose, key directories, domain model, architecture overview, ownership boundaries |
-| `conventions` | Coding standards, security rules, release/version policy, naming, review expectations, team preferences, task lifecycle memory rules |
-| `tech_stack` | Languages, frameworks, runtimes, package managers, infrastructure, integrations |
-| `suggested_commands` | Taskwarrior commands, Vestige search/store patterns, test/build/dev commands, environment commands, safe read-only diagnostics |
-| `task_completion` | Required validation, Vestige closeout updates, docs/changelog/release expectations, commit/PR rules |
+| `core` | Project purpose, key directories, domain model, architecture overview, ownership boundaries, and pointers to memories defining the testing contract |
+| `conventions` | Coding standards, security rules, release/version policy, naming, review expectations, team preferences, task lifecycle rules, allowed test levels, testing philosophy, and conditions for broader integration/E2E work |
+| `tech_stack` | Languages, frameworks, runtimes, package managers, integrations, installed test frameworks, configuration files, and available test infrastructure |
+| `suggested_commands` | Taskwarrior commands, Vestige search/store patterns, canonical targeted/full test commands, required runtime/environment setup, and safe read-only diagnostics |
+| `task_completion` | Required validation gates, expected signals, reporting for unverified paths, Vestige closeout updates, docs/changelog/release expectations, commit/PR rules |
 | `memory_maintenance` | Source files migrated, refresh policy, what belongs in each memory, last known migration notes |
 
 Keep memories concise and operational. Prefer a clear summary with exact commands and paths over dumping a whole context file into one memory.
@@ -343,15 +344,23 @@ rules into the standard Serena memories:
 - `conventions`: For task-scoped project work, use Vestige as the living task
   memory across planning, implementation, review, resolution, and closeout.
   Search Vestige by the Taskwarrior ID/UUID, Jira key, or project task key before
-  planning, implementing, reviewing, or closing the task.
-- `suggested_commands`: Search Vestige for the active task key and related keys
+  planning, implementing, reviewing, or closing the task. For testing, inspect
+  project evidence before choosing test level, choose the smallest supported
+  level that proves behavior, and do not implicitly introduce unsupported
+  integration/E2E infrastructure.
+- `tech_stack`: Record configured test frameworks, dependency evidence, test
+  configuration paths, and available test infrastructure.
+- `suggested_commands`: Record canonical targeted and broader test commands plus
+  required environment prerequisites. Search Vestige for the active task key and related keys
   before acting. Example queries include `CM-001`, `CM-010`, `CM-011`, Jira
   keys, Taskwarrior UUIDs, and feature names from the task source.
 - `task_completion`: Before marking a Taskwarrior task or equivalent tracker
   item complete, update Vestige with final outcome, verification performed,
-  review concerns resolved, remaining risk, and any follow-up tasks.
+  review concerns resolved, remaining risk, and any follow-up tasks. Record
+  mandatory validation gates, expected signals, and unverified-path reporting.
 - `memory_maintenance`: Note that Serena stores stable project instructions,
-  while Vestige stores the evolving task lifecycle thread.
+  while Vestige stores the evolving task lifecycle thread; identify the testing
+  contract seeds as reusable alongside lifecycle seeds.
 
 ## Migrate Context Files
 

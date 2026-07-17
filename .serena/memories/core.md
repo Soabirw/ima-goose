@@ -1,7 +1,7 @@
 # Core
 
 - Project: `ima-goose`, IMA Goose recipe + skill repository for FP-aware development workflows, WordPress work, review, testing, architecture, research, and documentation closeout.
-- Current release in package/changelog: v2.7.0; latest release added the opt-in `chatgpt_codex_56` Sol/Terra profile and profile-aware shell effort switching while retaining GPT-5.5 as the default.
+- Current release in package/changelog: v2.7.4; latest release added the opt-in `chatgpt_codex_56` Sol/Terra profile and profile-aware shell effort switching while retaining GPT-5.5 as the default.
 - Primary user-facing artifact: Goose recipes under root-level `<recipe>/recipe.yaml` directories.
 - Secondary artifact: cross-agent skills under `skills/<name>/SKILL.md`, installed globally to `~/.agents/skills/` by `scripts/install.ts`; current repository skill count is 52.
 - Setup/config artifacts: `config-template.yaml`, `profiles/*.yaml`, `.goose-aliases.example`, `moim/ima-practitioner.md`, `shared/` runtime references.
@@ -12,4 +12,5 @@
 - `task-master` remains the manual/orchestration fallback using declarative `sub_recipes:` tools.
 - Goose subrecipe sessions are isolated. Parent recipes must pass complete standalone briefs and artifact bundles; never rely on parent conversation memory in child sessions.
 - Recipe source files are `.yaml.eta` templates; validate rendered YAML, not the source templates directly. `node scripts/install.ts --validate` validates all rendered recipes and copies skills to the configured install target; use `--dest "$(mktemp -d)"` when validation should avoid updating the user's installed Goose recipes/skills.
+- The testing contract is defined by `mem:conventions` (strategy constraints), `mem:tech_stack` (harness/infrastructure), `mem:suggested_commands` (canonical commands), and `mem:task_completion` (validation gates).
 - Read `mem:tech_stack` for runtime/tooling details, `mem:conventions` for recipe/skill/workflow invariants, `mem:suggested_commands` for setup and validation commands, and `mem:task_completion` for done-checks.

@@ -10,3 +10,4 @@
 - For goose-cycle review/rereview verdicts, ensure Taskwarrior annotations provide the latest explicit verdict and stale opposing `approved`/`needs-fix` tags are cleared when safe; do not let stale tag history drive loops.
 - For public-facing IMA copy or UI text: check visible copy, metadata, alt text, examples, and docs for `Honest Medicine™` trademark rule.
 - Before final response, summarize changed files or memories, validations run, and any validation not run.
+- Recipe instruction behavior changes require focused source and rendered-recipe contract coverage, in addition to the applicable full-suite and rendering validation.

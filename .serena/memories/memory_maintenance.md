@@ -39,3 +39,4 @@ Do not add: quick-read facts; generic language/framework knowledge; one-off task
 - Checking for stale memories (e.g. after deletion): Call `serena memories check` for a report.
 - 2026-06-26: refreshed `mem:core`, `mem:conventions`, `mem:tech_stack`, and `mem:suggested_commands` after the `goose-cycle` manual phase alias mapping story so future sessions know manual phase aliases map to concrete recipes and current repo tooling includes root `package.json` scripts.
 - 2026-07-09: stable Serena project config and standard onboarding memories are intentionally tracked in git. `.serena/.gitignore` ignores cache, `project.local.yml`, and non-standard/task-local memories while unignoring `core`, `conventions`, `tech_stack`, `suggested_commands`, `task_completion`, and `memory_maintenance`.
+- 2026-07-17: refreshed all tracked standard memories so this repository's testing contract is discoverable before test-strategy selection.

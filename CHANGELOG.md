@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.7.4 - 2026-07-17
+
+### Added
+
+- Added deterministic source-template, rendered-recipe, and Serena migration-helper
+  contract coverage for the `goose-test` evidence-first strategy.
+- Added reusable Serena testing-contract seeds for strategy constraints, available
+  infrastructure, canonical commands, validation gates, and memory maintenance.
+
+### Changed
+
+- Made `goose-test` load `unit-testing`, all five standard Serena memories, and
+  bounded repository evidence before selecting a test level or framework.
+- Required a concise detected testing-contract summary and an applicable domain
+  testing skill before finalizing test strategy.
+- Made unsupported test infrastructure a guided clarification or autonomous
+  blocker unless the approved source explicitly authorizes setup.
+- Bumped `test-writer` recipe behavior from `2.3.7` to `2.3.8`; updated tracked
+  `ima-goose` Serena memories to document this repository's Node/static/rendered
+  recipe test contract.
+- Bumped package, lockfile, and README release metadata to v2.7.4.
+
+### Fixed
+
+- Prevented automatic E2E escalation from UI/browser-facing shape alone;
+  Playwright now requires explicit browser-level requirements or an established
+  project E2E contract.
+
+### Validation
+
+- Ran `node --test tests/testWriterStrategy.test.js`; 3 tests passed.
+- Ran `npm test`; 60 tests passed.
+- Ran `node scripts/install.ts --validate --dest "$(mktemp -d)"`.
+- Ran `git diff --check`.
+
 ## v2.7.3 - 2026-07-17
 
 ### Added

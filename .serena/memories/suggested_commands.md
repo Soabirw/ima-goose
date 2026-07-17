@@ -17,3 +17,4 @@
 - Verify skills installed globally: `ls ~/.agents/skills/ | wc -l` (current expected repository count: 52) and check `/skills` inside Goose.
 - Verify Goose provider binaries: `which claude-agent-acp`; optionally `which codex-acp`.
 - Serena memory reference sanity check after memory edits: use the available Serena memory check command if present; otherwise inspect `ima-mcp serena memory list --json` and targeted `ima-mcp serena memory read <name> --json`.
+- Canonical testing paths: focused `node --test tests/<file>.test.js`; full `npm test`; rendered-recipe validation `node scripts/install.ts --validate --dest "$(mktemp -d)"`.

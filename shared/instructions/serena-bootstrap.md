@@ -27,7 +27,10 @@ for paths/config that project memory may already contain:
    `ima-mcp serena memory read <name> --json` for `core`, `conventions`,
    `tech_stack`, `suggested_commands`, and `task_completion`.
 4. For implementation, review, testing, planning, or automation, at minimum
-   load `core`, `conventions`, and `suggested_commands` before acting.
+   load `core`, `conventions`, and `suggested_commands` before acting. Testing work
+   must read all five standard memories before choosing test level, framework,
+   commands, or infrastructure, and use them as project evidence rather than a
+   ceremonial bootstrap report.
 5. If required standard memories are missing but `.goosehints`,
    `CLAUDE.md`, or `AGENTS.md` exists, use the `mcp-serena` migration
    workflow to create or refresh Serena memories. In read-only recipes,

@@ -31,24 +31,36 @@ ORG_STANDARD_SEEDS = {
         "- Before planning, implementing, reviewing, or closing a task, search Vestige by the Taskwarrior ID/UUID, Jira key, project task key, and related task keys.",
         "- Store lifecycle updates with a shared task key so future recipe sessions can reconstruct the task history.",
         "- Serena stores stable project instructions; Vestige stores the evolving task thread.",
+        "## Org Standard: Testing Contract",
+        "- Inspect project evidence before choosing a test level; choose the smallest supported level that proves the behavior.",
+        "- Do not introduce unsupported integration or E2E infrastructure implicitly.",
+    ],
+    "tech_stack": [
+        "## Org Standard: Testing Infrastructure",
+        "- Record configured test frameworks, dependency evidence, test configuration paths, and available test infrastructure.",
     ],
     "suggested_commands": [
         "## Org Standard: Vestige Task Lookup",
         "- Search Vestige for the active task key before acting, then search related keys and feature names when the first result is incomplete.",
         "- Useful search examples: `CM-001`, `CM-010`, `CM-011`, Jira keys, Taskwarrior UUIDs, and user-provided feature names.",
         "- When using Taskwarrior, read the task first, capture the UUID or stable project key, then use that key in Vestige updates.",
+        "## Org Standard: Testing Commands",
+        "- Record canonical targeted and broader test commands plus required environment prerequisites.",
     ],
     "task_completion": [
         "## Org Standard: Vestige Closeout",
         "- Before marking a Taskwarrior task or equivalent tracker item complete, update Vestige with the final outcome.",
         "- Include verification performed, review concerns resolved, changed files or modules, remaining risk, and follow-up task references.",
         "- If review found issues, re-read the Vestige review memory before resolving and store the resolution summary afterward.",
+        "## Org Standard: Testing Completion",
+        "- Record mandatory validation gates, expected signals, and unverified-path reporting.",
     ],
     "memory_maintenance": [
         "## Org Standard: Memory Roles",
         "- Serena memories hold stable project context loaded at startup.",
         "- Vestige memories carry the living task lifecycle from plan to implementation, review, resolution, and closeout.",
         "- Keep the Vestige lifecycle rule in Serena `conventions`, `suggested_commands`, and `task_completion` so recipes load it consistently.",
+        "- Treat the testing-contract seeds as reusable guidance alongside the lifecycle seeds.",
     ],
 }
 
@@ -132,7 +144,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--include-org-standards",
         action="store_true",
-        help="Add shared IMA/agent workflow seeds, including the Vestige task lifecycle protocol.",
+        help="Add shared IMA/agent workflow seeds, including Vestige lifecycle and testing-contract guidance.",
     )
     return parser.parse_args()
 
@@ -203,7 +215,7 @@ def build_memories(
     )
     if include_org_standards:
         buckets["memory_maintenance"].append(
-            "- Included org-standard seeds, including the Vestige task lifecycle protocol."
+            "- Included org-standard seeds, including Vestige lifecycle and testing-contract guidance."
         )
     return buckets
 

@@ -3,28 +3,21 @@
 IMA's Goose workflow kit: recipes, skills, memory conventions, MCP guidance, and
 local helpers for practical human-in-the-loop software delivery.
 
-**Current release: v2.7.3**
+**Current release: v2.7.4**
 
 The goal is simple: keep the human in charge of product judgment while Goose
 handles focused planning, implementation, tests, review, and documentation
 closeout.
 
-## What's New in v2.7.0
+## What's New in v2.7.4
 
-- Added the opt-in `chatgpt_codex_56` profile with Sol/high for HIGH-tier work,
-  Terra/high for MID-tier work, and Terra/medium for LOW-tier exploration.
-- Kept the GPT-5.5 `chatgpt_codex` profile as the default for comparison and
-  rollback.
-- Updated `goose-profile` to apply each native profile's tier effort overrides
-  in the current shell after rendering recipes.
-
-Switch after installing or refreshing the aliases:
-
-```bash
-goose-profile chatgpt_codex_56
-```
-
-See [Model Tiers](docs/MODEL-TIERS.md) for the full mapping.
+- Made `goose-test` choose test strategy from approved requirements, Serena
+  testing-contract memories, and bounded repository evidence before it edits
+  tests.
+- Made `unit-testing` the baseline strategy router while preserving configured
+  integration and browser testing when the project evidence supports them.
+- Added reusable Serena testing-contract seeds and deterministic source, rendered
+  recipe, and migration-helper coverage.
 
 ## Quick Start
 

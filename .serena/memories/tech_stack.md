@@ -1,8 +1,9 @@
 # Tech Stack
 
 - Repo is mostly YAML recipes, Markdown skills/docs, and TypeScript setup scripts.
-- Package manifest exists at repo root; Node package is private `ima-goose` at version `2.7.0`, ESM, requiring Node `>=24`.
+- Package manifest exists at repo root; Node package is private `ima-goose` at version `2.7.4`, ESM, requiring Node `>=24`.
 - Installer/runtime script: `scripts/install.ts`, run directly with Node 24+ native TypeScript support.
+- This repository's established test harness is Node's built-in test runner, with source/static and rendered-recipe contract coverage. Playwright is a packaged skill for downstream projects, not an established `ima-goose` verification framework unless future repository evidence changes.
 - Test script: `npm test` -> `node --test tests/*.test.js`; focused tests use `node --test tests/<file>.test.js`.
 - Package scripts: `npm run install:recipes`, `npm run install:recipes:validate`, `npm test`.
 - Dependencies are intentionally small; current runtime dependency is `eta` for recipe templating.
