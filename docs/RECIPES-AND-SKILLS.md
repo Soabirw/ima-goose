@@ -43,9 +43,9 @@ List available skills inside Goose with:
 | `brainstorm` | Product discovery, idea shaping, requirements exploration. |
 | `task-planner` | Requirements/story hierarchy planning and optional PM persistence after approval. |
 | `plan` | Story-level implementation planning. |
-| `implement` | General implementation and review-resolution work. |
+| `implement` | General implementation and review-resolution work; resolves reviewer-decided remediation without redesign. |
 | `test-writer` | Test creation, test repair, and focused verification. |
-| `code-review` | Read-only implementation, security, workflow, or PR review. |
+| `code-review` | Read-only implementation, security, workflow, or PR review; produces complete reviewer-decided remediation for actionable findings. |
 | `document-learn` | Documentation updates, memory routing, and closeout handoff. |
 | `cycle-start` | Normalizes Taskwarrior and Vestige context for `goose-cycle`. |
 | `cycle-close` | Final operational closeout for `goose-cycle`. |

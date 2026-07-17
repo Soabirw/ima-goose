@@ -166,6 +166,8 @@ tags. Tags are fallback state markers only; if `approved` and `needs-fix` tags
 conflict without a resolving annotation, the conductor stops as
 unknown/ambiguous rather than entering a loop.
 
+`needs-fix` means an implementation-ready, reviewer-decided remediation exists. Incomplete remediation is `blocked`; blocked review or resolution pauses the conductor instead of consuming another review cycle.
+
 If `needs-fix` is the current state, it runs:
 
 ```text

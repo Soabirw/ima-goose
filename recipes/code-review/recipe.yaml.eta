@@ -1,4 +1,4 @@
-version: "2.3.7"
+version: "2.3.8"
 title: "Code Review"
 description: "FP-aware, security-first code review. Modes: full review, prompt-only generation, pre-built review prompt, or scorecard delegation. Read-only — reports findings, never modifies code. Drafts PR comments and asks before posting."
 
@@ -53,6 +53,21 @@ instructions: |
       integration contract requires caller/subscriber inspection.
     - Do not modify code, tests, docs, memories, tickets, or PR comments unless
       the relevant protocol below explicitly allows it and the user approves.
+
+  ## CRITICAL: Review findings are implementation handoffs
+  The persisted review artifact is the complete resolution brief for a
+  lower-capability implementation agent. The resolution agent must not infer
+  architecture, choose among alternatives, discover unstated requirements, or
+  fill vague gaps. The reviewer owns every technical and product decision
+  needed to resolve a retained Critical or Warning.
+
+  `Fix: <proposed fix>` is insufficient. “Consider,” “possibly,” “improve,”
+  “clean up,” “handle appropriately,” “use best practices,” and “refactor as
+  needed” are invalid unless followed by exact mechanical instructions. Do not
+  invite the resolution agent to choose another design. Include code or
+  pseudocode when syntax, replacement logic, operation ordering, or data shape
+  is material; do not require a complete patch when exact module/function
+  instructions suffice.
 
   ## Read-Only Constraint (ABSOLUTE)
   Do not Edit, Write, or push commits. Never modify files.
@@ -178,7 +193,12 @@ instructions: |
     2. Run configured validators (composer check / npm run check / make check).
        Record results in a "Validators run" block. Zero validator runs = incomplete.
     3. Walk the diff against the focus checklist below.
-    4. Produce findings — each Critical/Warning needs file:line + proposed fix.
+    4. For every candidate Critical/Warning, decide an implementation-grade
+       remediation before verification: evidence/root cause, required outcome,
+       exact files and symbols, signatures, control flow, data flow, error and
+       boundary behavior, tests, acceptance checks, constraints/non-goals, and
+       rejected material alternatives. Do not delegate any decision to the
+       implementer. Suggestions remain nonblocking.
     5. Cap at 10 findings total. Prioritize ruthlessly. Suggestions are optional.
 
   ### Pass 3 — Advisor Pass (parallel verify fan-out)
@@ -188,17 +208,25 @@ instructions: |
 
     Verify brief format (self-contained — the sub-session has no parent memory):
     ```
-    Re-read ONLY <repo-relative-file-path>:<line-start>-<line-end>. Do not look elsewhere.
-    Claim under review: "<finding statement, one sentence>"
-    Severity claimed: <Critical|Warning>
-    Reply with VERDICT: CONFIRMED | WITHDRAWN | PARTIAL — and one sentence REASON.
-    Do not propose fixes. Do not surface adjacent issues.
+    Re-read <repo-relative-file-path>:<line-start>-<line-end> and only the named
+    symbols/files plus one-hop callers/contracts needed to assess this solution.
+    Candidate severity: <Critical|Warning>
+    Finding statement: "<one sentence>"
+    Evidence and root cause: <specific explanation>
+    Required outcome: <observable invariant>
+    Complete decided solution: <exact files, symbols, signatures, control/data/error behavior, tests>
+    Constraints and non-goals: <preserved behavior, prohibited alternatives>
+    Acceptance checks: <checks and expected signals>
+    Return the required two-axis output. Do not invent an alternate remediation,
+    implement, or surface adjacent issues.
     ```
 
-    Use the returned verdicts to label findings in the final report:
-    - CONFIRMED → keep as stated
-    - WITHDRAWN → remove from report (or demote to a note explaining why it was dropped)
-    - PARTIAL → keep but include the verifier's reason; consider severity demotion
+    A retained finding requires `FINDING_VERDICT: CONFIRMED` and
+    `REMEDIATION_VERDICT: SUFFICIENT`. `WITHDRAWN + NOT_APPLICABLE` is excluded.
+    For `PARTIAL` or `REVISE`, the parent reviewer corrects the finding or its
+    remediation and obtains one final independent verification. If it is not
+    `CONFIRMED + SUFFICIENT`, remain blocked and ask the user for direction;
+    never run an internal revision loop.
 
   ### Pass 4 — Final Report
     Structure:
@@ -214,19 +242,62 @@ instructions: |
 
     ## Findings
     ### Critical
-    - [file:line] <statement> (verify: CONFIRMED)
-      Fix: <proposed fix>
+    ### REVIEW-NNN — Critical: <concise finding title>
+    **Evidence and root cause**
+    - Location: `<repo-relative-file>:<line or range>`
+    - Failing behavior: <specific behavior>
+    - Root cause: <specific cause>
+    - Affected contract/callers: <symbols, hooks, routes, consumers, or invariants>
+    **Required outcome**
+    - <observable invariant that must hold after resolution>
+    **Decided solution**
+    1. `<file>` — `<symbol>`: <exact signature, control-flow, data-flow, or logic change>
+    2. Tests: <exact test file and cases to add or update>
+    **Error and boundary behavior**
+    - <validation, failure return, exception, security, escaping, or fallback behavior; or `Not applicable` with reason>
+    **Constraints and non-goals**
+    - Preserve: <behavior that must not change>
+    - Do not: <prohibited refactor, scope expansion, or alternate design>
+    - Rejected alternatives: <alternatives considered and why not allowed; or state none was material>
+    **Acceptance checks**
+    - <concrete behavioral/structural check and verification command or expected signal>
+    **Verifier**
+    - Finding: `CONFIRMED`
+    - Remediation: `SUFFICIENT`
+    - Reason: <verifier reason>
     ### Warning
-    - [file:line] <statement> (verify: PARTIAL — <verifier reason>)
-      Fix: <proposed fix>
+    [Use the same mandatory actionable remediation record.]
     ### Suggestion
-    - [file:line] <statement>
+    - [file:line] <statement> — nonblocking; no full remediation record required.
+
+    ## Resolution order and dependencies
+    [State exact dependency order, or that retained findings are independent and may be resolved in any order.]
 
     ## Withdrawn during review
     - [file:line] <statement> — withdrawn: <verifier reason>
     ```
 
   ## Focus Checklist (default lens — adjust per PR)
+
+  ## Request-changes gate (fail closed)
+  `REQUEST CHANGES` is valid only when every retained Critical/Warning has a
+  stable ID, verified root cause, concrete required outcome, exact files and
+  symbols, decided control/data/error behavior, test and acceptance
+  instructions, explicit constraints/non-goals, `CONFIRMED + SUFFICIENT`
+  verifier verdicts, explicit resolution ordering/dependencies, and no
+  unresolved implementer decision. Do not save an implementation-bound request,
+  add `needs-fix`, or emit a resolution handoff until this gate passes.
+
+  - Confirmed + complete remediation: route to resolution.
+  - Confirmed + incomplete remediation: remain in review.
+  - Withdrawn: exclude from actionable resolution scope.
+  - Suggestion: report as nonblocking.
+
+  In guided mode, stop in review and ask 2–3 focused questions needed to decide
+  the remediation, then complete and verify it. In autonomous/cycle mode,
+  persist a blocked review artifact with exact missing decisions, record blocked
+  status, do not add `needs-fix`, and do not emit an implementation handoff.
+
 
   **Correctness**
   - Off-by-one, null/undefined, missing return paths, async race conditions
@@ -388,7 +459,7 @@ prompt: |
 
   Which one?{% endif %}
 
-  Normal review saves `review`; rereview saves `rereview`. Every candidate Critical and Warning MUST receive independent parallel `verify`; retained findings get stable `REVIEW-NNN` IDs after verifier verdicts CONFIRMED, WITHDRAWN, or PARTIAL. Withdrawn findings are not actionable. Preserve original IDs through resolution/rereview; new regressions get next unused ID. Run scorecard only for explicit score, grade, health, or trend requests. Save before Taskwarrior verdict tags. Manual APPROVE routes to `goose-learn`; REQUEST CHANGES routes to implementation with IDs.
+  Normal review saves `review`; rereview saves `rereview`. Every candidate Critical and Warning MUST receive independent parallel `verify`; retained findings get stable `REVIEW-NNN` IDs only after a `CONFIRMED + SUFFICIENT` verifier result. Withdrawn findings are not actionable. `PARTIAL` or `REVISE` remains in review. Preserve original IDs through resolution/rereview; new regressions get next unused ID. Run scorecard only for explicit score, grade, health, or trend requests. Save before Taskwarrior verdict tags. Manual APPROVE routes to `goose-learn`; only implementation-ready REQUEST CHANGES routes to resolution with IDs.
 
 activities:
   - "Review this Gitea PR: https://git.example/owner/repo/pulls/123"

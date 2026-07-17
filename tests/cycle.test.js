@@ -19,15 +19,18 @@ function makeHarness(tasks, receipt = "") {
   const cwd = path.join(root, "work");
   const bin = path.join(root, "bin");
   const gooseLog = path.join(root, "goose.log");
+  const tasksPath = path.join(root, "tasks.json");
   const receiptPath = path.join(cwd, ".goose-cycle", "phase-receipt.json");
 
+  fs.writeFileSync(tasksPath, JSON.stringify(tasks));
   fs.mkdirSync(path.join(cwd, ".git"), { recursive: true });
   fs.mkdirSync(bin, { recursive: true });
 
   writeExecutable(
     path.join(bin, "task"),
     `#!/usr/bin/env node
-const tasks = ${JSON.stringify(tasks)};
+const fs = require("node:fs");
+const tasks = JSON.parse(fs.readFileSync(${JSON.stringify(tasksPath)}, "utf8"));
 const args = process.argv.slice(2);
 let result = tasks;
 const projectArg = args.find((arg) => arg.startsWith("project:"));
@@ -57,17 +60,39 @@ const fs = require("node:fs");
 const path = require("node:path");
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(gooseLog)}, args.join(" ") + "\\n");
-const receipt = process.env.GOOSE_TEST_RECEIPT;
 const receiptParam = args.find((arg) => arg.startsWith("cycle_receipt_path="));
+const recipe = args[args.indexOf("--recipe") + 1];
+const receipts = process.env.GOOSE_TEST_RECEIPTS ? JSON.parse(process.env.GOOSE_TEST_RECEIPTS) : {};
+const cyclePhase = args.find((arg) => arg.startsWith("cycle_phase="));
+const receiptKey = recipe === "implement" && cyclePhase === "cycle_phase=resolve-review" ? "resolve-review" : recipe;
+const receipt = receipts[receiptKey] ?? process.env.GOOSE_TEST_RECEIPT;
 if (receipt && receiptParam) {
   const target = receiptParam.slice("cycle_receipt_path=".length);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, receipt);
 }
+if (process.env.GOOSE_TEST_BLOCK_RESOLUTION === "true" && recipe === "implement" && args.includes("cycle_phase=resolve-review")) {
+  const tasks = JSON.parse(fs.readFileSync(${JSON.stringify(tasksPath)}, "utf8"));
+  tasks[0] = {
+    ...tasks[0],
+    tags: ["blocked"],
+    annotations: [{ entry: "20260717T163700Z", description: "blocked review resolution preflight" }],
+  };
+  fs.writeFileSync(${JSON.stringify(tasksPath)}, JSON.stringify(tasks));
+}
+if (process.env.GOOSE_TEST_NEEDS_FIX_REVIEW === "true" && recipe === "code-review" && !args.includes("cycle_phase=rereview")) {
+  const tasks = JSON.parse(fs.readFileSync(${JSON.stringify(tasksPath)}, "utf8"));
+  tasks[0] = {
+    ...tasks[0],
+    tags: ["needs-fix"],
+    annotations: [{ entry: "20260717T163600Z", description: "changes requested" }],
+  };
+  fs.writeFileSync(${JSON.stringify(tasksPath)}, JSON.stringify(tasks));
+}
 `,
   );
 
-  return { root, cwd, bin, gooseLog, receipt, receiptPath };
+  return { root, cwd, bin, gooseLog, tasksPath, receipt, receipts: {}, receiptPath, blockResolution: false, needsFixReview: false };
 }
 
 function runCycle(harness, args) {
@@ -77,6 +102,9 @@ function runCycle(harness, args) {
       ...process.env,
       PATH: `${harness.bin}${path.delimiter}${process.env.PATH ?? ""}`,
       ...(harness.receipt ? { GOOSE_TEST_RECEIPT: harness.receipt } : {}),
+      ...(Object.keys(harness.receipts).length ? { GOOSE_TEST_RECEIPTS: JSON.stringify(harness.receipts) } : {}),
+      ...(harness.blockResolution ? { GOOSE_TEST_BLOCK_RESOLUTION: "true" } : {}),
+      ...(harness.needsFixReview ? { GOOSE_TEST_NEEDS_FIX_REVIEW: "true" } : {}),
     },
     encoding: "utf8",
   });
@@ -702,6 +730,100 @@ test("successful manual resolve-review resumes with rereview instead of repeatin
   assert.match(log, /cycle_phase=rereview/);
   assert.equal((log.match(/run --recipe implement/g) ?? []).length, 1);
   assert.equal(readActive(harness.cwd).status, "rereviewed");
+});
+
+
+test("manual blocked resolve-review preserves blocked state without rereview", () => {
+  const task = {
+    id: 55,
+    uuid: "55555555-2222-3333-4444-555555555555",
+    description: "S55 manual blocked resolution",
+    project: "ima-goose",
+    status: "pending",
+    tags: ["needs-fix"],
+  };
+  const harness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "resolution", stored: true },
+  }));
+  harness.blockResolution = true;
+
+  const result = runCycle(harness, ["resolve-review", "--task-project", "ima-goose", "--task", "S55"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readActive(harness.cwd).status, "blocked");
+  const log = readGooseLog(harness);
+  assert.equal((log.match(/run --recipe implement/g) ?? []).length, 1);
+  assert.doesNotMatch(log, /run --recipe code-review/);
+});
+
+test("automatic review loop stops after blocked resolution without rereview", () => {
+  const task = {
+    id: 56,
+    uuid: "56565656-2222-3333-4444-555555555555",
+    description: "S56 automatic blocked resolution",
+    project: "ima-goose",
+    status: "pending",
+    tags: ["READY"],
+  };
+  const harness = makeHarness([task]);
+  harness.receipts = {
+    "cycle-start": JSON.stringify({ ok: true, command: "vestige.save", data: { type: "decision", stored: true } }),
+    plan: JSON.stringify({ ok: true, command: "vestige.save", data: { type: "plan", stored: true } }),
+    implement: JSON.stringify({ ok: true, command: "vestige.save", data: { type: "implementation", stored: true } }),
+    "resolve-review": JSON.stringify({ ok: true, command: "vestige.save", data: { type: "resolution", stored: true } }),
+    "test-writer": JSON.stringify({ ok: true, command: "vestige.save", data: { type: "test", stored: true } }),
+    "code-review": JSON.stringify({ ok: true, command: "vestige.save", data: { type: "review", stored: true } }),
+  };
+  harness.needsFixReview = true;
+  harness.blockResolution = true;
+
+  const result = runCycle(harness, ["start", "--task-project", "ima-goose", "--max-review-cycles", "1"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readActive(harness.cwd).status, "blocked");
+  const log = readGooseLog(harness);
+  assert.equal((log.match(/run --recipe code-review/g) ?? []).length, 1);
+  assert.equal((log.match(/run --recipe implement/g) ?? []).length, 2);
+  assert.match(log, /cycle_phase=resolve-review/);
+});
+
+test("blocked resolve-review receipt leaves the cycle blocked and next does not launch another phase", () => {
+  const task = {
+    id: 54,
+    uuid: "54545454-2222-3333-4444-555555555555",
+    description: "S54 blocked resolution",
+    project: "ima-goose",
+    status: "pending",
+    tags: ["needs-fix"],
+  };
+  const harness = makeHarness([task], JSON.stringify({
+    ok: true,
+    command: "vestige.save",
+    data: { type: "resolution", stored: true },
+  }));
+  harness.blockResolution = true;
+
+  writeActive(harness.cwd, {
+    taskProject: "ima-goose",
+    task: task.uuid,
+    taskwarriorUuid: task.uuid,
+    status: "needs-fix",
+    updatedAt: "2026-07-17T16:37:00.000Z",
+  });
+
+  const resolution = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+  assert.equal(resolution.status, 0, resolution.stderr);
+  assert.equal(readActive(harness.cwd).status, "blocked");
+
+  const next = runCycle(harness, ["next", "--task-project", "ima-goose"]);
+  assert.equal(next.status, 0, next.stderr);
+  assert.match(next.stdout, /Active cycle is blocked/);
+  const log = readGooseLog(harness);
+  assert.equal((log.match(/run --recipe implement/g) ?? []).length, 1);
+  assert.doesNotMatch(log, /run --recipe code-review/);
+  assert.equal(readActive(harness.cwd).status, "blocked");
 });
 
 test("manual phase specs require their expected receipt types", () => {

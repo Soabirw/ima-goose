@@ -1,5 +1,43 @@
 # Changelog
 
+## v2.7.3 - 2026-07-17
+
+### Added
+
+- Added implementation-grade, reviewer-decided remediation records for retained
+  Critical and Warning findings, including root cause, exact decided changes,
+  constraints, tests, acceptance checks, verifier outcome, and resolution order.
+- Added two-axis review verification for finding correctness and remediation
+  sufficiency, plus deterministic source and rendered-recipe contract coverage.
+- Added goose-cycle regressions for blocked review-resolution behavior through
+  manual, resumed, and automatic review-loop entry paths.
+
+### Changed
+
+- Made `REQUEST CHANGES` implementation-ready: incomplete remediation remains
+  blocked in review rather than being handed to an implementation agent.
+- Added fail-closed review-resolution preflight rules to general, JavaScript, and
+  WordPress implementation recipes; resolution agents execute decided remedies
+  without redesigning them.
+- Updated lifecycle documentation so `needs-fix` denotes ready-to-execute
+  remediation and `blocked` pauses the conductor.
+- Bumped package, lockfile, and README release metadata to v2.7.3.
+
+### Fixed
+
+- Preserved blocked resolution state after a validated receipt and prevented
+  rereview from launching when the current exact Taskwarrior task is blocked.
+- Aligned reviewer verification scope with remediation assessment: exact evidence
+  and named remediation files plus only necessary one-hop contracts.
+
+### Validation
+
+- Ran `node --test tests/cycle.test.js`; 33 tests passed.
+- Ran `node --test tests/hitlPhaseHandoff.test.js`; 10 tests passed.
+- Ran `npm test`; 57 tests passed.
+- Ran `node scripts/install.ts --validate --dest "$(mktemp -d)"`.
+- Ran `git diff --check`.
+
 ## v2.7.2 - 2026-07-15
 
 ### Added

@@ -483,7 +483,16 @@ function runManualPhase(args: CliArgs): void {
   const spec = manualPhaseSpecs[args.command];
   if (!args.dryRun) clearPhaseReceipt();
   runRecipe(spec.recipe, phaseParams(args, task, spec.params(args, task)), args.dryRun);
-  if (!args.dryRun) validatePhaseReceipt(spec.expectedType);
+  if (!args.dryRun) {
+    validatePhaseReceipt(spec.expectedType);
+    if (spec.expectedType === "resolution") {
+      const refreshedTask = resolveTask(args.taskProject, taskIdentity(task));
+      if (reviewState(refreshedTask) === "blocked") {
+        writePhaseState(args, refreshedTask, "blocked", args.dryRun);
+        return;
+      }
+    }
+  }
   writePhaseState(args, task, spec.status, args.dryRun);
 }
 
@@ -506,13 +515,23 @@ function runTrackedRecipe(
   params: Record<string, string | boolean>,
   dryRun: boolean,
   expectedType?: VestigeSaveType,
-): void {
+): CycleStatus {
   const receiptType = expectedType ?? expectedReceiptType(recipe, params);
   writePhaseState(args, task, beforeStatus, dryRun);
   if (!dryRun && receiptType !== undefined) clearPhaseReceipt();
   runRecipe(recipe, phaseParams(args, task, params, receiptType !== undefined), dryRun);
-  if (!dryRun && receiptType !== undefined) validatePhaseReceipt(receiptType);
+  if (!dryRun && receiptType !== undefined) {
+    validatePhaseReceipt(receiptType);
+    if (receiptType === "resolution") {
+      const refreshedTask = resolveTask(args.taskProject, taskIdentity(task));
+      if (reviewState(refreshedTask) === "blocked") {
+        writePhaseState(args, refreshedTask, "blocked", dryRun);
+        return "blocked";
+      }
+    }
+  }
   writePhaseState(args, task, afterStatus, dryRun);
+  return afterStatus;
 }
 
 function closeCommitRequested(args: CliArgs): boolean {
@@ -589,10 +608,14 @@ function runReviewLoopAfterReview(args: CliArgs, task: TaskwarriorTask): void {
       return;
     }
 
-    runTrackedRecipe(args, current, "implement", "resolve-review", "review-resolved", {
+    const resolutionStatus = runTrackedRecipe(args, current, "implement", "resolve-review", "review-resolved", {
       cycle_phase: "resolve-review",
       implementation_source: `Resolve review findings from Vestige lifecycle thread for Taskwarrior project ${args.taskProject}, task ${taskIdentity(current)}`,
     }, false);
+    if (resolutionStatus === "blocked") {
+      console.log("Review state is blocked. Stopping for human inspection.");
+      return;
+    }
     current = resolveTask(args.taskProject, taskIdentity(current));
     runTrackedRecipe(args, current, "code-review", "review-resolved", "rereviewed", {
       cycle_phase: "rereview",

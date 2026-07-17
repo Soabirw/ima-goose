@@ -436,7 +436,7 @@ The detailed saved artifact contains:
 - phase result plus changed, reviewed, or tested files
 - decisions, verification commands/results, blockers, and residual risk
 - prior artifact IDs and recommended next phase
-- review findings and proposed fixes, including stable `REVIEW-NNN` IDs when applicable
+- review findings with stable `REVIEW-NNN` IDs, root cause, required outcome, reviewer-decided exact code instructions, constraints, tests, acceptance checks, and independent finding/remediation verdicts when applicable
 
 The concise next-phase prompt contains only:
 

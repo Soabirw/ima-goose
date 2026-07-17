@@ -29,7 +29,7 @@ goose-learn "completed artifact bundle" story
 | Plan | `goose-plan` | Turn one approved story or acceptance-criteria set into an implementation plan. | Technical plan, files likely touched, acceptance criteria, verification plan. |
 | Implement | `goose-implement` | Execute an approved plan. | Changed files, implementation notes, verification performed, blockers. |
 | Test | `goose-test` | Create, repair, or run focused tests for the story. | Test files/commands/results and any skipped validation. |
-| Review | `goose-review` | Review the diff or PR before closeout. | Verdict, findings, required fixes, residual risk. |
+| Review | `goose-review` | Review the diff or PR before closeout. | Verdict, reviewer-decided implementation-grade remediation for actionable findings, residual risk. |
 | Learn | `goose-learn` | Update docs and memories from completed artifacts. | Docs changed, memory updates, final handoff, follow-ups. |
 
 ## Handoff Rule
@@ -60,6 +60,14 @@ Source: Vestige implementation <memory-id>
 The prompt does not repeat acceptance criteria, files, strategy, verification
 instructions, or the detailed artifact. The destination recipe loads the
 referenced source and owns how it performs its phase.
+
+
+For actionable Critical or Warning findings, `REQUEST CHANGES` is emitted only
+when the saved review artifact contains a reviewer-decided, implementation-grade
+remediation: root cause, required outcome, exact code instructions, constraints,
+tests, acceptance checks, and independent finding/remediation verdicts. The
+implementer executes that decision rather than redesigning it. Incomplete or
+contradictory remediation returns to review and is blocked rather than handed off.
 
 Direct source inputs still include Jira or Taskwarrior keys, Vestige memory IDs,
 Serena memory names, PR URLs, local diff targets, and file paths. Do not assume
@@ -191,8 +199,8 @@ $ goose-review
 > Continue “Change calculator PWA.”
 > Lifecycle: example:manual:change-calculator:20260715
 > Source: Vestige test <memory-id>
-# review findings and proposed fixes remain detailed in the saved review artifact
-# a resolution prompt points to that artifact and retains its REVIEW-NNN IDs
+# reviewer-decided implementation-grade remediation remains detailed in the saved review artifact
+# only a CONFIRMED + SUFFICIENT finding receives a resolution prompt and retained REVIEW-NNN ID
 > /exit
 ```
 

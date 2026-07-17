@@ -76,6 +76,10 @@ test("shared contract defines lifecycle types, pointer-only handoffs, and receip
   assert.match(contract, /Never mention `goose-cycle` in the manual handoff/);
   assert.match(contract, /conductor owns normal progression/i);
   assert.match(contract, /only as interrupted-cycle recovery guidance/i);
+  assert.match(contract, /implementation-grade,\s+reviewer-decided remediation/i);
+  assert.match(contract, /No resolution handoff is\s+permitted while product, architecture, security, API, data-flow, error-handling,\s+or test decisions remain unresolved/is);
+  assert.match(contract, /`REQUEST CHANGES` means remediation is ready\s+to execute/i);
+  assert.match(contract, /Resolution agents reject incomplete\s+remediation rather than infer missing decisions/i);
 });
 
 test("phase templates provide the expected lifecycle save semantics", () => {
@@ -102,19 +106,87 @@ test("document-learn defaults to a flexible human-readable closeout", () => {
   assert.doesNotMatch(template, /handoff_summary:/);
 });
 
-test("review instructions preserve independent verification, stable identity, and explicit-only scorecards", () => {
+test("review instructions require implementation-grade verified remediation before resolution", () => {
   const template = recipe("code-review");
+  const verifier = recipe("review-verify");
 
+  assert.match(template, /version: "2\.3\.8"/);
+  assert.match(template, /lower-capability implementation agent/i);
+  assert.match(template, /`Fix: <proposed fix>` is insufficient/);
+  assert.match(template, /“Consider,” “possibly,” “improve,”[\s\S]*“refactor as\s+needed” are invalid/is);
+  assert.match(template, /Evidence and root cause[\s\S]*Required outcome[\s\S]*Decided solution[\s\S]*Error and boundary behavior[\s\S]*Constraints and non-goals[\s\S]*Acceptance checks[\s\S]*Verifier/s);
+  assert.match(template, /exact files and symbols, signatures, control flow, data flow, error and\s+boundary behavior, tests, acceptance checks/i);
+  assert.match(template, /Resolution order and dependencies/);
   assert.match(template, /For EVERY Critical and Warning finding, issue a `verify` sub-recipe tool call/);
-  assert.match(template, /Vestige save protocol only; it must not use Serena-memory or `docs\/` fallback\s+persistence/i);
-  assert.match(template, /If the Vestige save fails, report the failure and block the\s+handoff rather than modifying a fallback destination/is);
   assert.match(template, /Independent verify calls MUST be issued in parallel/);
-  assert.match(template, /VERDICT: CONFIRMED \| WITHDRAWN \| PARTIAL/);
-  assert.match(template, /WITHDRAWN → remove from report/);
-  assert.match(template, /retained findings get stable `REVIEW-NNN` IDs/);
-  assert.match(template, /Preserve original IDs through resolution\/rereview; new regressions get next unused ID/);
+  assert.match(template, /FINDING_VERDICT: CONFIRMED[\s\S]*REMEDIATION_VERDICT: SUFFICIENT/s);
+  assert.match(template, /`REQUEST CHANGES` is valid only when every retained Critical\/Warning/i);
+  assert.match(template, /Do not save an implementation-bound request,\s+add `needs-fix`, or emit a resolution handoff until this gate passes/i);
+  assert.match(template, /In guided mode, stop in review and ask 2–3 focused questions/i);
+  assert.match(template, /In autonomous\/cycle mode,[\s\S]*blocked review artifact[\s\S]*do not add `needs-fix`/s);
+  assert.match(template, /Suggestions remain nonblocking/i);
+  assert.match(template, /retained findings get stable `REVIEW-NNN` IDs only after a `CONFIRMED \+ SUFFICIENT` verifier result/);
   assert.match(template, /Run scorecard only for explicit score, grade, health, or trend requests/);
   assert.match(template, /Save before Taskwarrior verdict tags/);
+
+  assert.match(verifier, /version: "2\.0\.6"/);
+  assert.match(verifier, /candidate severity, finding statement, exact evidence[\s\S]*complete decided solution,[\s\S]*acceptance\s+checks/is);
+  assert.match(verifier, /FINDING_VERDICT: <CONFIRMED\|WITHDRAWN\|PARTIAL>/);
+  assert.match(verifier, /REMEDIATION_VERDICT: <SUFFICIENT\|REVISE\|NOT_APPLICABLE>/);
+  assert.match(verifier, /Do not choose a replacement remediation/i);
+  assert.match(verifier, /Read beyond the exact evidence\/remediation files and permitted one-hop callers\/contracts/i);
+  assert.doesNotMatch(verifier, /Read files outside the named range/);
+  assert.match(verifier, /No broad exploration/i);
+  assert.match(verifier, /Surface adjacent issues/i);
+  assert.match(verifier, /parent reviewer owns remediation/i);
+  assert.match(template, /obtains one final independent verification[\s\S]*not[\s\S]*`CONFIRMED \+ SUFFICIENT`, remain blocked/i);
+});
+
+test("resolution consumers fail closed before editing review findings", () => {
+  for (const phase of implementationPhases) {
+    const template = recipe(phase);
+    assert.match(template, /Review-resolution preflight/);
+    assert.match(template, /`cycle_phase=resolve-review` or a manual source\s+requests resolution of one or more `REVIEW-NNN` IDs/is);
+    assert.match(template, /Before editing,[\s\S]*retained and not withdrawn[\s\S]*mandatory remediation sections[\s\S]*`CONFIRMED \+ SUFFICIENT`[\s\S]*named files and symbols[\s\S]*ordering\/dependencies/s);
+    assert.match(template, /On any failed check, do not edit/i);
+    assert.match(template, /return the finding to `goose-review`/i);
+    assert.match(template, /Never compensate by independently researching or\s+selecting\s+a\s+solution/is);
+    assert.match(template, /Do not substitute architecture or\s+broaden scope/is);
+    assert.match(template, /Repository contradiction[\s\S]*returns to review/i);
+    assert.match(template, /`resolved`, `blocked`, or `not attempted`/);
+  }
+});
+
+test("installer preserves rendered implementation-grade review and resolution contracts", () => {
+  const destination = fs.mkdtempSync(path.join(os.tmpdir(), "ima-goose-rendered-remediation-"));
+  try {
+    const result = spawnSync(process.execPath, ["scripts/install.ts", "--dest", destination], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+
+    const renderedRecipe = (phase) => fs.readFileSync(path.join(destination, `${phase}.yaml`), "utf8");
+    const review = renderedRecipe("code-review");
+    const verifier = renderedRecipe("review-verify");
+
+    assert.match(review, /implementation-grade,\s+reviewer-decided remediation/i);
+    assert.match(review, /`REQUEST CHANGES` is valid only when every retained Critical\/Warning/i);
+    assert.match(review, /Do not save an implementation-bound request,\s+add `needs-fix`, or emit a resolution handoff until this gate passes/i);
+    assert.match(verifier, /FINDING_VERDICT: <CONFIRMED\|WITHDRAWN\|PARTIAL>/);
+    assert.match(verifier, /REMEDIATION_VERDICT: <SUFFICIENT\|REVISE\|NOT_APPLICABLE>/);
+    assert.match(verifier, /Read beyond the exact evidence\/remediation files and permitted one-hop callers\/contracts/i);
+    assert.doesNotMatch(verifier, /Read files outside the named range/);
+
+    for (const phase of implementationPhases) {
+      const consumer = renderedRecipe(phase);
+      assert.match(consumer, /Review-resolution preflight/);
+      assert.match(consumer, /On any failed check, do not edit/i);
+      assert.match(consumer, /Never compensate by independently researching or\s+selecting\s+a\s+solution/is);
+    }
+  } finally {
+    fs.rmSync(destination, { recursive: true, force: true });
+  }
 });
 
 test("shared cycle task instructions keep Vestige persistence before Taskwarrior success state", () => {
@@ -149,6 +221,10 @@ test("installer renders all lifecycle recipes with the handoff and receipt promp
       assert.match(content, /## Artifact vs\. Prompt/);
       assert.match(content, /handoff prompt is a compact pointer/i);
       assert.match(content, /task-scoped Serena memory[\s\S]*Markdown under `docs\//s);
+      assert.match(content, /implementation-grade,\s+reviewer-decided remediation/i);
+      assert.match(content, /No resolution handoff is\s+permitted while product, architecture, security, API, data-flow, error-handling,\s+or test decisions remain unresolved/is);
+      assert.match(content, /`REQUEST CHANGES` means remediation is ready\s+to execute/i);
+      assert.match(content, /Resolution agents reject incomplete\s+remediation rather than infer missing decisions/i);
       assert.doesNotMatch(content, /<%/);
     }
 

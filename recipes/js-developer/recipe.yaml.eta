@@ -1,4 +1,4 @@
-version: "2.3.5"
+version: "2.3.6"
 title: "JS Developer"
 description: "JavaScript/TypeScript development — Svelte + Bootstrap UI, Node apps, APIs, CLIs, TUIs. FP-first, anti-over-engineering."
 
@@ -98,6 +98,36 @@ instructions: |
   mode, recommend `goose-test` after normal implementation or `goose-review`
   for rereview by original IDs after a resolution.
 
+  ## Review-resolution preflight
+  Activate this preflight when `cycle_phase=resolve-review` or a manual source
+  requests resolution of one or more `REVIEW-NNN` IDs from a review artifact.
+  Before editing, load that artifact and, for every requested ID, establish that
+  it is retained and not withdrawn; all mandatory remediation sections exist;
+  verifier results are `CONFIRMED + SUFFICIENT`; no decision is delegated to the
+  implementer; named files and symbols still match repository evidence; and
+  resolution ordering/dependencies are explicit. Summarize the exact decided
+  instructions to execute without proposing another design.
+
+  On any failed check, do not edit. Identify missing or conflicting fields by
+  finding ID. In guided mode, stop and ask to return the finding to `goose-review`
+  for a complete remediation brief. In autonomous/cycle mode, prepare and save a
+  blocked `resolution` artifact first. Only after successful persistence, update
+  the exact selected Taskwarrior task with a timestamped `blocked review
+  resolution preflight` annotation, add the current-state `blocked` tag, and
+  remove stale `needs-fix` and `approved` markers. On save failure, write none of
+  those Taskwarrior markers. Do not add successful resolution state; progression
+  remains blocked. Never compensate by independently researching or selecting a
+  solution.
+
+  Follow the decided files, symbols, signatures, control flow, data flow, error
+  paths, tests, dependencies, and ordering. Do not substitute architecture or
+  broaden scope. Mechanical adjustment for shifted line numbers is allowed only
+  when named symbols and required behavior still match. Repository contradiction
+  or any material departure stops work and returns to review for independently
+  verified revised remediation. The resolution artifact maps every requested ID
+  to `resolved`, `blocked`, or `not attempted`, instructions executed, files
+  changed, verification/result, deviations (normally `none`), and residual risk.
+
   ## Delegation
   Sub-agents have NO memory of this session — provide complete, self-contained briefs.
 
@@ -130,7 +160,7 @@ prompt: |
   - Cycle phase: {{ cycle_phase }}
 
   After bootstrap, load the Taskwarrior task and Vestige lifecycle thread for this Taskwarrior project/task.
-  {% if cycle_phase == "resolve-review" %}Resolve confirmed review findings from Vestige without broadening scope. Update Vestige with the resolution summary, changed files, and verification. Add a narrow Taskwarrior annotation/tag indicating review findings were resolved when safe.
+  {% if cycle_phase == "resolve-review" %}Load the review artifact and run the Review-resolution preflight before editing. Resolve only `CONFIRMED + SUFFICIENT` findings without redesigning them. On failed preflight, remain blocked and return the finding to review; otherwise update Vestige with per-ID resolution status, changed files, and verification. Add successful Taskwarrior resolution state only after persistence when safe.
   {% else %}Load the latest Vestige plan and implement that approved JavaScript/TypeScript scope. Update Vestige with changed files, decisions, verification performed, and unresolved questions. Add a narrow Taskwarrior annotation/tag indicating implementation is complete when safe.
   {% endif %}
   {% endif %}

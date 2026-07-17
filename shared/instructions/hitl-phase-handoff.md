@@ -95,4 +95,13 @@ Do not save noise: no concrete task, bootstrap failure before work, preliminary 
 
 ## Review identity
 
+Every actionable `REVIEW-NNN` sent to resolution contains an implementation-grade,
+reviewer-decided remediation in the persisted artifact. Detailed solution content
+belongs there, never in the pointer-only prompt. No resolution handoff is
+permitted while product, architecture, security, API, data-flow, error-handling,
+or test decisions remain unresolved. `REQUEST CHANGES` means remediation is ready
+to execute, not merely that a defect exists. Resolution agents reject incomplete
+remediation rather than infer missing decisions.
+
+
 After independent verification fan-out, assign `REVIEW-001`, `REVIEW-002`, and so on to every retained Critical/Warning finding. Withdrawn candidates are not actionable. Resolution and rereview preserve original IDs; a new rereview regression gets the next unused ID.
